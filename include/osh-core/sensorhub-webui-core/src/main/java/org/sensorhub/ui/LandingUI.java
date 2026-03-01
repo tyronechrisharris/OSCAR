@@ -275,7 +275,7 @@ public class LandingUI extends UI{
             @Override
             public void buttonClick(Button.ClickEvent event)
             {
-                final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to logout?");
+                final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToLogout1"));
                 popup.addCloseListener(new Window.CloseListener() {
                     @Override
                     public void windowClose(Window.CloseEvent e)

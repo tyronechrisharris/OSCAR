@@ -1111,7 +1111,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
                         }
 
                         var targetText = (selectedModules.size() == 1) ? selectedModules.get(0).getName() : selectedModules.size() + " modules";
-                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to start " + targetText + "?");
+                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToStart01", targetText));
                         popup.addCloseListener(new CloseListener() {
                             @Override
                             public void windowClose(CloseEvent e)
@@ -1162,7 +1162,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
                         }
 
                         var targetText = (selectedModules.size() == 1) ? selectedModules.get(0).getName() : selectedModules.size() + " modules";
-                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to stop " + targetText + "?");
+                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToStop01", targetText));
                         popup.addCloseListener(new CloseListener() {
                             @Override
                             public void windowClose(CloseEvent e)
@@ -1203,7 +1203,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
                         }
 
                         var targetText = (selectedModules.size() == 1) ? selectedModules.get(0).getName() : selectedModules.size() + " modules";
-                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to restart " + targetText + "?");
+                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToRestart01", targetText));
                         popup.addCloseListener(new CloseListener() {
                             @Override
                             public void windowClose(CloseEvent e)
@@ -1244,7 +1244,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
                         }
 
                         var targetText = (selectedModules.size() == 1) ? selectedModules.get(0).getName() : selectedModules.size() + " modules";
-                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to force re-init " + targetText + "?");
+                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToForceReInit01", targetText));
                         popup.addCloseListener(new CloseListener() {
                             @Override
                             public void windowClose(CloseEvent e)

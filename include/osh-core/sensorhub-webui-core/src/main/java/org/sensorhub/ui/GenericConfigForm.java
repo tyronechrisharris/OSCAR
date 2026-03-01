@@ -1144,7 +1144,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
             {
                 final Tab tab = tabs.getTab(tabContent);
                 
-                final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to delete " + tab.getCaption() + "?</br>All settings will be lost.");
+                final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToDelete0AllSettingsWillBeLost1", tab.getCaption()));
                 popup.addCloseListener(new CloseListener() {
                     private static final long serialVersionUID = 1L;
                     @Override
