@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  db:
+    build:
+      context: ./dist/release/postgis
+      dockerfile: Dockerfile
+    image: oscar-postgis-hardened
+    environment:
+      POSTGRES_USER: oscar_db_user
+      POSTGRES_DB: gis
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    ports:
+      # Do not expose directly to host if not necessary
+      - "127.0.0.1:5432:5432"
+    networks:
+      - oscar_net
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+
+  oscar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: oscar-app-hardened
+    depends_on:
+      - db
+    environment:
+      INITIAL_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: oscar_db_user
+      DB_PASS_FILE: /run/secrets/db_password
+    secrets:
+      - admin_password
+      - db_password
+    ports:
+      - "8282:8282"
+    networks:
+      - oscar_net
+    security_opt:
+      - no-new-privileges:true
+    # read_only: true might require more tempfs mounts depending on application behavior
+    # tmpfs:
+    #   - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE # if binding < 1024, otherwise not needed
+    # Ensure application runs as non-root user defined in Dockerfile
+    # user: "oscar"
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  admin_password:
+    file: ./secrets/admin_password.txt
+
+volumes:
+  pgdata:
+
+networks:
+  oscar_net:
+    driver: bridge

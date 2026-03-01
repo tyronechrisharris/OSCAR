@@ -1,0 +1,53 @@
+{
+  // ==========================================================
+  // Tailscale Access Control List (ACL)
+  // Target Topology: Federated Site-to-Site
+  // Objective: Enforce strict microsegmentation, preventing lateral
+  //            movement between sites if a node is compromised.
+  // ==========================================================
+
+  "acls": [
+    // 1. Admin Access
+    // Allow the Tailscale Admin group full access to all devices on all ports.
+    { "action": "accept", "src": ["group:admin"], "dst": ["*:*"] },
+
+    // 2. Central Logging Server
+    // Allow all nodes to send data to the central logging server (e.g., Syslog/HTTPS)
+    { "action": "accept", "src": ["tag:oscar-node"], "dst": ["tag:log-server:443", "tag:log-server:514"] },
+
+    // 3. Inter-Node Communication
+    // STRICT DENY: Nodes should NOT communicate directly with each other's databases or APIs.
+    // If a node needs to send data to a central orchestrator, allow it, but deny node-to-node.
+    // Example: Allow nodes to hit the orchestrator API, but not each other.
+    { "action": "accept", "src": ["tag:oscar-node"], "dst": ["tag:orchestrator:8282"] },
+
+    // 4. Deny Default (Implicit)
+    // Any traffic not explicitly allowed above is denied by default.
+  ],
+
+  // ==========================================================
+  // Groups
+  // Define logical groupings of users.
+  // ==========================================================
+  "groups": {
+    "group:admin": ["admin@example.com", "security@example.com"],
+  },
+
+  // ==========================================================
+  // Tags
+  // Use tags to logically separate devices based on function, not user.
+  // ==========================================================
+  "tagOwners": {
+    "tag:oscar-node": ["group:admin"],
+    "tag:log-server": ["group:admin"],
+    "tag:orchestrator": ["group:admin"],
+  },
+
+  // ==========================================================
+  // Node Approvals (Optional but Recommended)
+  // Require manual approval for new nodes joining the network.
+  // ==========================================================
+  "nodeApprovers": {
+    "tag:oscar-node": ["group:admin"],
+  }
+}
