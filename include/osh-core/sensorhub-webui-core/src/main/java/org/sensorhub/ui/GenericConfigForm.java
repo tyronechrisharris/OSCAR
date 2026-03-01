@@ -441,7 +441,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
 
                 // select system button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription("Lookup System");
+                selectBtn.setDescription(I18N.get("lookupSystem1"));
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -484,7 +484,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 
                 // select module button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription("Lookup Module");
+                selectBtn.setDescription(I18N.get("lookupModule1"));
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -529,7 +529,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 
                 // select module button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription("Lookup Address");
+                selectBtn.setDescription(I18N.get("lookupAddress1"));
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -599,7 +599,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 // show/hide button
                 final Button showBtn = new Button(FontAwesome.EYE);
                 showBtn.addStyleName(STYLE_QUIET);
-                showBtn.setDescription("Show Password");
+                showBtn.setDescription(I18N.get("showPassword1"));
                 showBtn.setData(false);
                 layout.addComponent(showBtn);
                 layout.setComponentAlignment(showBtn, Alignment.MIDDLE_LEFT);
@@ -1144,7 +1144,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
             {
                 final Tab tab = tabs.getTab(tabContent);
                 
-                final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to delete " + tab.getCaption() + "?</br>All settings will be lost.");
+                final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToDelete0AllSettingsWillBeLost1", tab.getCaption()));
                 popup.addCloseListener(new CloseListener() {
                     private static final long serialVersionUID = 1L;
                     @Override
