@@ -1,0 +1,784 @@
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/DefaultModulePanel.java b/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/DefaultModulePanel.java
+index aec8b2d..372c610 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/DefaultModulePanel.java
++++ b/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/DefaultModulePanel.java
+@@ -99,7 +99,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
+             configTabs = tabbedConfigForm.configTabs;
+             try {
+
+-                configTabs.addTab(new ReadmePanel(beanItem), "README");
++                configTabs.addTab(new ReadmePanel(beanItem), I18N.get("tab.readme"));
+                 addComponent(tabbedConfigForm);
+             } catch (Exception e) {
+                 throw new RuntimeException(e);
+@@ -244,7 +244,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
+     protected IModuleConfigForm getConfigForm(MyBeanItem<ModuleConfig> beanItem)
+     {
+         IModuleConfigForm form = getParentProducer().generateForm(beanItem.getBean().getClass());
+-        form.build(GenericConfigForm.MAIN_CONFIG, "General module configuration", (MyBeanItem)beanItem, false);
++        form.build(I18N.get("tab.general"), "General module configuration", (MyBeanItem)beanItem, false);
+         return form;
+     }
+
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/GenericConfigForm.java b/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/GenericConfigForm.java
+index 669abb8..905d064 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/GenericConfigForm.java
++++ b/include/osh-core/sensorhub-webui-core/src/main/java/org/sensorhub/ui/GenericConfigForm.java
+@@ -138,6 +138,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
+         String title = prop.getLabel();
+         if (title == null)
+             title = DisplayUtils.getPrettyName(propId);
++        else
++            title = I18N.get(title);
+
+         build(title, prop.getDescription(), prop.getValue(), includeSubForms);
+     }
+@@ -201,6 +203,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
+                             label = ((FieldProperty)prop).getLabel();
+                         if (label == null)
+                             label = DisplayUtils.getPrettyName((String)propId);
++                        else
++                            label = I18N.get(label);
+
+                         String desc = null;
+                         if (prop instanceof FieldProperty)
+@@ -872,6 +876,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
+         String label = prop.getLabel();
+         if (label == null)
+             label = DisplayUtils.getPrettyName((String)propId);
++        else
++            label = I18N.get(label);
+
+         final MyBeanItemContainer<Object> container = prop.getValue();
+         final ListSelect listBox = new ListSelect(label, container);
+@@ -1093,6 +1099,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
+         String title = prop.getLabel();
+         if (title == null)
+             title = DisplayUtils.getPrettyName((String)propId);
++        else
++            title = I18N.get(title);
+         wrapper.setCaption(title);
+         wrapper.setDescription(prop.getDescription());
+
+@@ -1110,6 +1118,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
+         String title = prop.getLabel();
+         if (title == null)
+             title = DisplayUtils.getPrettyName((String)propId);
++        else
++            title = I18N.get(title);
+         layout.setCaption(title);
+         layout.setDescription(prop.getDescription());
+
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages.properties
+index 9f64d20..f0d124a 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages.properties
+@@ -192,3 +192,25 @@ process1=Process
+ logoutFromOshNode1=Logout from OSH node
+ setParameter1=Set Parameter
+ setupTwoFactorAuthentication1=Setup Two-Factor Authentication
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar.properties
+index c588077..e39a92e 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar.properties
+@@ -192,3 +192,25 @@ process1=\u0639\u0645\u0644\u064a\u0629
+ logoutFromOshNode1=\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062e\u0631\u0648\u062c \u0645\u0646 \u0639\u0642\u062f\u0629 OSH
+ setParameter1=\u062a\u0639\u064a\u064a\u0646 \u0627\u0644\u0645\u0639\u0644\u0645\u0629
+ setupTwoFactorAuthentication1=\u0625\u0639\u062f\u0627\u062f \u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629 \u0627\u0644\u062b\u0646\u0627\u0626\u064a\u0629
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar_JO.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar_JO.properties
+index c588077..e39a92e 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar_JO.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ar_JO.properties
+@@ -192,3 +192,25 @@ process1=\u0639\u0645\u0644\u064a\u0629
+ logoutFromOshNode1=\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062e\u0631\u0648\u062c \u0645\u0646 \u0639\u0642\u062f\u0629 OSH
+ setParameter1=\u062a\u0639\u064a\u064a\u0646 \u0627\u0644\u0645\u0639\u0644\u0645\u0629
+ setupTwoFactorAuthentication1=\u0625\u0639\u062f\u0627\u062f \u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629 \u0627\u0644\u062b\u0646\u0627\u0626\u064a\u0629
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_bn.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_bn.properties
+index 6f8a224..b974fe4 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_bn.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_bn.properties
+@@ -192,3 +192,25 @@ process1=\u09aa\u09cd\u09b0\u0995\u09cd\u09b0\u09bf\u09af\u09bc\u09be
+ logoutFromOshNode1=OSH \u09a8\u09cb\u09a1 \u09a5\u09c7\u0995\u09c7 \u09b2\u0997\u0986\u0989\u099f \u0995\u09b0\u09c1\u09a8
+ setParameter1=\u09aa\u09cd\u09af\u09be\u09b0\u09be\u09ae\u09bf\u099f\u09be\u09b0 \u09b8\u09c7\u099f \u0995\u09b0\u09c1\u09a8
+ setupTwoFactorAuthentication1=\u099f\u09c1-\u09ab\u09cd\u09af\u09be\u0995\u09cd\u099f\u09b0 \u09aa\u09cd\u09b0\u09ae\u09be\u09a3\u09c0\u0995\u09b0\u09a3 \u09b8\u09c7\u099f\u0986\u09aa \u0995\u09b0\u09c1\u09a8
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_de.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_de.properties
+index 324d48d..b822317 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_de.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_de.properties
+@@ -192,3 +192,25 @@ process1=Verfahren
+ logoutFromOshNode1=Abmelden vom OSH-Knoten
+ setParameter1=Parameter festlegen
+ setupTwoFactorAuthentication1=Richten Sie die Zwei-Faktor-Authentifizierung ein
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_es.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_es.properties
+index be57a38..6cdf3f7 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_es.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_es.properties
+@@ -192,3 +192,25 @@ process1=Proceso
+ logoutFromOshNode1=Cerrar sesi\u00f3n en el nodo OSH
+ setParameter1=Establecer par\u00e1metro
+ setupTwoFactorAuthentication1=Configurar la autenticaci\u00f3n de dos factores
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_et.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_et.properties
+index 553dd25..480b62a 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_et.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_et.properties
+@@ -192,3 +192,25 @@ process1=Protsess
+ logoutFromOshNode1=T\u00f6\u00f6tervishoiu ja t\u00f6\u00f6ohutuse s\u00f5lmest v\u00e4ljalogimine
+ setParameter1=M\u00e4\u00e4ra parameeter
+ setupTwoFactorAuthentication1=Seadistage kahefaktoriline autentimine
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_fr.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_fr.properties
+index 0178651..fb39c39 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_fr.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_fr.properties
+@@ -192,3 +192,25 @@ process1=Processus
+ logoutFromOshNode1=D\u00e9connexion du n\u0153ud OSH
+ setParameter1=D\u00e9finir le param\u00e8tre
+ setupTwoFactorAuthentication1=Configurer l''authentification \u00e0 deux facteurs
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_hi.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_hi.properties
+index ac640ff..bebede1 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_hi.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_hi.properties
+@@ -192,3 +192,25 @@ process1=\u092a\u094d\u0930\u0915\u094d\u0930\u093f\u092f\u093e
+ logoutFromOshNode1=OSH \u0928\u094b\u0921 \u0938\u0947 \u0932\u0949\u0917\u0906\u0909\u091f \u0915\u0930\u0947\u0902
+ setParameter1=\u092a\u0948\u0930\u093e\u092e\u0940\u091f\u0930 \u0938\u0947\u091f \u0915\u0930\u0947\u0902
+ setupTwoFactorAuthentication1=\u0926\u094b-\u0915\u093e\u0930\u0915 \u092a\u094d\u0930\u092e\u093e\u0923\u0940\u0915\u0930\u0923 \u0938\u0947\u091f\u0905\u092a \u0915\u0930\u0947\u0902
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_id.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_id.properties
+index 40cb1c5..5893684 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_id.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_id.properties
+@@ -192,3 +192,25 @@ process1=Proses
+ logoutFromOshNode1=Keluar dari simpul K3
+ setParameter1=Tetapkan Parameter
+ setupTwoFactorAuthentication1=Siapkan Otentikasi Dua Faktor
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_it.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_it.properties
+index 262cde9..0f7cd83 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_it.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_it.properties
+@@ -192,3 +192,25 @@ process1=Processo
+ logoutFromOshNode1=Disconnettersi dal nodo SSL
+ setParameter1=Imposta parametro
+ setupTwoFactorAuthentication1=Imposta l''autenticazione a due fattori
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ja.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ja.properties
+index 7ede357..07469d6 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ja.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ja.properties
+@@ -192,3 +192,25 @@ process1=\u30d7\u30ed\u30bb\u30b9
+ logoutFromOshNode1=OSH\u30ce\u30fc\u30c9\u304b\u3089\u30ed\u30b0\u30a2\u30a6\u30c8\u3059\u308b
+ setParameter1=\u30d1\u30e9\u30e1\u30fc\u30bf\u306e\u8a2d\u5b9a
+ setupTwoFactorAuthentication1=2 \u8981\u7d20\u8a8d\u8a3c\u306e\u30bb\u30c3\u30c8\u30a2\u30c3\u30d7
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ko.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ko.properties
+index 1fa65e2..b948970 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ko.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ko.properties
+@@ -192,3 +192,25 @@ process1=\ud504\ub85c\uc138\uc2a4
+ logoutFromOshNode1=OSH \ub178\ub4dc\uc5d0\uc11c \ub85c\uadf8\uc544\uc6c3
+ setParameter1=\ub9e4\uac1c\ubcc0\uc218 \uc124\uc815
+ setupTwoFactorAuthentication1=2\ub2e8\uacc4 \uc778\uc99d \uc124\uc815
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_lv.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_lv.properties
+index bd082fc..3229884 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_lv.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_lv.properties
+@@ -192,3 +192,25 @@ process1=Process
+ logoutFromOshNode1=Atteikties no DDVA mezgla
+ setParameter1=Iestat\u012bt parametru
+ setupTwoFactorAuthentication1=Iestatiet divu faktoru autentifik\u0101ciju
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pa_PK.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pa_PK.properties
+index bce9c6f..5f966cf 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pa_PK.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pa_PK.properties
+@@ -192,3 +192,25 @@ process1=\u0a2a\u0a4d\u0a30\u0a15\u0a3f\u0a30\u0a3f\u0a06
+ logoutFromOshNode1=OSH \u0a28\u0a4b\u0a21 \u0a24\u0a4b\u0a02 \u0a32\u0a4c\u0a17\u0a06\u0a09\u0a1f \u0a15\u0a30\u0a4b
+ setParameter1=\u0a2a\u0a48\u0a30\u0a3e\u0a2e\u0a40\u0a1f\u0a30 \u0a38\u0a48\u0a71\u0a1f \u0a15\u0a30\u0a4b
+ setupTwoFactorAuthentication1=\u0a26\u0a4b-\u0a2b\u0a48\u0a15\u0a1f\u0a30 \u0a2a\u0a4d\u0a30\u0a2e\u0a3e\u0a23\u0a40\u0a15\u0a30\u0a28 \u0a38\u0a48\u0a71\u0a1f\u0a05\u0a71\u0a2a \u0a15\u0a30\u0a4b
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pt.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pt.properties
+index b1fd7e4..daf9d8f 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pt.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_pt.properties
+@@ -192,3 +192,25 @@ process1=Processo
+ logoutFromOshNode1=Sair do n\u00f3 OSH
+ setParameter1=Definir par\u00e2metro
+ setupTwoFactorAuthentication1=Configurar autentica\u00e7\u00e3o de dois fatores
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ru.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ru.properties
+index 2c9081c..4c66adc 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ru.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ru.properties
+@@ -192,3 +192,25 @@ process1=\u041f\u0440\u043e\u0446\u0435\u0441\u0441
+ logoutFromOshNode1=\u0412\u044b\u0445\u043e\u0434 \u0438\u0437 \u0443\u0437\u043b\u0430 OSH
+ setParameter1=\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440
+ setupTwoFactorAuthentication1=\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0434\u0432\u0443\u0445\u0444\u0430\u043a\u0442\u043e\u0440\u043d\u043e\u0439 \u0430\u0443\u0442\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_th.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_th.properties
+index 7bb2e66..83295de 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_th.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_th.properties
+@@ -192,3 +192,25 @@ process1=\u0e01\u0e23\u0e30\u0e1a\u0e27\u0e19\u0e01\u0e32\u0e23
+ logoutFromOshNode1=\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a\u0e42\u0e2b\u0e19\u0e14 OSH
+ setParameter1=\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e1e\u0e32\u0e23\u0e32\u0e21\u0e34\u0e40\u0e15\u0e2d\u0e23\u0e4c
+ setupTwoFactorAuthentication1=\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32\u0e01\u0e32\u0e23\u0e23\u0e31\u0e1a\u0e23\u0e2d\u0e07\u0e04\u0e27\u0e32\u0e21\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07\u0e14\u0e49\u0e27\u0e22\u0e2a\u0e2d\u0e07\u0e1b\u0e31\u0e08\u0e08\u0e31\u0e22
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_tr.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_tr.properties
+index b82643e..9375115 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_tr.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_tr.properties
+@@ -192,3 +192,25 @@ process1=\u0130\u015flem
+ logoutFromOshNode1=OSH d\u00fc\u011f\u00fcm\u00fcnden \u00e7\u0131k\u0131\u015f yap\u0131n
+ setParameter1=Parametreyi Ayarla
+ setupTwoFactorAuthentication1=\u0130ki Fakt\u00f6rl\u00fc Kimlik Do\u011frulamay\u0131 Kurun
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ur.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ur.properties
+index ab42e03..b7cae6b 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ur.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_ur.properties
+@@ -192,3 +192,25 @@ process1=\u0639\u0645\u0644
+ logoutFromOshNode1=OSH \u0646\u0648\u0688 \u0633\u06d2 \u0644\u0627\u06af \u0622\u0624\u0679 \u06a9\u0631\u06cc\u06ba\u06d4
+ setParameter1=\u067e\u06cc\u0631\u0627\u0645\u06cc\u0679\u0631 \u0633\u06cc\u0679 \u06a9\u0631\u06cc\u06ba\u06d4
+ setupTwoFactorAuthentication1=\u062f\u0648 \u0641\u06cc\u06a9\u0679\u0631 \u06a9\u06cc \u062a\u0648\u062b\u06cc\u0642 \u0633\u06cc\u0679 \u0627\u067e \u06a9\u0631\u06cc\u06ba\u06d4
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_vi.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_vi.properties
+index 6b92f69..daab64f 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_vi.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_vi.properties
+@@ -192,3 +192,25 @@ process1=Qu\u00e1 tr\u00ecnh
+ logoutFromOshNode1=\u0110\u0103ng xu\u1ea5t kh\u1ecfi n\u00fat OSH
+ setParameter1=\u0110\u1eb7t tham s\u1ed1
+ setupTwoFactorAuthentication1=Thi\u1ebft l\u1eadp x\u00e1c th\u1ef1c hai y\u1ebfu t\u1ed1
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_yue.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_yue.properties
+index 6ee3132..3787134 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_yue.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_yue.properties
+@@ -192,3 +192,25 @@ process1=\u8655\u7406
+ logoutFromOshNode1=\u55ba OSH \u7bc0\u9ede\u767b\u51fa
+ setParameter1=\u8a2d\u5b9a\u53c3\u6578
+ setupTwoFactorAuthentication1=\u8a2d\u5b9a\u5169\u56e0\u7d20\u8a8d\u8b49
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
+diff --git a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_zh_CN.properties b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_zh_CN.properties
+index 257f2f0..9ac0974 100644
+--- a/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_zh_CN.properties
++++ b/include/osh-core/sensorhub-webui-core/src/main/resources/org/sensorhub/ui/i18n/messages_zh_CN.properties
+@@ -192,3 +192,25 @@ process1=\u8fc7\u7a0b
+ logoutFromOshNode1=\u4ece OSH \u8282\u70b9\u6ce8\u9500
+ setParameter1=\u8bbe\u7f6e\u53c2\u6570
+ setupTwoFactorAuthentication1=\u8bbe\u7f6e\u53cc\u56e0\u7d20\u8eab\u4efd\u9a8c\u8bc1
++
++action.new_item=New {0}
++Lane\ System=Lane System
++Module\ Class=Module Class
++Module\ Name=Module Name
++Module\ ID=Module ID
++Description=Description
++SensorML\ URL=SensorML URL
++UniqueID=UniqueID
++Last\ Updated=Last Updated
++Auto\ Start=Auto Start
++Delete\ Data\ on\ Lane\ Removal=Delete Data on Lane Removal
++Latitude=Latitude
++Longitude=Longitude
++Altitude=Altitude
++Initial\ RPM\ Config=Initial RPM Config
++Initial\ Camera\ Config=Initial Camera Config
++Lane\ Options\ Config=Lane Options Config
++tab.general=General
++tab.readme=README
++Fixed\ Location=Fixed Location
++Fixed\ Orientation=Fixed Orientation
+\ No newline at end of file
