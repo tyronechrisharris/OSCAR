@@ -99,7 +99,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
             configTabs = tabbedConfigForm.configTabs;
             try {
 
-                configTabs.addTab(new ReadmePanel(beanItem), "README");
+                configTabs.addTab(new ReadmePanel(beanItem), I18N.get("tab.readme"));
                 addComponent(tabbedConfigForm);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -244,7 +244,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
     protected IModuleConfigForm getConfigForm(MyBeanItem<ModuleConfig> beanItem)
     {
         IModuleConfigForm form = getParentProducer().generateForm(beanItem.getBean().getClass());
-        form.build(GenericConfigForm.MAIN_CONFIG, "General module configuration", (MyBeanItem)beanItem, false);
+        form.build(I18N.get("tab.general"), "General module configuration", (MyBeanItem)beanItem, false);
         return form;
     }
 

@@ -138,6 +138,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName(propId);
+        else
+            title = I18N.get(title);
         
         build(title, prop.getDescription(), prop.getValue(), includeSubForms);
     }
@@ -201,6 +203,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                             label = ((FieldProperty)prop).getLabel();
                         if (label == null)
                             label = DisplayUtils.getPrettyName((String)propId);
+                        else
+                            label = I18N.get(label);
                         
                         String desc = null;
                         if (prop instanceof FieldProperty)
@@ -872,6 +876,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String label = prop.getLabel();
         if (label == null)
             label = DisplayUtils.getPrettyName((String)propId);
+        else
+            label = I18N.get(label);
         
         final MyBeanItemContainer<Object> container = prop.getValue();
         final ListSelect listBox = new ListSelect(label, container);
@@ -1093,6 +1099,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName((String)propId);
+        else
+            title = I18N.get(title);
         wrapper.setCaption(title);
         wrapper.setDescription(prop.getDescription());
         
@@ -1110,6 +1118,8 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName((String)propId);
+        else
+            title = I18N.get(title);
         layout.setCaption(title);
         layout.setDescription(prop.getDescription());
         
