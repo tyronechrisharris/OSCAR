@@ -448,20 +448,21 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         toolbar.setSpacing(true);
         toolbar.setStyleName("toolbar");
 
-        VerticalLayout topToolbar = new VerticalLayout();
+        com.vaadin.ui.CssLayout topToolbar = new com.vaadin.ui.CssLayout();
         topToolbar.setWidth(100.0f, Unit.PERCENTAGE);
-        topToolbar.setSpacing(false);
+        topToolbar.addStyleName("toolbar-row");
 
-        HorizontalLayout bottomToolbar = new HorizontalLayout();
+        com.vaadin.ui.CssLayout bottomToolbar = new com.vaadin.ui.CssLayout();
         bottomToolbar.setWidth(100.0f, Unit.PERCENTAGE);
-        bottomToolbar.setSpacing(true);
+        bottomToolbar.addStyleName("toolbar-row");
 
         // Language Selector
         final ComboBox langSelect = new ComboBox();
         langSelect.setTextInputAllowed(false);
         langSelect.setNullSelectionAllowed(false);
-        langSelect.setWidth(150, Unit.PIXELS);
+        langSelect.setWidth(100.0f, Unit.PERCENTAGE);
         langSelect.addStyleName(STYLE_SMALL);
+        langSelect.addStyleName("toolbar-flex-item");
 
         for (String lang : SUPPORTED_LOCALES.keySet()) {
             langSelect.addItem(lang);
@@ -493,7 +494,6 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
             }
         });
         bottomToolbar.addComponent(langSelect);
-        bottomToolbar.setComponentAlignment(langSelect, Alignment.MIDDLE_LEFT);
 
         // shutdown button
         Button shutdownButton = new Button(I18N.get("action.shutdown"));
@@ -503,6 +503,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         shutdownButton.addStyleName(STYLE_SMALL);
         shutdownButton.addStyleName(STYLE_BORDERLESS);
         shutdownButton.addStyleName("toolbar-btn");
+        shutdownButton.addStyleName("toolbar-flex-item");
         shutdownButton.setWidth(100.0f, Unit.PERCENTAGE);
         shutdownButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -562,6 +563,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         logoutButton.addStyleName(STYLE_SMALL);
         logoutButton.addStyleName(STYLE_BORDERLESS);
         logoutButton.addStyleName("toolbar-btn");
+        logoutButton.addStyleName("toolbar-flex-item");
         logoutButton.setWidth(100.0f, Unit.PERCENTAGE);
         logoutButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -596,6 +598,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         saveButton.addStyleName(STYLE_SMALL);
         saveButton.addStyleName(STYLE_BORDERLESS);
         saveButton.addStyleName("toolbar-btn");
+        saveButton.addStyleName("toolbar-flex-item");
         saveButton.setWidth(100.0f, Unit.PERCENTAGE);
         saveButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -634,7 +637,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
                 addWindow(popup);
             }
         });
-        topToolbar.addComponent(saveButton);
+        bottomToolbar.addComponent(saveButton);
 
         toolbar.addComponent(topToolbar);
         toolbar.addComponent(bottomToolbar);
