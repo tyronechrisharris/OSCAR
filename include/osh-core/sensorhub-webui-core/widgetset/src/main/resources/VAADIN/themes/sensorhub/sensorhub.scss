@@ -46,6 +46,10 @@ $v-layout-margin-right: 25px;
       z-index: 10000;
    }
    
+   .toolbar-btn {
+      text-align: left;
+   }
+
    .v-slot {
       clear: none;
    }

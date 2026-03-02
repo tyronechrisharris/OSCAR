@@ -448,9 +448,9 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         toolbar.setSpacing(true);
         toolbar.setStyleName("toolbar");
 
-        HorizontalLayout topToolbar = new HorizontalLayout();
+        VerticalLayout topToolbar = new VerticalLayout();
         topToolbar.setWidth(100.0f, Unit.PERCENTAGE);
-        topToolbar.setSpacing(true);
+        topToolbar.setSpacing(false);
 
         HorizontalLayout bottomToolbar = new HorizontalLayout();
         bottomToolbar.setWidth(100.0f, Unit.PERCENTAGE);
@@ -502,6 +502,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         shutdownButton.setIcon(FontAwesome.POWER_OFF);
         shutdownButton.addStyleName(STYLE_SMALL);
         shutdownButton.addStyleName(STYLE_BORDERLESS);
+        shutdownButton.addStyleName("toolbar-btn");
         shutdownButton.setWidth(100.0f, Unit.PERCENTAGE);
         shutdownButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -560,6 +561,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         logoutButton.setIcon(FontAwesome.SIGN_OUT);
         logoutButton.addStyleName(STYLE_SMALL);
         logoutButton.addStyleName(STYLE_BORDERLESS);
+        logoutButton.addStyleName("toolbar-btn");
         logoutButton.setWidth(100.0f, Unit.PERCENTAGE);
         logoutButton.addClickListener(new Button.ClickListener() {
             @Override
@@ -593,6 +595,7 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
         saveButton.setIcon(APPLY_ICON);
         saveButton.addStyleName(STYLE_SMALL);
         saveButton.addStyleName(STYLE_BORDERLESS);
+        saveButton.addStyleName("toolbar-btn");
         saveButton.setWidth(100.0f, Unit.PERCENTAGE);
         saveButton.addClickListener(new Button.ClickListener() {
             @Override
