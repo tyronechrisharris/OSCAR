@@ -82,13 +82,13 @@ public class DataSourceAdminPanel<ModuleType extends IDataProducerModule<?>> ext
             sectionLabel.addStyleName(STYLE_H3);
             sectionLabel.addStyleName(STYLE_COLORED);
             addComponent(sectionLabel);
-            addComponent(new Label("<b>Unique ID:</b> " + module.getUniqueIdentifier(), ContentMode.HTML));
+            addComponent(new Label("<b>" + I18N.get("uniqueID1") + ":</b> " + module.getUniqueIdentifier(), ContentMode.HTML));
             
             // display list of FOIs
             var fois = module.getCurrentFeaturesOfInterest().keySet();
             if (fois != null && !fois.isEmpty())
             {
-                addComponent(new Label("<b>FOI IDs:</b>", ContentMode.HTML)); 
+                addComponent(new Label("<b>" + I18N.get("foiIDs1") + ":</b>", ContentMode.HTML));
                 ListSelect list = new ListSelect();
                 list.setRows(4);
                 list.setNullSelectionAllowed(false);

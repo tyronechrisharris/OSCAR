@@ -93,7 +93,7 @@ public class SPSAdminPanel extends DefaultModulePanel<SPSService> implements IMo
             //ComponentContainer parent = (ComponentContainer)configTabs.getTab(0).getComponent();
             
             VerticalLayout parent = new VerticalLayout();
-            configTabs.addTab(parent, "Test Links");
+            configTabs.addTab(parent, I18N.get("testLinks1"));
             LinkItem linkItem;
             baseUrl += "?service=SPS&version=2.0&request=";
             
