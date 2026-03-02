@@ -97,7 +97,7 @@ public class SOSAdminPanel extends DefaultModulePanel<SOSService> implements IMo
             //ComponentContainer parent = (ComponentContainer)configTabs.getTab(0).getComponent();
             
             VerticalLayout parent = new VerticalLayout();
-            configTabs.addTab(parent, "Test Links");
+            configTabs.addTab(parent, I18N.get("testLinks1"));
             LinkItem linkItem;
             baseUrl += "?service=SOS&version=2.0&request=";
             
