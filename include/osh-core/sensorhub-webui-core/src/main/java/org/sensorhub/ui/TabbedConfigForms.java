@@ -44,10 +44,10 @@ public class TabbedConfigForms extends VerticalLayout implements UIConstants
         
         // get all forms and put them into tabs
         configTabs = new TabSheet();
-        configTabs.addTab(form, I18N.get(form.getCaption()));
+        configTabs.addTab(form, form.getCaption());
         for (Component subForm: form.getSubForms())
         {
-            Tab tab = configTabs.addTab(subForm, I18N.get(subForm.getCaption()));
+            Tab tab = configTabs.addTab(subForm, subForm.getCaption());
             tab.setDescription(subForm.getDescription());
             ((AbstractComponent)subForm).setDescription(null);
         }
