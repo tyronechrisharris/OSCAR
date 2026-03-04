@@ -89,7 +89,7 @@ echo Waiting for PostGIS database to become ready...
 set RETRY_COUNT=0
 
 :wait_loop
-docker exec -e PGPASSWORD=%DB_PASSWORD% %CONTAINER_NAME% pg_isready -U %USER% -d %DB_NAME% >nul 2>&1
+docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
 if %errorlevel% equ 0 (
     echo Received OK from PostGIS. Please wait for initialization...
     goto after_wait

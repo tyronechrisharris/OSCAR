@@ -58,7 +58,7 @@ else
       --name $CONTAINER_NAME \
       -e POSTGRES_DB=$DB_NAME \
       -e POSTGRES_USER=$DB_USER \
-      -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
+      -e POSTGRES_PASS=$(cat "$POSTGRES_PASSWORD_FILE") \
       -e DATADIR=/var/lib/postgresql/data \
       -p 5432:5432 \
       -v "$(pwd)/pgdata:/var/lib/postgresql/data" \
@@ -71,9 +71,7 @@ fi
 echo "Waiting for PostGIS ARM64 (PostgreSQL) to be ready..."
 
 RETRY_COUNT=0
-export PGPASSWORD=$(cat "$POSTGRES_PASSWORD_FILE")  # Needed for pg_isready with password
-
-until docker exec -e PGPASSWORD="$PGPASSWORD" "$CONTAINER_NAME" pg_isready -U "$DB_USER" -d "$DB_NAME" > /dev/null 2>&1; do
+until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
   echo "PostGIS not ready yet, retrying..."
   sleep "${RETRY_INTERVAL}"
 done

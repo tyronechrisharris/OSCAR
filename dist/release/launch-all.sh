@@ -73,9 +73,7 @@ fi
 echo "Waiting for PostGIS (PostgreSQL) to be ready..."
 
 RETRY_COUNT=0
-export PGPASSWORD=$(cat "$POSTGRES_PASSWORD_FILE")  # Needed for pg_isready with password
-
-until docker exec -e PGPASSWORD="$PGPASSWORD" "$CONTAINER_NAME" pg_isready -U "$DB_USER" -d "$DB_NAME" > /dev/null 2>&1; do
+until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
   echo "PostGIS not ready yet, retrying..."
   sleep "${RETRY_INTERVAL}"
 done

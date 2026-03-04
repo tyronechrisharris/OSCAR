@@ -25,4 +25,5 @@ docker run ^
   -p 5432:5432 ^
   -v "%cd%\pgdata:/var/lib/postgresql/data" ^
   -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
+  -d ^
   oscar-postgis
