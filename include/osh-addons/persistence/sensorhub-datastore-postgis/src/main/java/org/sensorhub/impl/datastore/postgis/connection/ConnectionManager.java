@@ -57,7 +57,7 @@ public class ConnectionManager {
 
         String dbHost = System.getenv("DB_HOST");
         String effectiveUrl = (dbHost != null && !dbHost.isEmpty()) ? dbHost : url;
-        String sslParam = System.getenv("DB_SSL") != null ? "?ssl=" + System.getenv("DB_SSL") : "?ssl=true";
+        String sslParam = System.getenv("DB_SSL") != null ? "?sslmode=" + System.getenv("DB_SSL") : "?sslmode=require";
         String jdbcUrl = "jdbc:postgresql://" + effectiveUrl + "/" + dbName + sslParam;
 
         String passwordFile = System.getenv("POSTGRES_PASSWORD_FILE");
