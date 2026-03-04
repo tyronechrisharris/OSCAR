@@ -27,4 +27,4 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 
 ### Configurable Networking and TLS
 - **DB Host**: The database host is configurable via the `DB_HOST` environment variable (default: `localhost`), enabling secure deployment on separate LAN machines.
-- **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by appending `ssl=true` to the JDBC connection string in the `ConnectionManager`.
+- **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by using `sslmode=require` in the JDBC connection string in the `ConnectionManager`.
