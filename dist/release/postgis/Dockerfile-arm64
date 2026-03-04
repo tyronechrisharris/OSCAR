@@ -11,4 +11,4 @@ RUN openssl req -new -x509 -days 365 -nodes -text -out /var/lib/postgresql/serve
     && chmod 600 /var/lib/postgresql/server.key \
     && chown postgres:postgres /var/lib/postgresql/server.key /var/lib/postgresql/server.crt
 
-ENV POSTGRES_INITDB_ARGS="--auth=scram-sha-256 -c max_parallel_workers_per_gather=0 -c max_parallel_workers=0 -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key"
+ENV POSTGRES_INITDB_ARGS="--auth-local=trust --auth-host=scram-sha-256 -c max_parallel_workers_per_gather=0 -c max_parallel_workers=0 -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key"

@@ -15,11 +15,11 @@ set IMAGE_NAME=oscar-postgis
 echo PROJECT_DIR is: %PROJECT_DIR%
 
 REM Set up DB password secret
-if "%POSTGRES_PASSWORD_FILE%"=="" (set POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password)
+if "%POSTGRES_PASSWORD_FILE%"=="" (set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password")
 
 if not exist "%POSTGRES_PASSWORD_FILE%" (
     echo Generating new database password...
-    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); [Convert]::ToBase64String($p)" > "%POSTGRES_PASSWORD_FILE%"
+    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); $pwd = [Convert]::ToBase64String($p); [System.IO.File]::WriteAllText(\"%POSTGRES_PASSWORD_FILE:\=\\%\", $pwd)"
 )
 
 set /p DB_PASSWORD=<"%POSTGRES_PASSWORD_FILE%"

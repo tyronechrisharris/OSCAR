@@ -65,6 +65,10 @@ public class ConnectionManager {
         if (passwordFile != null && !passwordFile.isEmpty()) {
             try {
                 effectivePassword = new String(Files.readAllBytes(Paths.get(passwordFile))).trim();
+                // Handle potential UTF-8 BOM
+                if (effectivePassword.startsWith("\uFEFF")) {
+                    effectivePassword = effectivePassword.substring(1);
+                }
             } catch (IOException e) {
                 log.error("Failed to read password from POSTGRES_PASSWORD_FILE: " + passwordFile, e);
             }
