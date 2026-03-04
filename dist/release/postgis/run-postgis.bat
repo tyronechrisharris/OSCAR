@@ -10,7 +10,7 @@ if "%POSTGRES_PASSWORD_FILE%"=="" (set POSTGRES_PASSWORD_FILE=%cd%\.db_password)
 
 if not exist "%POSTGRES_PASSWORD_FILE%" (
     echo Generating new database password...
-    powershell -Command "[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))" > "%POSTGRES_PASSWORD_FILE%"
+    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); [Convert]::ToBase64String($p)" > "%POSTGRES_PASSWORD_FILE%"
 )
 
 docker build . --tag=oscar-postgis
