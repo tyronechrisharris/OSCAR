@@ -78,7 +78,13 @@ done
 
 echo "PostGIS (PostgreSQL) is ready! Please wait for OpenSensorHub to start..."
 
-sleep 10
+sleep 30
+
+# Final check
+until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
+  echo "PostGIS still restarting, waiting..."
+  sleep 5
+done
 
 # Export for OSH backend
 export DB_HOST="$HOST"

@@ -108,7 +108,18 @@ goto wait_loop
 
 :after_wait
 
-timeout /t 10 >nul
+timeout /t 30 >nul
+
+:final_wait_loop
+docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
+if %errorlevel% equ 0 (
+    goto after_final_wait
+)
+echo PostGIS still restarting, waiting...
+timeout /t 5 >nul
+goto final_wait_loop
+
+:after_final_wait
 
 echo PostGIS database is ready!
 
