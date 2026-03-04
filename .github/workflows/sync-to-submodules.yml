@@ -46,9 +46,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 5. Process Submodules and Create PRs
+      - name: 5. Process Submodules and Create PRs (DRY RUN)
         run: |
-          # Define an array mapping the local folder path to "YourFork|UpstreamRepo"
           declare -A submodules=(
             ["include/osh-addons"]="tyronechrisharris/osh-addons|earocorn/osh-addons"
             ["include/osh-core"]="tyronechrisharris/osh-core|earocorn/osh-core"
@@ -56,57 +55,48 @@ jobs:
             ["web/oscar-viewer"]="tyronechrisharris/oscar-viewer|Botts-Innovative-Research/oscar-viewer"
           )
 
-          # Loop through each mapped submodule
           for path in "${!submodules[@]}"; do
+            echo "----------------------------------------"
             echo "Checking submodule: $path"
-            
-            # Split the mapping string into Fork and Upstream variables
             IFS='|' read -r FORK_REPO UPSTREAM_REPO <<< "${submodules[$path]}"
-            
             cd $GITHUB_WORKSPACE/oscar_master/$path
             
-            # Check if rsync actually changed any tracked or untracked files
             if [[ -n $(git status -s) ]]; then
-              echo "Changes detected in $path. Processing..."
+              echo "✅ Changes detected in $path. Processing..."
               
-              # Stage, commit, and push to your fork
+              # DRY RUN: Print the actions instead of doing them
               git checkout -b $BRANCH_NAME
               git add .
-              git commit -m "Auto-sync Jules updates from oscar-flat"
-              git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
+              git commit -m "Auto-sync Jules updates from oscar-flat" || true
               
-              # Use GitHub CLI to open a PR against the original maintainer's repo
-              gh pr create \
-                --repo $UPSTREAM_REPO \
-                --title "Automated AI Sync: Updates from oscar-flat" \
-                --body "These changes were generated and verified in the flattened AI workspace. Please review." \
-                --head tyronechrisharris:$BRANCH_NAME \
-                --base main
+              echo "🚀 DRY RUN: Would push to -> $FORK_REPO (Branch: $BRANCH_NAME)"
+              # git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
+              
+              echo "📬 DRY RUN: Would open PR against -> $UPSTREAM_REPO"
+              # gh pr create --repo $UPSTREAM_REPO --title "Automated AI Sync" --head tyronechrisharris:$BRANCH_NAME --base main
             else
-              echo "No changes in $path. Skipping."
+              echo "⏸️ No changes in $path. Skipping."
             fi
           done
 
-      - name: 6. Process Parent Repository Pointers
+      - name: 6. Process Parent Repository Pointers (DRY RUN)
         run: |
+          echo "----------------------------------------"
           echo "Checking parent repository for updated submodules..."
           cd $GITHUB_WORKSPACE/oscar_master
           
-          # If submodules were updated, their commit IDs in the parent will show as modified
           if [[ -n $(git status -s) ]]; then
-            echo "Submodule pointers modified. Creating parent PR..."
+            echo "✅ Submodule pointers modified. Creating parent PR..."
             
             git checkout -b $BRANCH_NAME
             git add .
-            git commit -m "Update submodule pointers from auto-sync"
-            git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/tyronechrisharris/osh-oakridge-buildnode.git $BRANCH_NAME
+            git commit -m "Update submodule pointers from auto-sync" || true
             
-            gh pr create \
-              --repo Botts-Innovative-Research/osh-oakridge-buildnode \
-              --title "Update OSCAR submodule pointers" \
-              --body "Automated PR to lock in updated submodule pointers after recent AI merges." \
-              --head tyronechrisharris:$BRANCH_NAME \
-              --base main
+            echo "🚀 DRY RUN: Would push parent repo to -> tyronechrisharris/osh-oakridge-buildnode"
+            # git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/tyronechrisharris/osh-oakridge-buildnode.git $BRANCH_NAME
+            
+            echo "📬 DRY RUN: Would open PR against -> Botts-Innovative-Research/osh-oakridge-buildnode"
+            # gh pr create --repo Botts-Innovative-Research/osh-oakridge-buildnode --title "Update OSCAR submodule pointers" --head tyronechrisharris:$BRANCH_NAME --base main
           else
-            echo "No submodule pointers changed in parent repo."
+            echo "⏸️ No submodule pointers changed in parent repo."
           fi
