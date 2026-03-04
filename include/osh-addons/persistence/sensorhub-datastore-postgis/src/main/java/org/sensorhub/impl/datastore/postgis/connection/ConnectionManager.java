@@ -5,6 +5,9 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -51,9 +54,25 @@ public class ConnectionManager {
 
     private HikariDataSource createHikariDataSource() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://" + url + "/" + dbName);
+
+        String dbHost = System.getenv("DB_HOST");
+        String effectiveUrl = (dbHost != null && !dbHost.isEmpty()) ? dbHost : url;
+        String sslParam = System.getenv("DB_SSL") != null ? "?ssl=" + System.getenv("DB_SSL") : "?ssl=true";
+        String jdbcUrl = "jdbc:postgresql://" + effectiveUrl + "/" + dbName + sslParam;
+
+        String passwordFile = System.getenv("POSTGRES_PASSWORD_FILE");
+        String effectivePassword = password;
+        if (passwordFile != null && !passwordFile.isEmpty()) {
+            try {
+                effectivePassword = new String(Files.readAllBytes(Paths.get(passwordFile))).trim();
+            } catch (IOException e) {
+                log.error("Failed to read password from POSTGRES_PASSWORD_FILE: " + passwordFile, e);
+            }
+        }
+
+        config.setJdbcUrl(jdbcUrl);
         config.setUsername(login);
-        config.setPassword(password);
+        config.setPassword(effectivePassword);
         config.setMaximumPoolSize(20);
         config.setConnectionTimeout(1000 * 60 * 5); // 5 minutes
 
