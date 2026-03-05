@@ -1,27 +1,43 @@
 name: Dispatch AI Updates to OSCAR Submodules
 
-# Trigger the action whenever code is pushed (or a PR is merged) into the main branch
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - main
-  workflow_dispatch: # Allows you to trigger this manually from the GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   sync-and-distribute:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
-      # Use a Personal Access Token to authenticate across different repositories
       GH_TOKEN: ${{ secrets.SYNC_PAT }}
       BRANCH_NAME: jules-sync-${{ github.run_id }}
+      PR_TITLE: ${{ github.event.pull_request.title || 'Automated AI Sync: Updates from oscar-flat' }}
+      PR_BODY: ${{ github.event.pull_request.body || 'These changes were generated and verified in the flattened AI workspace.' }}
+      ORIGINAL_PR_URL: ${{ github.event.pull_request.html_url || 'Manual Workflow Dispatch' }}
 
     steps:
-      - name: 1. Checkout the Flat Repository
+      - name: 1. Prepare Base PR Body and Tracking Files
+        run: |
+          # Safely write the PR body to a file, preserving formatting
+          echo "$PR_BODY" > $GITHUB_WORKSPACE/base_body.txt
+          echo "" >> $GITHUB_WORKSPACE/base_body.txt
+          echo "---" >> $GITHUB_WORKSPACE/base_body.txt
+          echo "### 🔄 Auto-Distributed via AI Sync" >> $GITHUB_WORKSPACE/base_body.txt
+          echo "**Original Flat Repo PR:** $ORIGINAL_PR_URL" >> $GITHUB_WORKSPACE/base_body.txt
+          
+          # Initialize empty tracking files for our 2nd pass
+          touch $GITHUB_WORKSPACE/raw_urls.txt
+          touch $GITHUB_WORKSPACE/bullet_urls.txt
+
+      - name: 2. Checkout the Flat Repository
         uses: actions/checkout@v4
         with:
           path: oscar_flat
 
-      - name: 2. Checkout the Parent Master Repository
+      - name: 3. Checkout the Parent Master Repository
         uses: actions/checkout@v4
         with:
           repository: tyronechrisharris/osh-oakridge-buildnode
@@ -29,10 +45,8 @@ jobs:
           submodules: recursive
           token: ${{ secrets.SYNC_PAT }}
 
-      - name: 3. Sync Files from Flat to Master
+      - name: 4. Sync Files from Flat to Master
         run: |
-          # Use rsync to distribute the flattened files into the submodule structure
-          # Excluding Git metadata and build configurations to protect the master structure
           rsync -av \
             --exclude='.git/' \
             --exclude='.gitmodules' \
@@ -41,12 +55,12 @@ jobs:
             --exclude='node_modules/' \
             oscar_flat/ oscar_master/
 
-      - name: 4. Configure Git User Identity
+      - name: 5. Configure Git User Identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 5. Process Submodules and Create PRs (DRY RUN)
+      - name: 6. Process Submodules and Create PRs
         run: |
           declare -A submodules=(
             ["include/osh-addons"]="tyronechrisharris/osh-addons|earocorn/osh-addons"
@@ -56,47 +70,80 @@ jobs:
           )
 
           for path in "${!submodules[@]}"; do
-            echo "----------------------------------------"
             echo "Checking submodule: $path"
             IFS='|' read -r FORK_REPO UPSTREAM_REPO <<< "${submodules[$path]}"
             cd $GITHUB_WORKSPACE/oscar_master/$path
             
             if [[ -n $(git status -s) ]]; then
-              echo "✅ Changes detected in $path. Processing..."
+              echo "Changes detected in $path. Processing..."
               
-              # DRY RUN: Print the actions instead of doing them
               git checkout -b $BRANCH_NAME
               git add .
-              git commit -m "Auto-sync Jules updates from oscar-flat" || true
+              git commit -m "Auto-sync Jules updates: $PR_TITLE"
+              git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
               
-              echo "🚀 DRY RUN: Would push to -> $FORK_REPO (Branch: $BRANCH_NAME)"
-              # git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
+              # Capture the URL of the newly created PR
+              NEW_PR_URL=$(gh pr create \
+                --repo $UPSTREAM_REPO \
+                --title "$PR_TITLE" \
+                --body-file $GITHUB_WORKSPACE/base_body.txt \
+                --head tyronechrisharris:$BRANCH_NAME \
+                --base main)
               
-              echo "📬 DRY RUN: Would open PR against -> $UPSTREAM_REPO"
-              # gh pr create --repo $UPSTREAM_REPO --title "Automated AI Sync" --head tyronechrisharris:$BRANCH_NAME --base main
+              echo "Created PR: $NEW_PR_URL"
+              
+              # Save the URL for the cross-linking phase
+              echo "$NEW_PR_URL" >> $GITHUB_WORKSPACE/raw_urls.txt
+              echo "- $NEW_PR_URL" >> $GITHUB_WORKSPACE/bullet_urls.txt
             else
-              echo "⏸️ No changes in $path. Skipping."
+              echo "No changes in $path. Skipping."
             fi
           done
 
-      - name: 6. Process Parent Repository Pointers (DRY RUN)
+      - name: 7. Process Parent Repository Pointers
         run: |
-          echo "----------------------------------------"
           echo "Checking parent repository for updated submodules..."
           cd $GITHUB_WORKSPACE/oscar_master
           
           if [[ -n $(git status -s) ]]; then
-            echo "✅ Submodule pointers modified. Creating parent PR..."
+            echo "Submodule pointers modified. Creating parent PR..."
             
             git checkout -b $BRANCH_NAME
             git add .
-            git commit -m "Update submodule pointers from auto-sync" || true
+            git commit -m "Update submodule pointers: $PR_TITLE"
+            git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/tyronechrisharris/osh-oakridge-buildnode.git $BRANCH_NAME
             
-            echo "🚀 DRY RUN: Would push parent repo to -> tyronechrisharris/osh-oakridge-buildnode"
-            # git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/tyronechrisharris/osh-oakridge-buildnode.git $BRANCH_NAME
-            
-            echo "📬 DRY RUN: Would open PR against -> Botts-Innovative-Research/osh-oakridge-buildnode"
-            # gh pr create --repo Botts-Innovative-Research/osh-oakridge-buildnode --title "Update OSCAR submodule pointers" --head tyronechrisharris:$BRANCH_NAME --base main
+            NEW_PR_URL=$(gh pr create \
+              --repo Botts-Innovative-Research/osh-oakridge-buildnode \
+              --title "Update OSCAR submodule pointers for: $PR_TITLE" \
+              --body-file $GITHUB_WORKSPACE/base_body.txt \
+              --head tyronechrisharris:$BRANCH_NAME \
+              --base main)
+              
+            echo "$NEW_PR_URL" >> $GITHUB_WORKSPACE/raw_urls.txt
+            echo "- $NEW_PR_URL" >> $GITHUB_WORKSPACE/bullet_urls.txt
           else
-            echo "⏸️ No submodule pointers changed in parent repo."
+            echo "No submodule pointers changed in parent repo."
+          fi
+
+      - name: 8. The 2nd Pass - Cross-Link All Generated PRs
+        run: |
+          # Only run this if we actually created PRs
+          if [ -s $GITHUB_WORKSPACE/raw_urls.txt ]; then
+            echo "Cross-linking all generated Pull Requests..."
+            
+            # Build the footer with the list of all PRs
+            echo "" >> $GITHUB_WORKSPACE/base_body.txt
+            echo "### 🔗 Related Updates in this Sync:" >> $GITHUB_WORKSPACE/base_body.txt
+            cat $GITHUB_WORKSPACE/bullet_urls.txt >> $GITHUB_WORKSPACE/base_body.txt
+            
+            # Loop through every PR we created and update its description
+            cat $GITHUB_WORKSPACE/raw_urls.txt | while read url; do
+              echo "Updating body for: $url"
+              gh pr edit $url --body-file $GITHUB_WORKSPACE/base_body.txt
+            done
+            
+            echo "✅ All PRs successfully cross-linked!"
+          else
+            echo "No PRs were created during this run. Skipping cross-link step."
           fi
