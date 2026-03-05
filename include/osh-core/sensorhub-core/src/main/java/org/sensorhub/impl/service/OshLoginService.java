@@ -31,6 +31,8 @@ public class OshLoginService implements LoginService
 {
     final ISecurityManager securityManager;
     IdentityService identityService = new DefaultIdentityService();
+    // Static set to share 2FA verification status across contexts (Root and /sensorhub)
+    static final java.util.Set<String> verifiedSessions = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
     
     
     public static class UserPrincipal implements Principal
@@ -144,6 +146,8 @@ public class OshLoginService implements LoginService
                         HttpServletRequest req = (HttpServletRequest) request;
                         var session = req.getSession(true);
                         Boolean verified = (Boolean) session.getAttribute("2FA_VERIFIED");
+                        if (verified == null || !verified)
+                            verified = verifiedSessions.contains(session.getId());
 
                         // If not verified, we must check if the code is provided in the request or was in the password
                         if (verified == null || !verified)
@@ -157,6 +161,7 @@ public class OshLoginService implements LoginService
                             if (code != null && org.sensorhub.impl.security.TOTPUtils.validateCode(userConfig.twoFactorSecret, code))
                             {
                                 session.setAttribute("2FA_VERIFIED", true);
+                                verifiedSessions.add(session.getId());
                             }
                             else
                             {

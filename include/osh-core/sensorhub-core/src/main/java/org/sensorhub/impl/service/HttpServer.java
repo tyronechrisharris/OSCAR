@@ -394,6 +394,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
                             // Initialize TOTP session
                             session.setAttribute("2FA_VERIFIED", true);
+                            org.sensorhub.impl.service.OshLoginService.verifiedSessions.add(session.getId());
 
                             resp.sendRedirect(req.getContextPath() + "/setup/");
                         } catch (Exception e) {
@@ -418,6 +419,8 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
                         // Redirect if it's not the setup page, CA cert, or static resources needed for setup (if any)
                         if (!target.startsWith(setupPath) && !target.startsWith(caPath)) {
+                            // If we're hitting a secure area, we must NOT let the browser prompt for credentials
+                            // so we intercept and redirect BEFORE Jetty's security handler kicks in.
                             response.sendRedirect(setupPath + "/");
                             baseRequest.setHandled(true);
                             return;
@@ -425,6 +428,9 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     }
                 }
             });
+            // The handler list order is important: Setup interceptor FIRST, then regular handlers.
+            // Jetty will iterate through handlers until one handles the request.
+            // Regular handlers include the servletHandler which has the security check.
             handlerList.addHandler(handlers);
             server.setHandler(handlerList);
             

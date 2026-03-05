@@ -19,6 +19,7 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.*;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.impl.service.AbstractHttpServiceModule;
@@ -56,7 +57,14 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         // Context handler
         ContextHandler fileResourceContext = new ContextHandler();
         fileResourceContext.setContextPath(config.staticDocsRootUrl);
-        fileResourceContext.setHandler(fileResourceHandler);
+
+        // Add session handler to support 2FA session sharing
+        SessionHandler sessionHandler = new SessionHandler();
+        sessionHandler.getSessionCookieConfig().setPath("/");
+        sessionHandler.setSessionCookie("OSH_JSESSIONID");
+        sessionHandler.setHandler(fileResourceHandler);
+
+        fileResourceContext.setHandler(sessionHandler);
         fileResourceContext.setResourceBase(config.staticDocsRootDir);
 
         serverHandlers = server.getHandlers();
