@@ -79,10 +79,29 @@ public class EphemeralCAUtility {
     private static void lockdownFile(File file) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
-            file.setReadable(false, false);
-            file.setReadable(true, true);
-            file.setWritable(false, false);
-            file.setWritable(true, true);
+            try {
+                java.nio.file.Path path = file.toPath();
+                java.nio.file.attribute.AclFileAttributeView view = Files.getFileAttributeView(path, java.nio.file.attribute.AclFileAttributeView.class);
+                java.nio.file.attribute.UserPrincipal owner = Files.getOwner(path);
+                java.nio.file.attribute.AclEntry entry = java.nio.file.attribute.AclEntry.newBuilder()
+                        .setType(java.nio.file.attribute.AclEntryType.ALLOW)
+                        .setPrincipal(owner)
+                        .setPermissions(java.nio.file.attribute.AclEntryPermission.READ_DATA,
+                                        java.nio.file.attribute.AclEntryPermission.WRITE_DATA,
+                                        java.nio.file.attribute.AclEntryPermission.APPEND_DATA,
+                                        java.nio.file.attribute.AclEntryPermission.READ_NAMED_ATTRS,
+                                        java.nio.file.attribute.AclEntryPermission.WRITE_NAMED_ATTRS,
+                                        java.nio.file.attribute.AclEntryPermission.READ_ATTRIBUTES,
+                                        java.nio.file.attribute.AclEntryPermission.WRITE_ATTRIBUTES,
+                                        java.nio.file.attribute.AclEntryPermission.READ_ACL,
+                                        java.nio.file.attribute.AclEntryPermission.WRITE_ACL,
+                                        java.nio.file.attribute.AclEntryPermission.WRITE_OWNER,
+                                        java.nio.file.attribute.AclEntryPermission.SYNCHRONIZE)
+                        .build();
+                view.setAcl(java.util.Collections.singletonList(entry));
+            } catch (IOException e) {
+                System.err.println("Failed to set Windows ACLs: " + e.getMessage());
+            }
         } else {
             try {
                 Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);

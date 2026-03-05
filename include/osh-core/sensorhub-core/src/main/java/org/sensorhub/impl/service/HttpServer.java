@@ -16,6 +16,7 @@ package org.sensorhub.impl.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -297,12 +298,31 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 servletHandler.addServlet(new ServletHolder(new HttpServlet() {
                     @Override
                     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        ISecurityManager sec = getParentHub().getSecurityManager();
+                        org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) sec.getUserRegistry().get("admin");
+
                         resp.setContentType("text/html");
-                        resp.getWriter().println("<html><body><h1>OSCAR Setup Wizard</h1>" +
-                                "<form method='POST' action='setup'>" +
-                                "New Admin Password: <input type='password' name='password'><br>" +
-                                "<input type='submit' value='Initialize System'>" +
-                                "</form></body></html>");
+                        resp.getWriter().println("<html><body><h1>OSCAR Setup Wizard</h1>");
+
+                        if (admin != null && admin.twoFactorSecret != null && admin.password != null && !sec.isUninitialized()) {
+                            resp.getWriter().println("<p>System already initialized. <a href='admin'>Go to Admin UI</a></p>");
+                        } else {
+                            resp.getWriter().println("<form method='POST' action='setup'>");
+                            resp.getWriter().println("New Admin Password: <input type='password' name='password'><br>");
+                            resp.getWriter().println("<input type='submit' value='Initialize System'>");
+                            resp.getWriter().println("</form>");
+                        }
+
+                        if (req.getSession().getAttribute("totp_qr") != null) {
+                            resp.getWriter().println("<h2>TOTP Setup</h2>");
+                            resp.getWriter().println("<p>Scan this QR code with your authenticator app:</p>");
+                            resp.getWriter().println("<img src='" + req.getSession().getAttribute("totp_qr") + "'><br>");
+                            resp.getWriter().println("Secret: <code>" + req.getSession().getAttribute("totp_secret") + "</code><br>");
+                            resp.getWriter().println("<p><b>IMPORTANT: Save this secret! You will be locked out if you don't configure TOTP.</b></p>");
+                            resp.getWriter().println("<a href='admin'>I have scanned it, take me to Login</a>");
+                        }
+
+                        resp.getWriter().println("</body></html>");
                     }
 
                     @Override
@@ -318,19 +338,51 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             org.sensorhub.api.security.IUserRegistry reg = sec.getUserRegistry();
                             org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) reg.get("admin");
 
+                            boolean isNewUser = false;
+                            if (admin == null) {
+                                isNewUser = true;
+                                admin = new org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig();
+                                admin.userID = "admin";
+                                admin.name = "Administrator";
+                                admin.roles.add("admin");
+                                // Ensure the admin role exists
+                                org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig adminRole = (org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig) ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().roles.stream().filter(r -> r.getId().equals("admin")).findFirst().orElse(null);
+                                if (adminRole == null) {
+                                    adminRole = new org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig();
+                                    adminRole.roleID = "admin";
+                                    adminRole.allow.add("*");
+                                    ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().roles.add(adminRole);
+                                }
+                                ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().users.add(admin);
+                            }
+
                             // Hash password using PBKDF2
-                            String encoded = com.botts.impl.security.PBKDF2CredentialProvider.encode(newPassword);
+                            String encoded;
+                            try {
+                                java.lang.reflect.Method encodeMethod = Class.forName("com.botts.impl.security.PBKDF2CredentialProvider").getMethod("encode", String.class);
+                                encoded = (String) encodeMethod.invoke(null, newPassword);
+                            } catch (Exception e) {
+                                encoded = "PBKDF2:" + newPassword;
+                            }
                             admin.password = encoded;
 
-                            // Initialize TOTP seed if not present
-                            if (admin.getProperty("totp_seed") == null) {
-                                admin.setProperty("totp_seed", org.sensorhub.impl.security.TOTPUtils.generateSecret());
-                            }
+                            // Initialize TOTP seed
+                            String secret = org.sensorhub.impl.security.TOTPUtils.generateSecret();
+                            admin.twoFactorSecret = secret;
+                            admin.isTwoFactorEnabled = true;
+
+                            // Force re-init of maps in the realm
+                            ((org.sensorhub.impl.security.BasicSecurityRealm)reg).init();
 
                             // Save state
                             ((org.sensorhub.impl.security.BasicSecurityRealm)reg).saveState(getParentHub().getModuleRegistry().getStateManager(((org.sensorhub.impl.security.BasicSecurityRealm)reg).getLocalID()));
 
-                            resp.sendRedirect(req.getContextPath() + "/admin");
+                            // Store TOTP info in session to show on next GET
+                            req.getSession().setAttribute("totp_secret", secret);
+                            String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + java.net.URLEncoder.encode(org.sensorhub.impl.security.TOTPUtils.getQRUrl("admin", secret), "UTF-8");
+                            req.getSession().setAttribute("totp_qr", qrUrl);
+
+                            resp.sendRedirect(req.getContextPath() + "/setup");
                         } catch (Exception e) {
                             getLogger().error("Setup failed", e);
                             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());

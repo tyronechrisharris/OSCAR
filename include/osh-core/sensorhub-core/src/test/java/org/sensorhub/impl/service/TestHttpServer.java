@@ -84,6 +84,7 @@ public class TestHttpServer
     @Test
     public void testDeployServlet() throws Exception
     {
+        addUsers();
         var httpServer = startServer(null);
         final String testText = "Deploying hot servlet in SensorHub works";
         

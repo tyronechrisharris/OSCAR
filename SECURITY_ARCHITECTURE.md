@@ -28,3 +28,18 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 ### Configurable Networking and TLS
 - **DB Host**: The database host is configurable via the `DB_HOST` environment variable (default: `localhost`), enabling secure deployment on separate LAN machines.
 - **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by using `sslmode=require` in the JDBC connection string in the `ConnectionManager`.
+
+## Application-Level Security Hardening
+
+### Ephemeral CA and TLS Certificates
+On first boot, the system generates an ephemeral Root CA and a Leaf TLS certificate.
+- **Root CA Private Key**: Held strictly in memory during the generation of the leaf certificate and never persisted to disk.
+- **Leaf Certificate**: Stored in a PKCS12 keystore (`osh-keystore.p12`).
+- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file and the keystore is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows).
+- **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
+
+### Setup Wizard and Credential Management
+The system does not ship with default administrative credentials.
+- **Uninitialized State**: If the system detects that it has not been configured (no admin password set), it enters an uninitialized state.
+- **Mandatory Redirection**: In the uninitialized state, all requests to the root URL or Admin UI are redirected to a Setup Wizard.
+- **Initialization**: The Setup Wizard forces the creation of a strong admin password (hashed using PBKDF2) and initializes the TOTP 2FA seed.
