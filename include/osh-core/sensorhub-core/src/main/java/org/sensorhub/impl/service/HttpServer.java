@@ -413,18 +413,17 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 @Override
                 public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                     if (getParentHub().getSecurityManager().isUninitialized()) {
-                        String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "";
-                        String setupPath = contextPath + "/setup";
-                        String caPath = contextPath + "/admin/ca-cert";
-
-                        // Redirect if it's not the setup page, CA cert, or static resources needed for setup (if any)
-                        if (!target.startsWith(setupPath) && !target.startsWith(caPath)) {
-                            // If we're hitting a secure area, we must NOT let the browser prompt for credentials
-                            // so we intercept and redirect BEFORE Jetty's security handler kicks in.
-                            response.sendRedirect(setupPath + "/");
-                            baseRequest.setHandled(true);
+                        String uri = request.getRequestURI();
+                        // Allow setup, ca-cert, and static resources
+                        if (uri.contains("/setup") || uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico")) {
                             return;
                         }
+
+                        // Redirect anything else to setup
+                        String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "/sensorhub";
+                        if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
+                        response.sendRedirect(contextPath + "/setup/");
+                        baseRequest.setHandled(true);
                     }
                 }
             });
