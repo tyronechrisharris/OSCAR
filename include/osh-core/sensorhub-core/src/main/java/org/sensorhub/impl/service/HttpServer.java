@@ -91,6 +91,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
     public static final String TEST_MSG = "SensorHub web server is up";
         
     Server server;
+    HandlerCollection handlers;
     ServletContextHandler servletHandler;
     ConstraintSecurityHandler jettySecurityHandler;
     
@@ -122,7 +123,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
             server = new Server();
             ServerConnector http = null;
             ServerConnector https = null;
-            HandlerCollection handlers = new HandlerCollection(true);
+            handlers = new HandlerCollection(true);
             
             // HTTP connector
             HttpConfiguration httpConfig = new HttpConfiguration();
@@ -699,5 +700,9 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
     public ServletContextHandler getServletHandler() {
         return servletHandler;
+    }
+
+    public HandlerCollection getHandlers() {
+        return handlers;
     }
 }

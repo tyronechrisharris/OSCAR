@@ -59,7 +59,7 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         fileResourceContext.setHandler(fileResourceHandler);
         fileResourceContext.setResourceBase(config.staticDocsRootDir);
 
-        serverHandlers = (HandlerCollection) server.getJettyServer().getHandler();
+        serverHandlers = server.getHandlers();
 
         if (Arrays.stream(serverHandlers.getHandlers()).anyMatch(handler -> handler == fileServerHandler)) {
             reportError("File server handler already registered to Jetty server", new IllegalStateException());
