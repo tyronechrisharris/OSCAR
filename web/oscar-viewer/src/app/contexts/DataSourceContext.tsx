@@ -103,7 +103,6 @@ export const initializeDefaultNode = () => (dispatch: AppDispatch) => {
         port: 8282,
         oshPathRoot: "/sensorhub",
         csAPIEndpoint: "/api",
-        auth: { username: "admin", password: "oscar" },
         isSecure: false,
         isDefaultNode: true
     };

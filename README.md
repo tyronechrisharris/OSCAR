@@ -66,8 +66,6 @@ After the build completes, it can be located in `build/distributions/`
 - Remote: **[ip-address]:8282/sensorhub/admin**
 - Locally:  **http://localhost:8282/sensorhub/admin**
 
-The default credentials to access the OSH Node are admin:admin. This can be changed in the Security section of the admin page.
-
 **Language Selection**
 The user can select different languages for the Admin UI by using the language drop-down menu located in the top right corner of the Admin UI toolbar. Selecting a new language will instantly switch the UI localization.
 

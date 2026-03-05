@@ -190,7 +190,31 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 servletHandler.setContextPath(config.servletsRootUrl);
                 handlers.addHandler(servletHandler);
                 getLogger().info("Servlets root is " + config.servletsRootUrl);
-                
+
+                // Setup Wizard Redirect Filter
+                servletHandler.addFilter(new FilterHolder(new javax.servlet.Filter() {
+                    @Override
+                    public void init(javax.servlet.FilterConfig filterConfig) throws ServletException {}
+
+                    @Override
+                    public void doFilter(javax.servlet.ServletRequest request, javax.servlet.ServletResponse response, javax.servlet.FilterChain chain) throws IOException, ServletException {
+                        HttpServletRequest req = (HttpServletRequest) request;
+                        HttpServletResponse resp = (HttpServletResponse) response;
+                        String path = req.getRequestURI().substring(req.getContextPath().length());
+
+                        if (getParentHub().getSecurityManager().isUninitialized()) {
+                            if (!path.startsWith("/setup") && !path.startsWith("/admin/ca-cert")) {
+                                resp.sendRedirect(req.getContextPath() + "/setup");
+                                return;
+                            }
+                        }
+                        chain.doFilter(request, response);
+                    }
+
+                    @Override
+                    public void destroy() {}
+                }), "/*", EnumSet.of(DispatcherType.REQUEST));
+
                 // security handler
                 if (config.authMethod != null && config.authMethod != AuthMethod.NONE)
                 {
@@ -252,6 +276,68 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     }
                 }),"/test");
                 addServletSecurity("/test", false);
+
+                // CA Download Servlet
+                servletHandler.addServlet(new ServletHolder(new HttpServlet() {
+                    @Override
+                    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        File caFile = new File("root-ca.crt");
+                        if (!caFile.exists()) {
+                            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Root CA not found");
+                            return;
+                        }
+                        resp.setContentType("application/x-x509-ca-cert");
+                        resp.setHeader("Content-Disposition", "attachment; filename=\"root-ca.crt\"");
+                        Files.copy(caFile.toPath(), resp.getOutputStream());
+                    }
+                }), "/admin/ca-cert");
+                addServletSecurity("/admin/ca-cert", false);
+
+                // Setup Wizard Servlet
+                servletHandler.addServlet(new ServletHolder(new HttpServlet() {
+                    @Override
+                    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        resp.setContentType("text/html");
+                        resp.getWriter().println("<html><body><h1>OSCAR Setup Wizard</h1>" +
+                                "<form method='POST' action='setup'>" +
+                                "New Admin Password: <input type='password' name='password'><br>" +
+                                "<input type='submit' value='Initialize System'>" +
+                                "</form></body></html>");
+                    }
+
+                    @Override
+                    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        String newPassword = req.getParameter("password");
+                        if (newPassword == null || newPassword.length() < 8) {
+                            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Password too short");
+                            return;
+                        }
+
+                        try {
+                            ISecurityManager sec = getParentHub().getSecurityManager();
+                            org.sensorhub.api.security.IUserRegistry reg = sec.getUserRegistry();
+                            org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) reg.get("admin");
+
+                            // Hash password using PBKDF2
+                            String encoded = com.botts.impl.security.PBKDF2CredentialProvider.encode(newPassword);
+                            admin.password = encoded;
+
+                            // Initialize TOTP seed if not present
+                            if (admin.getProperty("totp_seed") == null) {
+                                admin.setProperty("totp_seed", org.sensorhub.impl.security.TOTPUtils.generateSecret());
+                            }
+
+                            // Save state
+                            ((org.sensorhub.impl.security.BasicSecurityRealm)reg).saveState(getParentHub().getModuleRegistry().getStateManager(((org.sensorhub.impl.security.BasicSecurityRealm)reg).getLocalID()));
+
+                            resp.sendRedirect(req.getContextPath() + "/admin");
+                        } catch (Exception e) {
+                            getLogger().error("Setup failed", e);
+                            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                        }
+                    }
+                }), "/setup");
+                addServletSecurity("/setup", false);
             }
             
             server.setHandler(handlers);

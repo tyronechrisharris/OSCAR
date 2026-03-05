@@ -101,21 +101,6 @@ public class BasicSecurityRealm extends AbstractModule<BasicSecurityRealmConfig>
     public void setConfiguration(BasicSecurityRealmConfig config)
     {
         super.setConfiguration(config);
-        
-        // add default admin user and role if none are set
-        if (config.users.isEmpty() && config.roles.isEmpty())
-        {
-            RoleConfig role = new RoleConfig();
-            role.roleID = "admin";
-            role.allow.add("*");
-            config.roles.add(role);
-            
-            UserConfig user = new UserConfig();
-            user.userID = "admin";
-            user.password = "test";
-            user.roles.add("admin");
-            config.users.add(user);
-        }
     }
     
     

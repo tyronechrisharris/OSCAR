@@ -71,4 +71,10 @@ public interface ISecurityManager extends IAuthorizer
     
     
     public Collection<IPermission> getAllModulePermissions();
+
+
+    /**
+     * @return true if the system is in an uninitialized state (e.g. no admin password set)
+     */
+    public boolean isUninitialized();
 }

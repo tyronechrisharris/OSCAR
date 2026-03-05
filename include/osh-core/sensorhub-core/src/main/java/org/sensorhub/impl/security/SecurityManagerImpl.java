@@ -195,8 +195,25 @@ public class SecurityManagerImpl implements ISecurityManager
     {
         return Collections.unmodifiableCollection(modulePermissions.values());
     }
-    
-    
+
+
+    @Override
+    public boolean isUninitialized()
+    {
+        IUserRegistry registry = userDB.get();
+        if (registry == null)
+            return true;
+
+        IUserInfo admin = registry.get("admin");
+        if (admin == null)
+            return true;
+
+        // Check if password is still the default or placeholder
+        String pwd = admin.getPassword();
+        return pwd == null || pwd.isEmpty() || pwd.equals("admin") || pwd.equals("oscar") || pwd.equals("test") || pwd.equals("__INITIAL_ADMIN_PASSWORD__");
+    }
+
+
     /*
      * We use a wrapper so we can change the implementation dynamically
      */
