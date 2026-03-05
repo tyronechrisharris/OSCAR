@@ -37,10 +37,12 @@ import org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -191,30 +193,6 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 servletHandler.setContextPath(config.servletsRootUrl);
                 handlers.addHandler(servletHandler);
                 getLogger().info("Servlets root is " + config.servletsRootUrl);
-
-                // Setup Wizard Redirect Filter
-                servletHandler.addFilter(new FilterHolder(new javax.servlet.Filter() {
-                    @Override
-                    public void init(javax.servlet.FilterConfig filterConfig) throws ServletException {}
-
-                    @Override
-                    public void doFilter(javax.servlet.ServletRequest request, javax.servlet.ServletResponse response, javax.servlet.FilterChain chain) throws IOException, ServletException {
-                        HttpServletRequest req = (HttpServletRequest) request;
-                        HttpServletResponse resp = (HttpServletResponse) response;
-                        String path = req.getRequestURI().substring(req.getContextPath().length());
-
-                        if (getParentHub().getSecurityManager().isUninitialized()) {
-                            if (!path.startsWith("/setup") && !path.startsWith("/admin/ca-cert")) {
-                                resp.sendRedirect(req.getContextPath() + "/setup");
-                                return;
-                            }
-                        }
-                        chain.doFilter(request, response);
-                    }
-
-                    @Override
-                    public void destroy() {}
-                }), "/*", EnumSet.of(DispatcherType.REQUEST));
 
                 // security handler
                 if (config.authMethod != null && config.authMethod != AuthMethod.NONE)
@@ -392,7 +370,28 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 addServletSecurity("/setup", false);
             }
             
-            server.setHandler(handlers);
+            // Setup Wizard Redirect Handler
+            // We use a separate handler list to ensure the redirect happens before any security checks or content serving
+            HandlerList handlerList = new HandlerList();
+            handlerList.addHandler(new AbstractHandler() {
+                @Override
+                public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                    if (getParentHub().getSecurityManager().isUninitialized()) {
+                        String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "";
+                        String setupPath = contextPath + "/setup";
+                        String caPath = contextPath + "/admin/ca-cert";
+
+                        // Redirect if it's not the setup page, CA cert, or static resources needed for setup (if any)
+                        if (!target.startsWith(setupPath) && !target.startsWith(caPath)) {
+                            response.sendRedirect(setupPath);
+                            baseRequest.setHandled(true);
+                            return;
+                        }
+                    }
+                }
+            });
+            handlerList.addHandler(handlers);
+            server.setHandler(handlerList);
             
             // also load external xml config file if any
             if (config.xmlConfigFile != null)
