@@ -17,17 +17,16 @@ jobs:
       PR_TITLE: "${{ github.event.pull_request.title || 'Automated AI Sync: Updates from oscar-flat' }}"
       PR_BODY: "${{ github.event.pull_request.body || 'These changes were generated and verified in the flattened AI workspace.' }}"
       ORIGINAL_PR_URL: "${{ github.event.pull_request.html_url || 'Manual Workflow Dispatch' }}"
+
     steps:
       - name: 1. Prepare Base PR Body and Tracking Files
         run: |
-          # Safely write the PR body to a file, preserving formatting
           echo "$PR_BODY" > $GITHUB_WORKSPACE/base_body.txt
           echo "" >> $GITHUB_WORKSPACE/base_body.txt
           echo "---" >> $GITHUB_WORKSPACE/base_body.txt
           echo "### 🔄 Auto-Distributed via AI Sync" >> $GITHUB_WORKSPACE/base_body.txt
           echo "**Original Flat Repo PR:** $ORIGINAL_PR_URL" >> $GITHUB_WORKSPACE/base_body.txt
           
-          # Initialize empty tracking files for our 2nd pass
           touch $GITHUB_WORKSPACE/raw_urls.txt
           touch $GITHUB_WORKSPACE/bullet_urls.txt
 
@@ -62,15 +61,15 @@ jobs:
       - name: 6. Process Submodules and Create PRs
         run: |
           declare -A submodules=(
-            ["include/osh-addons"]="tyronechrisharris/osh-addons|earocorn/osh-addons"
-            ["include/osh-core"]="tyronechrisharris/osh-core|earocorn/osh-core"
-            ["include/osh-oakridge-modules"]="tyronechrisharris/osh-oakridge-modules|Botts-Innovative-Research/osh-oakridge-modules"
-            ["web/oscar-viewer"]="tyronechrisharris/oscar-viewer|Botts-Innovative-Research/oscar-viewer"
+            ["include/osh-addons"]="tyronechrisharris/osh-addons|opensensorhub/osh-addons|master"
+            ["include/osh-core"]="tyronechrisharris/osh-core|earocorn/osh-core|master"
+            ["include/osh-oakridge-modules"]="tyronechrisharris/osh-oakridge-modules|Botts-Innovative-Research/osh-oakridge-modules|main"
+            ["web/oscar-viewer"]="tyronechrisharris/oscar-viewer|Botts-Innovative-Research/oscar-viewer|main"
           )
 
           for path in "${!submodules[@]}"; do
             echo "Checking submodule: $path"
-            IFS='|' read -r FORK_REPO UPSTREAM_REPO <<< "${submodules[$path]}"
+            IFS='|' read -r FORK_REPO UPSTREAM_REPO BASE_BRANCH <<< "${submodules[$path]}"
             cd $GITHUB_WORKSPACE/oscar_master/$path
             
             if [[ -n $(git status -s) ]]; then
@@ -81,17 +80,15 @@ jobs:
               git commit -m "Auto-sync Jules updates: $PR_TITLE"
               git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
               
-              # Capture the URL of the newly created PR
               NEW_PR_URL=$(gh pr create \
                 --repo $UPSTREAM_REPO \
                 --title "$PR_TITLE" \
                 --body-file $GITHUB_WORKSPACE/base_body.txt \
                 --head tyronechrisharris:$BRANCH_NAME \
-                --base main)
+                --base $BASE_BRANCH)
               
               echo "Created PR: $NEW_PR_URL"
               
-              # Save the URL for the cross-linking phase
               echo "$NEW_PR_URL" >> $GITHUB_WORKSPACE/raw_urls.txt
               echo "- $NEW_PR_URL" >> $GITHUB_WORKSPACE/bullet_urls.txt
             else
@@ -127,16 +124,13 @@ jobs:
 
       - name: 8. The 2nd Pass - Cross-Link All Generated PRs
         run: |
-          # Only run this if we actually created PRs
           if [ -s $GITHUB_WORKSPACE/raw_urls.txt ]; then
             echo "Cross-linking all generated Pull Requests..."
             
-            # Build the footer with the list of all PRs
             echo "" >> $GITHUB_WORKSPACE/base_body.txt
             echo "### 🔗 Related Updates in this Sync:" >> $GITHUB_WORKSPACE/base_body.txt
             cat $GITHUB_WORKSPACE/bullet_urls.txt >> $GITHUB_WORKSPACE/base_body.txt
             
-            # Loop through every PR we created and update its description
             cat $GITHUB_WORKSPACE/raw_urls.txt | while read url; do
               echo "Updating body for: $url"
               gh pr edit $url --body-file $GITHUB_WORKSPACE/base_body.txt
