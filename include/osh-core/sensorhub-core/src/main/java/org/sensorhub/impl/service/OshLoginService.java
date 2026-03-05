@@ -17,6 +17,7 @@ package org.sensorhub.impl.service;
 import java.security.Principal;
 import javax.security.auth.Subject;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.IdentityService;
 import org.eclipse.jetty.security.LoginService;
@@ -112,9 +113,60 @@ public class OshLoginService implements LoginService
         UserIdentity identity = null;
         if (!isCert)
         {
-            Credential storedCredential = Credential.getCredential(user.getPassword());
-            if (storedCredential.check(credentials))
+            String storedPwd = user.getPassword();
+            if (storedPwd == null) return null;
+            Credential storedCredential = Credential.getCredential(storedPwd);
+
+            String providedPwd = credentials.toString();
+            String otp = null;
+
+            // Try to extract OTP from password (format password:otp)
+            if (providedPwd.length() > 6 && providedPwd.contains(":"))
+            {
+                int idx = providedPwd.lastIndexOf(':');
+                String possibleOtp = providedPwd.substring(idx + 1);
+                if (possibleOtp.length() == 6 && possibleOtp.chars().allMatch(Character::isDigit))
+                {
+                    otp = possibleOtp;
+                    providedPwd = providedPwd.substring(0, idx);
+                }
+            }
+
+            if (storedCredential.check(providedPwd) || storedCredential.check(credentials))
+            {
+                // Check TOTP if enabled
+                if (user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
+                {
+                    org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
+                    if (userConfig.isTwoFactorEnabled)
+                    {
+                        // Check if already verified in session
+                        HttpServletRequest req = (HttpServletRequest) request;
+                        var session = req.getSession(true);
+                        Boolean verified = (Boolean) session.getAttribute("2FA_VERIFIED");
+
+                        // If not verified, we must check if the code is provided in the request or was in the password
+                        if (verified == null || !verified)
+                        {
+                            String code = otp;
+                            if (code == null)
+                                code = req.getHeader("X-OSH-TOTP");
+                            if (code == null)
+                                code = req.getParameter("otp");
+
+                            if (code != null && org.sensorhub.impl.security.TOTPUtils.validateCode(userConfig.twoFactorSecret, code))
+                            {
+                                session.setAttribute("2FA_VERIFIED", true);
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
+                    }
+                }
                 identity = createUserIdentity(user, credentials);
+            }
         }
         else
             identity = createUserIdentity(user, credentials);

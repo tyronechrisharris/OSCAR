@@ -38,6 +38,7 @@ import org.eclipse.jetty.security.authentication.ClientCertAuthenticator;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.HttpOutput;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
@@ -193,6 +194,9 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 // create servlet handler
                 this.servletHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
                 servletHandler.setContextPath(config.servletsRootUrl);
+                // Ensure session cookie is valid for the whole site and doesn't conflict
+                servletHandler.getSessionHandler().getSessionCookieConfig().setPath("/");
+                servletHandler.getSessionHandler().setSessionCookie("OSH_JSESSIONID");
                 handlers.addHandler(servletHandler);
                 getLogger().info("Servlets root is " + config.servletsRootUrl);
 
@@ -284,8 +288,9 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                         resp.setContentType("text/html");
                         resp.getWriter().println("<html><body><h1>OSCAR Setup Wizard</h1>");
 
+                        String contextPath = req.getContextPath();
                         if (admin != null && admin.twoFactorSecret != null && admin.password != null && !sec.isUninitialized()) {
-                            resp.getWriter().println("<p>System already initialized. <a href='admin'>Go to Admin UI</a></p>");
+                            resp.getWriter().println("<p>System already initialized. <a href='" + contextPath + "/admin/'>Go to Admin UI</a></p>");
                         } else {
                             resp.getWriter().println("<form method='POST' action='setup'>");
                             resp.getWriter().println("New Admin Password: <input type='password' name='password'><br>");
@@ -299,7 +304,8 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             resp.getWriter().println("<img src='" + req.getSession().getAttribute("totp_qr") + "'><br>");
                             resp.getWriter().println("Secret: <code>" + req.getSession().getAttribute("totp_secret") + "</code><br>");
                             resp.getWriter().println("<p><b>IMPORTANT: Save this secret! You will be locked out if you don't configure TOTP.</b></p>");
-                            resp.getWriter().println("<a href='admin'>I have scanned it, take me to Login</a>");
+                            resp.getWriter().println("<p><b>Tip:</b> If you are prompted for login by the browser and can't provide a TOTP code separately, enter your password followed by a colon and the 6-digit TOTP code (e.g., <code>mypassword:123456</code>).</p>");
+                            resp.getWriter().println("<a href='" + contextPath + "/admin/'>I have scanned it, take me to Login</a>");
                         }
 
                         resp.getWriter().println("</body></html>");
@@ -381,11 +387,15 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             realm.saveState(moduleReg.getStateManager(realm.getLocalID()));
 
                             // Store TOTP info in session to show on next GET
-                            req.getSession().setAttribute("totp_secret", secret);
+                            var session = req.getSession(true);
+                            session.setAttribute("totp_secret", secret);
                             String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + java.net.URLEncoder.encode(org.sensorhub.impl.security.TOTPUtils.getQRUrl("admin", secret), "UTF-8");
-                            req.getSession().setAttribute("totp_qr", qrUrl);
+                            session.setAttribute("totp_qr", qrUrl);
 
-                            resp.sendRedirect(req.getContextPath() + "/setup");
+                            // Initialize TOTP session
+                            session.setAttribute("2FA_VERIFIED", true);
+
+                            resp.sendRedirect(req.getContextPath() + "/setup/");
                         } catch (Exception e) {
                             getLogger().error("Setup failed", e);
                             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -408,7 +418,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
                         // Redirect if it's not the setup page, CA cert, or static resources needed for setup (if any)
                         if (!target.startsWith(setupPath) && !target.startsWith(caPath)) {
-                            response.sendRedirect(setupPath);
+                            response.sendRedirect(setupPath + "/");
                             baseRequest.setHandled(true);
                             return;
                         }
