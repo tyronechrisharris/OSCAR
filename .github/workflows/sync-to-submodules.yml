@@ -61,16 +61,17 @@ jobs:
 
       - name: 6. Process Submodules and Create PRs
         run: |
+          # Mapping format: "Fork_Repo | Upstream_Repo | Base_Branch"
           declare -A submodules=(
-            ["include/osh-addons"]="tyronechrisharris/osh-addons|earocorn/osh-addons"
-            ["include/osh-core"]="tyronechrisharris/osh-core|earocorn/osh-core"
-            ["include/osh-oakridge-modules"]="tyronechrisharris/osh-oakridge-modules|Botts-Innovative-Research/osh-oakridge-modules"
-            ["web/oscar-viewer"]="tyronechrisharris/oscar-viewer|Botts-Innovative-Research/oscar-viewer"
+            ["include/osh-addons"]="tyronechrisharris/osh-addons|opensensorhub/osh-addons|master"
+            ["include/osh-core"]="tyronechrisharris/osh-core|earocorn/osh-core|master"
+            ["include/osh-oakridge-modules"]="tyronechrisharris/osh-oakridge-modules|Botts-Innovative-Research/osh-oakridge-modules|main"
+            ["web/oscar-viewer"]="tyronechrisharris/oscar-viewer|Botts-Innovative-Research/oscar-viewer|main"
           )
 
           for path in "${!submodules[@]}"; do
             echo "Checking submodule: $path"
-            IFS='|' read -r FORK_REPO UPSTREAM_REPO <<< "${submodules[$path]}"
+            IFS='|' read -r FORK_REPO UPSTREAM_REPO BASE_BRANCH <<< "${submodules[$path]}"
             cd $GITHUB_WORKSPACE/oscar_master/$path
             
             if [[ -n $(git status -s) ]]; then
@@ -81,17 +82,16 @@ jobs:
               git commit -m "Auto-sync Jules updates: $PR_TITLE"
               git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
               
-              # Capture the URL of the newly created PR
+              # Open the PR targeting the correct base branch
               NEW_PR_URL=$(gh pr create \
                 --repo $UPSTREAM_REPO \
                 --title "$PR_TITLE" \
                 --body-file $GITHUB_WORKSPACE/base_body.txt \
                 --head tyronechrisharris:$BRANCH_NAME \
-                --base main)
+                --base $BASE_BRANCH)
               
               echo "Created PR: $NEW_PR_URL"
               
-              # Save the URL for the cross-linking phase
               echo "$NEW_PR_URL" >> $GITHUB_WORKSPACE/raw_urls.txt
               echo "- $NEW_PR_URL" >> $GITHUB_WORKSPACE/bullet_urls.txt
             else
