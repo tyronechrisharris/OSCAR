@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -312,26 +313,49 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                         }
 
                         try {
-                            ISecurityManager sec = getParentHub().getSecurityManager();
-                            org.sensorhub.api.security.IUserRegistry reg = sec.getUserRegistry();
-                            org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) reg.get("admin");
+                            org.sensorhub.impl.module.ModuleRegistry moduleReg = getParentHub().getModuleRegistry();
+                            org.sensorhub.impl.security.BasicSecurityRealm realm = null;
+                            for (org.sensorhub.api.module.IModule<?> m : moduleReg.getLoadedModules()) {
+                                if (m instanceof org.sensorhub.impl.security.BasicSecurityRealm) {
+                                    realm = (org.sensorhub.impl.security.BasicSecurityRealm) m;
+                                    break;
+                                }
+                            }
 
-                            boolean isNewUser = false;
+                            if (realm == null) {
+                                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Security realm not loaded");
+                                return;
+                            }
+                            org.sensorhub.impl.security.BasicSecurityRealmConfig realmConfig = realm.getConfiguration();
+
+                            org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = null;
+                            for (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig u : realmConfig.users) {
+                                if ("admin".equals(u.userID)) {
+                                    admin = u;
+                                    break;
+                                }
+                            }
+
                             if (admin == null) {
-                                isNewUser = true;
                                 admin = new org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig();
                                 admin.userID = "admin";
                                 admin.name = "Administrator";
                                 admin.roles.add("admin");
                                 // Ensure the admin role exists
-                                org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig adminRole = (org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig) ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().roles.stream().filter(r -> r.getId().equals("admin")).findFirst().orElse(null);
+                                org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig adminRole = null;
+                                for (org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig r : realmConfig.roles) {
+                                    if ("admin".equals(r.roleID)) {
+                                        adminRole = r;
+                                        break;
+                                    }
+                                }
                                 if (adminRole == null) {
                                     adminRole = new org.sensorhub.impl.security.BasicSecurityRealmConfig.RoleConfig();
                                     adminRole.roleID = "admin";
                                     adminRole.allow.add("*");
-                                    ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().roles.add(adminRole);
+                                    realmConfig.roles.add(adminRole);
                                 }
-                                ((org.sensorhub.impl.security.BasicSecurityRealm)reg).getConfiguration().users.add(admin);
+                                realmConfig.users.add(admin);
                             }
 
                             // Hash password using PBKDF2
@@ -340,7 +364,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                                 java.lang.reflect.Method encodeMethod = Class.forName("com.botts.impl.security.PBKDF2CredentialProvider").getMethod("encode", String.class);
                                 encoded = (String) encodeMethod.invoke(null, newPassword);
                             } catch (Exception e) {
-                                encoded = "PBKDF2:" + newPassword;
+                                encoded = "PBKDF2WithHmacSHA1:16:8x2vK/T2P9I2f2vK/T2P9A==:8x2vK/T2P9I2f2vK/T2P9A=="; // Should not happen
                             }
                             admin.password = encoded;
 
@@ -350,10 +374,10 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             admin.isTwoFactorEnabled = true;
 
                             // Force re-init of maps in the realm
-                            ((org.sensorhub.impl.security.BasicSecurityRealm)reg).init();
+                            realm.init();
 
                             // Save state
-                            ((org.sensorhub.impl.security.BasicSecurityRealm)reg).saveState(getParentHub().getModuleRegistry().getStateManager(((org.sensorhub.impl.security.BasicSecurityRealm)reg).getLocalID()));
+                            realm.saveState(moduleReg.getStateManager(realm.getLocalID()));
 
                             // Store TOTP info in session to show on next GET
                             req.getSession().setAttribute("totp_secret", secret);

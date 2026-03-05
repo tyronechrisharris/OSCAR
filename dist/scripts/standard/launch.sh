@@ -22,7 +22,10 @@ fi
 export TRUSTSTORE="./truststore.jks"
   export TRUSTSTORE_TYPE=JKS
   export TRUSTSTORE_PASSWORD="changeit"
-  export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"
+
+  if [ -f "./.initial_admin_password" ]; then
+      export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"
+  fi
 
 # Database configuration
 export DB_HOST="${DB_HOST:-localhost}"
