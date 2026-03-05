@@ -17,6 +17,7 @@ import {
     createNSigmaCalcViewCurve,
     createThresholdViewCurve, createThreshSigmaViewCurve
 } from "@/app/utils/ChartUtils";
+import {useLanguage} from "@/contexts/LanguageContext";
 
 
 type CurveLayers = {
