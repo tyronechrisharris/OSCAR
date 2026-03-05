@@ -24,7 +24,7 @@ set TRUSTSTORE=.\truststore.jks
 set TRUSTSTORE_TYPE=JKS
 set TRUSTSTORE_PASSWORD=changeit
 
-set INITIAL_ADMIN_PASSWORD_FILE=.\.s
+set INITIAL_ADMIN_PASSWORD_FILE=.\.initial_admin_password
 
 REM Database configuration
 if "%DB_HOST%"=="" (set DB_HOST=localhost)

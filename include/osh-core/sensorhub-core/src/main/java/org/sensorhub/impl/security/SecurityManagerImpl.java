@@ -210,7 +210,15 @@ public class SecurityManagerImpl implements ISecurityManager
 
         // Check if password is still the default or placeholder
         String pwd = admin.getPassword();
-        return pwd == null || pwd.isEmpty() || pwd.equals("admin") || pwd.equals("oscar") || pwd.equals("test") || pwd.equals("__INITIAL_ADMIN_PASSWORD__");
+        boolean isDefaultPwd = pwd == null || pwd.isEmpty() || pwd.equals("admin") || pwd.equals("oscar") || pwd.equals("test") || pwd.equals("__INITIAL_ADMIN_PASSWORD__");
+
+        // Also check if TOTP is configured
+        boolean hasTotp = false;
+        if (admin instanceof BasicSecurityRealmConfig.UserConfig) {
+            hasTotp = ((BasicSecurityRealmConfig.UserConfig) admin).twoFactorSecret != null;
+        }
+
+        return isDefaultPwd || !hasTotp;
     }
 
 
