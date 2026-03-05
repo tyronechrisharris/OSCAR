@@ -124,8 +124,8 @@ export class Node implements INode {
             shared: true,
             prefix: this.csAPIEndpoint,
             endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
-            username: this.auth.username,
-            password: this.auth.password,
+            username: this.auth?.username,
+            password: this.auth?.password,
         }
 
         let networkProperties = {
@@ -134,8 +134,8 @@ export class Node implements INode {
             streamProtocol: "mqtt",
             mqttOpts: mqttOpts,
             connectorOpts: {
-                username: this.auth.username,
-                password: this.auth.password
+                username: this.auth?.username,
+                password: this.auth?.password
             }
         }
 
@@ -192,7 +192,8 @@ export class Node implements INode {
     }
 
     getBasicAuthHeader() {
-        const encoded = btoa(`${this.auth.username}:${this.auth.password}`);
+        if (!this.auth || !this.auth?.username) return {};
+        const encoded = btoa(`${this.auth?.username}:${this.auth?.password}`);
         return {"Authorization": `Basic ${encoded}`};
     }
 

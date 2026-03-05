@@ -62,8 +62,10 @@ export default function NodeForm({isEditNode, modeChangeCallback, editNode}: {
 
         let tNode = new Node(newNode);
         if (name === "username") {
+            if (!tNode.auth) tNode.auth = {username: "", password: ""};
             tNode.auth.username = value;
         } else if (name === "password") {
+            if (!tNode.auth) tNode.auth = {username: "", password: ""};
             tNode.auth.password = value;
         } else if (name === "isSecure") {
             tNode.isSecure = checked;
@@ -154,7 +156,7 @@ export default function NodeForm({isEditNode, modeChangeCallback, editNode}: {
 
         const endpoint = `${node.getConnectedSystemsEndpoint()}`;
 
-        const encoded = btoa(`${node.auth.username}:${node.auth.password}`);
+        const encoded = btoa(`${node.auth?.username}:${node.auth?.password}`);
 
         const options: RequestInit = {
             method: 'GET',
@@ -208,8 +210,8 @@ export default function NodeForm({isEditNode, modeChangeCallback, editNode}: {
                         value={newNode.csAPIEndpoint}
                         onChange={handleChange}
                     />
-                    <TextField label={t('username')} name="username" value={newNode.auth.username} onChange={handleChange}/>
-                    <TextField label={t('password')} name="password" type={"password"} value={newNode.auth.password}
+                    <TextField label={t('username')} name="username" value={newNode.auth?.username || ""} onChange={handleChange}/>
+                    <TextField label={t('password')} name="password" type={"password"} value={newNode.auth?.password || ""}
                                onChange={handleChange}/>
 
                     <FormControlLabel control={<Checkbox name="isSecure" checked={newNode.isSecure} onChange={handleChange}/>} label={t('isSecure')}/>
