@@ -31,18 +31,17 @@ public class OshLoginService implements LoginService
 {
     final ISecurityManager securityManager;
     IdentityService identityService = new DefaultIdentityService();
-    // Static set to share 2FA verification status across contexts (Root and /sensorhub)
-    // Stores "sessionID:username"
-    public static final java.util.Set<String> verifiedSessions = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
     public static String getCleanId(String id)
     {
         if (id == null) return null;
-        int dot = id.indexOf('.');
-        if (dot > 0) return id.substring(0, dot);
-        return id;
+        String cid = id.trim();
+        if (cid.startsWith("\"") && cid.endsWith("\"")) cid = cid.substring(1, cid.length()-1);
+        int dot = cid.indexOf('.');
+        if (dot > 0) cid = cid.substring(0, dot);
+        return cid;
     }
-    
+
     
     public static class UserPrincipal implements Principal
     {
@@ -139,7 +138,12 @@ public class OshLoginService implements LoginService
                 storedCredential = Credential.getCredential(storedPwd);
             }
 
-            String providedPwd = credentials.toString();
+            String originalPwd;
+            if (credentials instanceof char[]) originalPwd = new String((char[])credentials);
+            else if (credentials instanceof org.eclipse.jetty.util.security.Password) originalPwd = credentials.toString();
+            else originalPwd = String.valueOf(credentials);
+
+            String providedPwd = originalPwd;
             String otp = null;
 
             // Try to extract OTP from password (format password:otp)
@@ -154,7 +158,7 @@ public class OshLoginService implements LoginService
                 }
             }
 
-            if (storedCredential.check(providedPwd) || storedCredential.check(credentials))
+            if (storedCredential.check(providedPwd) || storedCredential.check(originalPwd) || storedCredential.check(credentials))
             {
                 // Check TOTP if enabled
                 if (user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
@@ -176,25 +180,41 @@ public class OshLoginService implements LoginService
                         // Check context-local session
                         if (session != null) {
                             Boolean b = (Boolean) session.getAttribute("2FA_VERIFIED");
-                            if (b != null && b) verified = true;
+                            if (b != null && b) {
+                                verified = true;
+                                // Ensure bridged
+                                String currentCid = getCleanId(session.getId());
+                                if (currentCid != null) securityManager.get2FAVerifiedSessions().add(currentCid + ":" + username);
+                            }
                         }
 
                         // Check bridge via cookies if not verified locally
                         if (!verified) {
-                            javax.servlet.http.Cookie[] cookies = req.getCookies();
-                            if (cookies != null) {
-                                for (javax.servlet.http.Cookie c : cookies) {
-                                    // Check any OSH session or common session cookie
-                                    if (c.getName().startsWith("OSH_") || c.getName().equals("JSESSIONID")) {
-                                        if (verifiedSessions.contains(getCleanId(c.getValue()) + ":" + username)) {
-                                            verified = true;
-                                            // Also update local session if possible
-                                            if (session != null) session.setAttribute("2FA_VERIFIED", true);
-                                            break;
+                            try {
+                                javax.servlet.http.Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+                                if (cookies != null) {
+                                    for (javax.servlet.http.Cookie c : cookies) {
+                                        // Check any OSH session or common session cookie
+                                        if (c.getName().equals("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
+                                            String cid = getCleanId(c.getValue());
+                                            if (cid != null && securityManager.get2FAVerifiedSessions().contains(cid + ":" + username)) {
+                                                verified = true;
+                                                if (session == null) {
+                                                    try { session = ((HttpServletRequest)request).getSession(true); } catch (Exception e) {}
+                                                }
+                                                if (session != null) session.setAttribute("2FA_VERIFIED", true);
+
+                                                // Also add current session to bridge
+                                                if (session != null) {
+                                                    String currentCid = getCleanId(session.getId());
+                                                    if (currentCid != null) securityManager.get2FAVerifiedSessions().add(currentCid + ":" + username);
+                                                }
+                                                break;
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            } catch (Exception e) {}
                         }
 
                         // If still not verified, check for new TOTP code in request
@@ -208,24 +228,24 @@ public class OshLoginService implements LoginService
                             {
                                 verified = true;
                                 if (session == null) {
-                                    try { session = req.getSession(true); } catch (Exception e) {}
+                                    try { session = ((HttpServletRequest)request).getSession(true); } catch (Exception e) {}
                                 }
+                                if (session != null) session.setAttribute("2FA_VERIFIED", true);
 
-                                String sid = (session != null) ? session.getId() : null;
-                                if (sid == null) {
-                                    javax.servlet.http.Cookie[] cookies = req.getCookies();
-                                    if (cookies != null) {
-                                        for (javax.servlet.http.Cookie c : cookies) {
-                                            if (c.getName().equals("OSH_JSESSIONID")) {
-                                                sid = c.getValue();
-                                                break;
-                                            }
+                                // Bridge all OSH-related session cookies
+                                javax.servlet.http.Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+                                if (cookies != null) {
+                                    for (javax.servlet.http.Cookie c : cookies) {
+                                            if (c.getName().equals("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
+                                            String cid = getCleanId(c.getValue());
+                                            if (cid != null) securityManager.get2FAVerifiedSessions().add(cid + ":" + username);
                                         }
                                     }
                                 }
-
-                                if (session != null) session.setAttribute("2FA_VERIFIED", true);
-                                if (sid != null) verifiedSessions.add(getCleanId(sid) + ":" + username);
+                                if (session != null) {
+                                    String cid = getCleanId(session.getId());
+                                    if (cid != null) securityManager.get2FAVerifiedSessions().add(cid + ":" + username);
+                                }
                             }
                             else
                             {

@@ -77,4 +77,10 @@ public interface ISecurityManager extends IAuthorizer
      * @return true if the system is in an uninitialized state (e.g. no admin password set)
      */
     public boolean isUninitialized();
+
+
+    /**
+     * @return global registry of sessions that have been 2FA verified
+     */
+    public java.util.Set<String> get2FAVerifiedSessions();
 }

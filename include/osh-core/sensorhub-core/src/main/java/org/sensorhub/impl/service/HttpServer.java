@@ -431,7 +431,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             if (sid != null) {
                                 int dot = sid.indexOf('.');
                                 if (dot > 0) sid = sid.substring(0, dot);
-                                org.sensorhub.impl.service.OshLoginService.verifiedSessions.add(sid + ":admin");
+                                getParentHub().getSecurityManager().get2FAVerifiedSessions().add(sid + ":admin");
                             }
 
                             resp.sendRedirect(req.getContextPath() + "/setup/");

@@ -197,6 +197,18 @@ public class SecurityManagerImpl implements ISecurityManager
     }
 
 
+    // Global set to share 2FA verification status across contexts
+    // Stores "sessionID:username"
+    final java.util.Set<String> verifiedSessions = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
+
+    @Override
+    public java.util.Set<String> get2FAVerifiedSessions()
+    {
+        return verifiedSessions;
+    }
+
+
     @Override
     public boolean isUninitialized()
     {
