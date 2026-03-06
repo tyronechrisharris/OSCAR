@@ -144,10 +144,19 @@ public class OshLoginService implements LoginService
                     {
                         // Check if already verified in session
                         HttpServletRequest req = (HttpServletRequest) request;
-                        var session = req.getSession(true);
-                        Boolean verified = (Boolean) session.getAttribute("2FA_VERIFIED");
-                        if (verified == null || !verified)
-                            verified = verifiedSessions.contains(session.getId());
+                        javax.servlet.http.HttpSession session = null;
+                        try {
+                            session = req.getSession(false);
+                        } catch (IllegalStateException e) {
+                            // No session manager
+                        }
+
+                        Boolean verified = false;
+                        if (session != null) {
+                            verified = (Boolean) session.getAttribute("2FA_VERIFIED");
+                            if (verified == null || !verified)
+                                verified = verifiedSessions.contains(session.getId());
+                        }
 
                         // If not verified, we must check if the code is provided in the request or was in the password
                         if (verified == null || !verified)
@@ -160,8 +169,19 @@ public class OshLoginService implements LoginService
 
                             if (code != null && org.sensorhub.impl.security.TOTPUtils.validateCode(userConfig.twoFactorSecret, code))
                             {
-                                session.setAttribute("2FA_VERIFIED", true);
-                                verifiedSessions.add(session.getId());
+                                if (session == null) {
+                                    try {
+                                        session = req.getSession(true);
+                                    } catch (IllegalStateException e) {
+                                        // Still no session manager, but we verified the code
+                                        return createUserIdentity(user, credentials);
+                                    }
+                                }
+
+                                if (session != null) {
+                                    session.setAttribute("2FA_VERIFIED", true);
+                                    verifiedSessions.add(session.getId());
+                                }
                             }
                             else
                             {

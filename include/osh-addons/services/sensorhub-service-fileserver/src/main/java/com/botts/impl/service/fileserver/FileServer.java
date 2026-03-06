@@ -59,33 +59,34 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         fileResourceHandler.setDirectoriesListed(false);
         fileResourceHandler.setEtags(true);
 
-        // Context handler
-        ContextHandler fileResourceContext = new ContextHandler();
-        fileResourceContext.setContextPath(config.staticDocsRootUrl);
+        Handler currentHandler = fileResourceHandler;
+
+        ConstraintSecurityHandler jettySecurityHandler = (ConstraintSecurityHandler) server.getServletHandler().getSecurityHandler();
+
+        if (config.securityConfig.requireAuth && jettySecurityHandler != null) {
+            currentHandler = createSecurityHandler(currentHandler, jettySecurityHandler);
+        }
 
         // Add session handler to support 2FA session sharing
         SessionHandler sessionHandler = new SessionHandler();
         sessionHandler.getSessionCookieConfig().setPath("/");
         sessionHandler.setSessionCookie("OSH_JSESSIONID");
-        sessionHandler.setHandler(fileResourceHandler);
+        sessionHandler.setHandler(currentHandler);
+        currentHandler = sessionHandler;
 
-        fileResourceContext.setHandler(sessionHandler);
+        // Context handler
+        ContextHandler fileResourceContext = new ContextHandler();
+        fileResourceContext.setContextPath(config.staticDocsRootUrl);
+        fileResourceContext.setHandler(currentHandler);
         fileResourceContext.setResourceBase(config.staticDocsRootDir);
+
+        fileServerHandler = fileResourceContext;
 
         serverHandlers = server.getHandlers();
 
         if (Arrays.stream(serverHandlers.getHandlers()).anyMatch(handler -> handler == fileServerHandler)) {
             reportError("File server handler already registered to Jetty server", new IllegalStateException());
             return;
-        }
-
-        ConstraintSecurityHandler jettySecurityHandler = (ConstraintSecurityHandler) server.getServletHandler().getSecurityHandler();
-
-        if (config.securityConfig.requireAuth && jettySecurityHandler != null) {
-            ConstraintSecurityHandler fileServerSecurityHandler = createSecurityHandler(fileResourceContext, jettySecurityHandler);
-            fileServerHandler = fileServerSecurityHandler;
-        } else {
-            fileServerHandler = fileResourceContext;
         }
 
         fileServerHandler.setServer(server.getJettyServer());
@@ -124,14 +125,13 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
             constraint.setAuthenticate(config.securityConfig.requireAuth);
             ConstraintMapping cm = new ConstraintMapping();
             cm.setConstraint(constraint);
-            cm.setPathSpec(config.staticDocsRootUrl);
+            cm.setPathSpec("/*");
             cm.setMethodOmissions(new String[]{"OPTIONS"}); // disable auth on OPTIONS requests (needed for CORS)
-            jettySecurityHandler.addConstraintMapping(cm);
             securityHandler.addConstraintMapping(cm);
         }
     }
 
-    private ConstraintSecurityHandler createSecurityHandler(ContextHandler fileResourceContext, ConstraintSecurityHandler jettySecurityHandler) {
+    private ConstraintSecurityHandler createSecurityHandler(Handler nextHandler, ConstraintSecurityHandler jettySecurityHandler) {
         ConstraintSecurityHandler fileSecurityHandler = new ConstraintSecurityHandler() {
             @Override
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -144,7 +144,7 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         };
         fileSecurityHandler.setAuthenticator(jettySecurityHandler.getAuthenticator());
         fileSecurityHandler.setLoginService(jettySecurityHandler.getLoginService());
-        fileSecurityHandler.setHandler(fileResourceContext);
+        fileSecurityHandler.setHandler(nextHandler);
         addServletSecurity(fileSecurityHandler, jettySecurityHandler);
         return fileSecurityHandler;
     }
