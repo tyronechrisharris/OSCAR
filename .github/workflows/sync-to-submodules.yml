@@ -14,8 +14,8 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.SYNC_PAT }}
       BRANCH_NAME: jules-sync-${{ github.run_id }}
-      PR_TITLE: "${{ github.event.pull_request.title || 'Automated AI Sync: Updates from oscar-flat' }}"
-      PR_BODY: "${{ github.event.pull_request.body || 'These changes were generated and verified in the flattened AI workspace.' }}"
+      PR_TITLE: "${{ github.event.pull_request.title || 'Automated Sync: Updates from oscar-flat' }}"
+      PR_BODY: "${{ github.event.pull_request.body || 'These changes were generated and verified in the flattened workspace.' }}"
       ORIGINAL_PR_URL: "${{ github.event.pull_request.html_url || 'Manual Workflow Dispatch' }}"
 
     steps:
@@ -24,7 +24,7 @@ jobs:
           echo "$PR_BODY" > $GITHUB_WORKSPACE/base_body.txt
           echo "" >> $GITHUB_WORKSPACE/base_body.txt
           echo "---" >> $GITHUB_WORKSPACE/base_body.txt
-          echo "### 🔄 Auto-Distributed via AI Sync" >> $GITHUB_WORKSPACE/base_body.txt
+          echo "### 🔄 Auto-Distributed via Sync" >> $GITHUB_WORKSPACE/base_body.txt
           echo "**Original Flat Repo PR:** $ORIGINAL_PR_URL" >> $GITHUB_WORKSPACE/base_body.txt
           
           touch $GITHUB_WORKSPACE/raw_urls.txt
@@ -77,7 +77,7 @@ jobs:
               
               git checkout -b $BRANCH_NAME
               git add .
-              git commit -m "Auto-sync Jules updates: $PR_TITLE"
+              git commit -m "Auto-sync updates: $PR_TITLE"
               git push https://x-access-token:${{ secrets.SYNC_PAT }}@github.com/$FORK_REPO.git $BRANCH_NAME
               
               NEW_PR_URL=$(gh pr create \
