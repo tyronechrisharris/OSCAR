@@ -460,7 +460,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico") ||
                             uri.contains("/PUSH") || uri.contains("/UIDL") || uri.contains("/error") ||
                             uri.equals("/") || uri.equals(contextPath) || uri.equals(contextPath + "/") ||
-                            uri.startsWith("/_next") || uri.startsWith("/static") ||
+                            uri.startsWith("/_next") || uri.startsWith("/static") || uri.startsWith("/api/auth") ||
                             (config.servletsRootUrl != null && (uri.equals(config.servletsRootUrl) || uri.equals(config.servletsRootUrl + "/")))) {
                             return;
                         }

@@ -79,6 +79,7 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
             currentHandler = createSecurityHandler(currentHandler, jettySecurityHandler);
         }
 
+        currentHandler = createRedirectHandler(currentHandler);
         servletContext.setHandler(currentHandler);
         fileServerHandler = servletContext;
 
@@ -147,6 +148,32 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         fileSecurityHandler.setHandler(nextHandler);
         addServletSecurity(fileSecurityHandler, jettySecurityHandler);
         return fileSecurityHandler;
+    }
+
+    private Handler createRedirectHandler(Handler nextHandler) {
+        return new AbstractHandler() {
+            @Override
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                if (getParentHub().getSecurityManager().isUninitialized()) {
+                    String uri = request.getRequestURI();
+                    // Allow necessary resources for setup wizard and viewer frontend
+                    if (uri.contains("/setup") || uri.contains("/ca-cert") ||
+                        uri.startsWith("/_next") || uri.startsWith("/static") ||
+                        uri.contains("/favicon.ico") || uri.contains("/error") ||
+                        uri.contains("/PUSH") || uri.contains("/UIDL")) {
+                        nextHandler.handle(target, baseRequest, request, response);
+                        return;
+                    }
+
+                    // Redirect to setup wizard
+                    String contextPath = "/sensorhub"; // Default OSH context
+                    response.sendRedirect(contextPath + "/setup/");
+                    baseRequest.setHandled(true);
+                } else {
+                    nextHandler.handle(target, baseRequest, request, response);
+                }
+            }
+        };
     }
 
 }

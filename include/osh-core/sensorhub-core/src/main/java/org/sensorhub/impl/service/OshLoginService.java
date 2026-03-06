@@ -195,7 +195,7 @@ public class OshLoginService implements LoginService
                                 if (cookies != null) {
                                     for (javax.servlet.http.Cookie c : cookies) {
                                         // Check any OSH session or common session cookie
-                                        if (c.getName().equals("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
+                                        if (c.getName().startsWith("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
                                             String cid = getCleanId(c.getValue());
                                             if (cid != null && securityManager.get2FAVerifiedSessions().contains(cid + ":" + username)) {
                                                 verified = true;
@@ -233,15 +233,17 @@ public class OshLoginService implements LoginService
                                 if (session != null) session.setAttribute("2FA_VERIFIED", true);
 
                                 // Bridge all OSH-related session cookies
-                                javax.servlet.http.Cookie[] cookies = ((HttpServletRequest)request).getCookies();
-                                if (cookies != null) {
-                                    for (javax.servlet.http.Cookie c : cookies) {
-                                            if (c.getName().equals("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
-                                            String cid = getCleanId(c.getValue());
-                                            if (cid != null) securityManager.get2FAVerifiedSessions().add(cid + ":" + username);
+                                try {
+                                    javax.servlet.http.Cookie[] cookies = ((HttpServletRequest)request).getCookies();
+                                    if (cookies != null) {
+                                        for (javax.servlet.http.Cookie c : cookies) {
+                                            if (c.getName().startsWith("OSH_JSESSIONID") || c.getName().equals("JSESSIONID")) {
+                                                String cid = getCleanId(c.getValue());
+                                                if (cid != null) securityManager.get2FAVerifiedSessions().add(cid + ":" + username);
+                                            }
                                         }
                                     }
-                                }
+                                } catch (Exception e) {}
                                 if (session != null) {
                                     String cid = getCleanId(session.getId());
                                     if (cid != null) securityManager.get2FAVerifiedSessions().add(cid + ":" + username);
