@@ -122,6 +122,11 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
         try
         {
             server = new Server();
+
+            // Set shared session ID manager to allow session sharing across contexts
+            org.eclipse.jetty.server.session.DefaultSessionIdManager idManager = new org.eclipse.jetty.server.session.DefaultSessionIdManager(server);
+            server.setSessionIdManager(idManager);
+
             ServerConnector http = null;
             ServerConnector https = null;
             handlers = new HandlerCollection(true);
@@ -196,7 +201,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 servletHandler.setContextPath(config.servletsRootUrl);
                 // Ensure session cookie is valid for the whole site and doesn't conflict
                 servletHandler.getSessionHandler().getSessionCookieConfig().setPath("/");
-                servletHandler.getSessionHandler().setSessionCookie("OSH_JSESSIONID");
+                servletHandler.getSessionHandler().setSessionCookie("OSH_JSESSIONID_SH");
                 handlers.addHandler(servletHandler);
                 getLogger().info("Servlets root is " + config.servletsRootUrl);
 
@@ -321,7 +326,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             resp.getWriter().println("<p>System already initialized. <a href='" + contextPath + "/admin/'>Go to Admin UI</a></p>");
                         } else {
                             resp.getWriter().println("<form method='POST' action='setup/'>");
-                            resp.getWriter().println("New Admin Password: <input type='password' name='password'><br>");
+                            resp.getWriter().println("New Admin Password: <input type='password' name='password' minlength='8' required><br>");
                             resp.getWriter().println("<input type='submit' value='Initialize System'>");
                             resp.getWriter().println("</form>");
                         }
@@ -420,9 +425,14 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + java.net.URLEncoder.encode(org.sensorhub.impl.security.TOTPUtils.getQRUrl("admin", secret), "UTF-8");
                             session.setAttribute("totp_qr", qrUrl);
 
-                            // Initialize TOTP session
+                            // Initialize TOTP session and bridge
                             session.setAttribute("2FA_VERIFIED", true);
-                            org.sensorhub.impl.service.OshLoginService.verifiedSessions.add(session.getId());
+                            String sid = session.getId();
+                            if (sid != null) {
+                                int dot = sid.indexOf('.');
+                                if (dot > 0) sid = sid.substring(0, dot);
+                                org.sensorhub.impl.service.OshLoginService.verifiedSessions.add(sid + ":admin");
+                            }
 
                             resp.sendRedirect(req.getContextPath() + "/setup/");
                         } catch (Exception e) {
@@ -450,6 +460,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico") ||
                             uri.contains("/PUSH") || uri.contains("/UIDL") || uri.contains("/error") ||
                             uri.equals("/") || uri.equals(contextPath) || uri.equals(contextPath + "/") ||
+                            uri.startsWith("/_next") || uri.startsWith("/static") ||
                             (config.servletsRootUrl != null && (uri.equals(config.servletsRootUrl) || uri.equals(config.servletsRootUrl + "/")))) {
                             return;
                         }

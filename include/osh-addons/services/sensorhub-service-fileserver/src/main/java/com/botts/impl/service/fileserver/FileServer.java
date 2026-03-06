@@ -24,6 +24,7 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.*;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.sensorhub.api.common.SensorHubException;
@@ -59,6 +60,17 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         fileResourceHandler.setDirectoriesListed(false);
         fileResourceHandler.setEtags(true);
 
+        // Servlet context handler
+        ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        servletContext.setContextPath(config.staticDocsRootUrl);
+        servletContext.setResourceBase(config.staticDocsRootDir);
+        servletContext.setWelcomeFiles(new String[]{"index.html"});
+
+        // Configure sessions
+        SessionHandler sessionHandler = servletContext.getSessionHandler();
+        sessionHandler.getSessionCookieConfig().setPath("/");
+        sessionHandler.setSessionCookie("OSH_JSESSIONID_ROOT");
+
         Handler currentHandler = fileResourceHandler;
 
         ConstraintSecurityHandler jettySecurityHandler = (ConstraintSecurityHandler) server.getServletHandler().getSecurityHandler();
@@ -67,20 +79,8 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
             currentHandler = createSecurityHandler(currentHandler, jettySecurityHandler);
         }
 
-        // Add session handler to support 2FA session sharing
-        SessionHandler sessionHandler = new SessionHandler();
-        sessionHandler.getSessionCookieConfig().setPath("/");
-        sessionHandler.setSessionCookie("OSH_JSESSIONID");
-        sessionHandler.setHandler(currentHandler);
-        currentHandler = sessionHandler;
-
-        // Context handler
-        ContextHandler fileResourceContext = new ContextHandler();
-        fileResourceContext.setContextPath(config.staticDocsRootUrl);
-        fileResourceContext.setHandler(currentHandler);
-        fileResourceContext.setResourceBase(config.staticDocsRootDir);
-
-        fileServerHandler = fileResourceContext;
+        servletContext.setHandler(currentHandler);
+        fileServerHandler = servletContext;
 
         serverHandlers = server.getHandlers();
 
