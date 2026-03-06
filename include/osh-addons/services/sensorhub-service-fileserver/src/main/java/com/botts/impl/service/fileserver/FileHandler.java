@@ -47,10 +47,22 @@ public class FileHandler extends ResourceHandler {
                        HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
         try {
-            // If system is uninitialized, bypass security check to allow the redirect handler to take over
+            // If system is uninitialized, handle redirection to setup wizard
             if (security.getSecurityManager().isUninitialized()) {
-                baseRequest.setHandled(false);
-                FileHandler.super.handle(target, baseRequest, request, response);
+                String uri = request.getRequestURI();
+                // Bypass for setup wizard and essential resources
+                if (uri.contains("/setup") || uri.contains("/ca-cert") ||
+                    uri.startsWith("/_next") || uri.startsWith("/static") || uri.startsWith("/api/auth") ||
+                    uri.contains("/favicon.ico") || uri.contains("/error") ||
+                    uri.contains("/PUSH") || uri.contains("/UIDL")) {
+                    baseRequest.setHandled(false);
+                    FileHandler.super.handle(target, baseRequest, request, response);
+                } else {
+                    // Redirect to setup wizard
+                    String contextPath = "/sensorhub"; // Default OSH context
+                    response.sendRedirect(contextPath + "/setup/");
+                    baseRequest.setHandled(true);
+                }
                 return;
             }
 
