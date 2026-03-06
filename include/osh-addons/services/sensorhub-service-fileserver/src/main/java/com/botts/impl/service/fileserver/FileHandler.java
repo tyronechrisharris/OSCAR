@@ -47,14 +47,35 @@ public class FileHandler extends ResourceHandler {
                        HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
         try {
+            // If system is uninitialized, bypass security check to allow the redirect handler to take over
+            if (security.getSecurityManager().isUninitialized()) {
+                baseRequest.setHandled(false);
+                FileHandler.super.handle(target, baseRequest, request, response);
+                return;
+            }
+
             // Set current user
             setCurrentUser(request);
 
             // Check if current user has permissions
-            if (!security.hasPermission(security.get)) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have access to this resource");
-                baseRequest.setHandled(true);
-                return;
+            boolean hasPermission = false;
+            try {
+                hasPermission = security.hasPermission(security.get);
+            } catch (Exception e) {
+                // If permission check fails due to missing user, we might need to authenticate
+            }
+
+            if (!hasPermission) {
+                if (request.getRemoteUser() == null) {
+                    if (!request.authenticate(response)) {
+                        baseRequest.setHandled(true);
+                        return;
+                    }
+                } else {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have access to this resource");
+                    baseRequest.setHandled(true);
+                    return;
+                }
             }
 
             baseRequest.setHandled(false);
