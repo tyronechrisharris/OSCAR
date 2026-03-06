@@ -204,19 +204,19 @@ public class SecurityManagerImpl implements ISecurityManager
         if (registry == null)
             return true;
 
+        // System is considered uninitialized if there is no admin user
+        // OR if the admin user still has a default password
+        // OR if the admin user hasn't set up TOTP yet
         IUserInfo admin = registry.get("admin");
         if (admin == null)
             return true;
 
-        // Check if password is still the default or placeholder
         String pwd = admin.getPassword();
-        // Check both plain and hashed versions of default passwords
         boolean isDefaultPwd = pwd == null || pwd.isEmpty() ||
                                pwd.equals("admin") || pwd.equals("oscar") || pwd.equals("test") ||
                                pwd.equals("__INITIAL_ADMIN_PASSWORD__") ||
-                               pwd.contains("PBKDF2WithHmacSHA1:16:8x2vK/T2P9I2f2vK/T2P9A==:8x2vK/T2P9I2f2vK/T2P9A=="); // Example hash
+                               pwd.contains("8x2vK/T2P9I2f2vK/T2P9A=="); // Default hash signature
 
-        // Also check if TOTP is configured
         boolean hasTotp = false;
         if (admin instanceof BasicSecurityRealmConfig.UserConfig) {
             hasTotp = ((BasicSecurityRealmConfig.UserConfig) admin).twoFactorSecret != null;

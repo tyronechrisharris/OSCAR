@@ -203,18 +203,45 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 // security handler
                 if (config.authMethod != null && config.authMethod != AuthMethod.NONE)
                 {
-                    jettySecurityHandler = new ConstraintSecurityHandler();
+                    jettySecurityHandler = new ConstraintSecurityHandler() {
+                        @Override
+                        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                            if (getParentHub().getSecurityManager().isUninitialized()) {
+                                _handler.handle(target, baseRequest, request, response);
+                            } else {
+                                super.handle(target, baseRequest, request, response);
+                            }
+                        }
+                    };
                     
                     // create login service connected to OSH security manager
                     ISecurityManager securityManager = getParentHub().getSecurityManager();
                     OshLoginService loginService = new OshLoginService(securityManager);
                     
                     if (config.authMethod == AuthMethod.BASIC)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger()));
+                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger()) {
+                            @Override
+                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
+                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
+                                return super.validateRequest(req, res, mandatory);
+                            }
+                        });
                     else if (config.authMethod == AuthMethod.DIGEST)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger()));
+                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger()) {
+                            @Override
+                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
+                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
+                                return super.validateRequest(req, res, mandatory);
+                            }
+                        });
                     else if (config.authMethod == AuthMethod.CERT)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger()));
+                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger()) {
+                            @Override
+                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
+                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
+                                return super.validateRequest(req, res, mandatory);
+                            }
+                        });
                     else if (config.authMethod == AuthMethod.EXTERNAL)
                     {
                         Authenticator authenticator = securityManager.getAuthenticator();
@@ -283,16 +310,17 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     @Override
                     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
                         ISecurityManager sec = getParentHub().getSecurityManager();
-                        org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig admin = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) sec.getUserRegistry().get("admin");
 
                         resp.setContentType("text/html");
-                        resp.getWriter().println("<html><body><h1>OSCAR Setup Wizard</h1>");
+                        resp.getWriter().println("<html><head><title>OSCAR Setup Wizard</title></head><body><h1>OSCAR Setup Wizard</h1>");
 
                         String contextPath = req.getContextPath();
-                        if (admin != null && admin.twoFactorSecret != null && admin.password != null && !sec.isUninitialized()) {
+                        if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
+
+                        if (!sec.isUninitialized()) {
                             resp.getWriter().println("<p>System already initialized. <a href='" + contextPath + "/admin/'>Go to Admin UI</a></p>");
                         } else {
-                            resp.getWriter().println("<form method='POST' action='setup'>");
+                            resp.getWriter().println("<form method='POST' action='setup/'>");
                             resp.getWriter().println("New Admin Password: <input type='password' name='password'><br>");
                             resp.getWriter().println("<input type='submit' value='Initialize System'>");
                             resp.getWriter().println("</form>");
@@ -402,8 +430,8 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                         }
                     }
-                }), "/setup");
-                addServletSecurity("/setup", false);
+                }), "/setup/*");
+                addServletSecurity("/setup/*", false);
             }
             
             // Setup Wizard Redirect Handler
@@ -418,23 +446,27 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                         if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
 
                         // Allow setup, ca-cert, and static resources
-                        if (uri.equals(contextPath + "/setup") || uri.startsWith(contextPath + "/setup/") ||
-                            uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico")) {
+                        if (uri.contains("/setup") ||
+                            uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico") ||
+                            uri.contains("/PUSH") || uri.contains("/UIDL") || uri.contains("/error") ||
+                            uri.equals("/") || uri.equals(contextPath) || uri.equals(contextPath + "/") ||
+                            (config.servletsRootUrl != null && (uri.equals(config.servletsRootUrl) || uri.equals(config.servletsRootUrl + "/")))) {
                             return;
                         }
 
                         // Redirect anything else to setup
-                        response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-                        response.setHeader("Location", contextPath + "/setup/");
-                        response.flushBuffer();
+                        response.sendRedirect(contextPath + "/setup/");
                         baseRequest.setHandled(true);
                     }
                 }
             });
+
             // The handler list order is important: Setup interceptor FIRST, then regular handlers.
             // Jetty will iterate through handlers until one handles the request.
             // Regular handlers include the servletHandler which has the security check.
             handlerList.addHandler(handlers);
+
+            // WRAP regular handlers in a security handler that only triggers IF initialized
             server.setHandler(handlerList);
             
             // also load external xml config file if any
