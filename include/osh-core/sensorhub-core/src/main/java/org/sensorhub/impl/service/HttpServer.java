@@ -414,15 +414,19 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                     if (getParentHub().getSecurityManager().isUninitialized()) {
                         String uri = request.getRequestURI();
+                        String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "/sensorhub";
+                        if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
+
                         // Allow setup, ca-cert, and static resources
-                        if (uri.contains("/setup") || uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico")) {
+                        if (uri.equals(contextPath + "/setup") || uri.startsWith(contextPath + "/setup/") ||
+                            uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico")) {
                             return;
                         }
 
                         // Redirect anything else to setup
-                        String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "/sensorhub";
-                        if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
-                        response.sendRedirect(contextPath + "/setup/");
+                        response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+                        response.setHeader("Location", contextPath + "/setup/");
+                        response.flushBuffer();
                         baseRequest.setHandled(true);
                     }
                 }
