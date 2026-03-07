@@ -22,6 +22,7 @@ import org.eclipse.jetty.security.Authenticator;
 import org.eclipse.jetty.security.ServerAuthException;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Authentication.User;
+import org.sensorhub.api.security.ISecurityManager;
 import org.slf4j.Logger;
 import org.vast.util.Asserts;
 
@@ -30,12 +31,19 @@ public class HttpLogoutWrapper implements Authenticator
 {
     private Authenticator delegate;
     private Logger log;
+    private ISecurityManager securityManager;
     
     
     public HttpLogoutWrapper(Authenticator delegate, Logger log)
     {
+        this(delegate, log, null);
+    }
+
+    public HttpLogoutWrapper(Authenticator delegate, Logger log, ISecurityManager securityManager)
+    {
         this.delegate = Asserts.checkNotNull(delegate, Authenticator.class);
         this.log = Asserts.checkNotNull(log, Logger.class);
+        this.securityManager = securityManager;
     }
     
     
@@ -70,6 +78,16 @@ public class HttpLogoutWrapper implements Authenticator
         {
             try
             {
+                // Clear bridged sessions for this user across all contexts
+                if (securityManager != null) {
+                    String username = request.getRemoteUser();
+                    if (username == null) username = OshLoginService.getBridgedUser(request, securityManager);
+                    if (username != null) {
+                        String finalUser = username;
+                        securityManager.get2FAVerifiedSessions().removeIf(s -> s.endsWith(":" + finalUser));
+                    }
+                }
+
                 request.logout();
                 var session = request.getSession(false);
                 if (session != null)

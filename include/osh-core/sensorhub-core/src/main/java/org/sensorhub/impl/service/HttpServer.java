@@ -233,11 +233,11 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     OshLoginService loginService = new OshLoginService(securityManager);
                     
                     if (config.authMethod == AuthMethod.BASIC)
-                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger(), securityManager), securityManager));
                     else if (config.authMethod == AuthMethod.DIGEST)
-                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger(), securityManager), securityManager));
                     else if (config.authMethod == AuthMethod.CERT)
-                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger(), securityManager), securityManager));
                     else if (config.authMethod == AuthMethod.EXTERNAL)
                     {
                         Authenticator authenticator = securityManager.getAuthenticator();
@@ -378,7 +378,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             // Verification Test
                             resp.getWriter().println("<div style='border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9;'>");
                             resp.getWriter().println("<h3>Verify TOTP Configuration</h3>");
-                            resp.getWriter().println("<form method='POST' action='setup/verify'>");
+                            resp.getWriter().println("<form method='POST' action='verify'>");
                             resp.getWriter().println("Enter Code from App: <input type='text' name='code' pattern='[0-9]{6}' maxlength='6' required> ");
                             resp.getWriter().println("<input type='submit' value='Test Code'>");
                             resp.getWriter().println("</form>");
