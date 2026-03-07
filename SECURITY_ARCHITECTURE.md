@@ -43,3 +43,4 @@ The system does not ship with default administrative credentials.
 - **Uninitialized State**: If the system detects that it has not been configured (no admin password set), it enters an uninitialized state.
 - **Mandatory Redirection**: In the uninitialized state, all requests to the root URL or Admin UI are redirected to a Setup Wizard.
 - **Initialization**: The Setup Wizard forces the creation of a strong admin password (hashed using PBKDF2) and initializes the TOTP 2FA seed.
+- **Bridged Session Authentication**: To prevent repeated authentication prompts between isolated Jetty contexts (e.g., the root Viewer and the `/sensorhub` Admin UI), the system implements a session bridging mechanism. Validated 2FA sessions are registered in a global registry and propagated across contexts using a `BridgedAuthenticator` and manual cookie header parsing.

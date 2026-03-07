@@ -24,10 +24,16 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.security.Authenticator;
@@ -58,6 +64,7 @@ import org.eclipse.jetty.xml.XmlConfiguration;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.module.ModuleEvent.ModuleState;
 import org.sensorhub.api.security.ISecurityManager;
+import org.sensorhub.api.security.IUserInfo;
 import org.sensorhub.api.service.IHttpServer;
 import org.sensorhub.impl.module.AbstractModule;
 import org.sensorhub.impl.service.HttpServerConfig.AuthMethod;
@@ -211,8 +218,10 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     jettySecurityHandler = new ConstraintSecurityHandler() {
                         @Override
                         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                            if (getParentHub().getSecurityManager().isUninitialized()) {
-                                _handler.handle(target, baseRequest, request, response);
+                    // Bypass security checks IF system is uninitialized OR session is bridged
+                            boolean isBridged = OshLoginService.getBridgedUser(request, getParentHub().getSecurityManager()) != null;
+                            if (getParentHub().getSecurityManager().isUninitialized() || isBridged) {
+                        if (_handler != null) _handler.handle(target, baseRequest, request, response);
                             } else {
                                 super.handle(target, baseRequest, request, response);
                             }
@@ -224,29 +233,11 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     OshLoginService loginService = new OshLoginService(securityManager);
                     
                     if (config.authMethod == AuthMethod.BASIC)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger()) {
-                            @Override
-                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
-                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
-                                return super.validateRequest(req, res, mandatory);
-                            }
-                        });
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new BasicAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
                     else if (config.authMethod == AuthMethod.DIGEST)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger()) {
-                            @Override
-                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
-                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
-                                return super.validateRequest(req, res, mandatory);
-                            }
-                        });
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new DigestAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
                     else if (config.authMethod == AuthMethod.CERT)
-                        jettySecurityHandler.setAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger()) {
-                            @Override
-                            public org.eclipse.jetty.server.Authentication validateRequest(javax.servlet.ServletRequest req, javax.servlet.ServletResponse res, boolean mandatory) throws org.eclipse.jetty.security.ServerAuthException {
-                                if (getParentHub().getSecurityManager().isUninitialized()) return org.eclipse.jetty.server.Authentication.UNAUTHENTICATED;
-                                return super.validateRequest(req, res, mandatory);
-                            }
-                        });
+                        jettySecurityHandler.setAuthenticator(new BridgedAuthenticator(new HttpLogoutWrapper(new ClientCertAuthenticator(), getLogger()), getParentHub().getSecurityManager()));
                     else if (config.authMethod == AuthMethod.EXTERNAL)
                     {
                         Authenticator authenticator = securityManager.getAuthenticator();
@@ -268,6 +259,31 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     holder.setInitParameter("exposedHeaders", CORS_EXPOSE_HEADERS);
                 }
                 
+                // filter for bridged sessions (ensures OSGI/OSH principal propagation)
+                servletHandler.addFilter(new FilterHolder(new Filter() {
+                    @Override public void init(FilterConfig filterConfig) throws ServletException {}
+                    @Override public void destroy() {}
+                    @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                        HttpServletRequest req = (HttpServletRequest) request;
+                        String bridgedUser = OshLoginService.getBridgedUser(req, getParentHub().getSecurityManager());
+                        if (bridgedUser != null) {
+                            HttpServletRequest wrappedReq = new HttpServletRequestWrapper(req) {
+                                @Override public String getRemoteUser() { return bridgedUser; }
+                                @Override public java.security.Principal getUserPrincipal() {
+                                    return new OshLoginService.UserPrincipal(getParentHub().getSecurityManager().getUserInfo(bridgedUser));
+                                }
+                                @Override public boolean isUserInRole(String role) {
+                                    IUserInfo info = getParentHub().getSecurityManager().getUserInfo(bridgedUser);
+                                    return info != null && info.getRoles().contains(role);
+                                }
+                            };
+                            chain.doFilter(wrappedReq, response);
+                        } else {
+                            chain.doFilter(request, response);
+                        }
+                    }
+                }), "/*", EnumSet.of(DispatcherType.REQUEST));
+
                 // add default test servlet
                 servletHandler.addServlet(new ServletHolder(new HttpServlet() {
                     private static final long serialVersionUID = 1L;
@@ -331,14 +347,14 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             resp.getWriter().println("</form>");
                         }
 
-                        if (req.getSession().getAttribute("totp_qr") != null) {
+                        if (req.getSession().getAttribute("totp_secret") != null) {
                             resp.getWriter().println("<h2>TOTP Setup</h2>");
-                            resp.getWriter().println("<p>Scan this QR code with your authenticator app:</p>");
-                            resp.getWriter().println("<img src='" + req.getSession().getAttribute("totp_qr") + "'><br>");
-                            resp.getWriter().println("Secret: <code>" + req.getSession().getAttribute("totp_secret") + "</code><br>");
+                            resp.getWriter().println("<p>Configure your authenticator app (Google Authenticator, Authy, etc.) using the secret below:</p>");
+                            resp.getWriter().println("Secret Key: <code style='font-size: 1.2em; background: #eee; padding: 2px 5px;'>" + req.getSession().getAttribute("totp_secret") + "</code><br><br>");
+                            resp.getWriter().println("<a href='" + req.getSession().getAttribute("totp_uri") + "' style='display:inline-block; padding:10px; background:#007bff; color:white; text-decoration:none; border-radius:5px;'>Open in Authenticator App</a><br>");
                             resp.getWriter().println("<p><b>IMPORTANT: Save this secret! You will be locked out if you don't configure TOTP.</b></p>");
                             resp.getWriter().println("<p><b>Tip:</b> If you are prompted for login by the browser and can't provide a TOTP code separately, enter your password followed by a colon and the 6-digit TOTP code (e.g., <code>mypassword:123456</code>).</p>");
-                            resp.getWriter().println("<a href='" + contextPath + "/admin/'>I have scanned it, take me to Login</a>");
+                            resp.getWriter().println("<a href='" + contextPath + "/admin/'>I have configured it, take me to Login</a>");
                         }
 
                         resp.getWriter().println("</body></html>");
@@ -422,17 +438,11 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             // Store TOTP info in session to show on next GET
                             var session = req.getSession(true);
                             session.setAttribute("totp_secret", secret);
-                            String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + java.net.URLEncoder.encode(org.sensorhub.impl.security.TOTPUtils.getQRUrl("admin", secret), "UTF-8");
-                            session.setAttribute("totp_qr", qrUrl);
+                            session.setAttribute("totp_uri", org.sensorhub.impl.security.TOTPUtils.getQRUrl("admin", secret));
 
                             // Initialize TOTP session and bridge
                             session.setAttribute("2FA_VERIFIED", true);
-                            String sid = session.getId();
-                            if (sid != null) {
-                                int dot = sid.indexOf('.');
-                                if (dot > 0) sid = sid.substring(0, dot);
-                                getParentHub().getSecurityManager().get2FAVerifiedSessions().add(sid + ":admin");
-                            }
+                            OshLoginService.bridgeAllCookies(req, "admin", getParentHub().getSecurityManager());
 
                             resp.sendRedirect(req.getContextPath() + "/setup/");
                         } catch (Exception e) {

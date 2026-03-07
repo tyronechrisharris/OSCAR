@@ -15,30 +15,32 @@
 
 package com.botts.impl.service.fileserver;
 
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.EnumSet;
+
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.*;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.util.security.Constraint;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.security.ISecurityManager;
 import org.sensorhub.impl.service.AbstractHttpServiceModule;
 import org.sensorhub.impl.service.HttpServer;
+import org.sensorhub.impl.service.OshLoginService;
 import org.vast.util.Asserts;
-
-import java.util.Arrays;
 
 public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
 
     FileServerSecurity security;
     Handler fileServerHandler;
-    HandlerCollection serverHandlers;
 
     @Override
     public void setConfiguration(FileServerConfig config) {
@@ -51,63 +53,130 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         super.doStart();
 
         HttpServer server = (HttpServer) httpServer;
-
         Asserts.checkNotNull(config.staticDocsRootUrl);
         Asserts.checkNotNull(config.staticDocsRootDir);
 
-        // File resource handler
-        FileHandler fileResourceHandler = new FileHandler(security, getLogger());
-        fileResourceHandler.setDirectoriesListed(false);
-        fileResourceHandler.setEtags(true);
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath(config.staticDocsRootUrl);
+        context.setResourceBase(config.staticDocsRootDir);
+        context.setWelcomeFiles(new String[]{"index.html"});
 
-        // Servlet context handler
-        ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        servletContext.setContextPath(config.staticDocsRootUrl);
-        servletContext.setResourceBase(config.staticDocsRootDir);
-        servletContext.setWelcomeFiles(new String[]{"index.html"});
-
-        // Configure sessions
-        SessionHandler sessionHandler = servletContext.getSessionHandler();
+        SessionHandler sessionHandler = context.getSessionHandler();
         sessionHandler.getSessionCookieConfig().setPath("/");
         sessionHandler.setSessionCookie("OSH_JSESSIONID_ROOT");
 
-        Handler currentHandler = fileResourceHandler;
+        // Security Handler to manage authentication
+        ConstraintSecurityHandler mainJettySecurityHandler = (ConstraintSecurityHandler) server.getServletHandler().getSecurityHandler();
+        if (config.securityConfig.requireAuth && mainJettySecurityHandler != null) {
+            ConstraintSecurityHandler securityHandler = new ConstraintSecurityHandler() {
+                @Override
+                public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                    String uri = request.getRequestURI();
+                    boolean isStatic = uri.startsWith("/_next") || uri.startsWith("/static") ||
+                                       uri.contains("/favicon.ico") || uri.contains("/error") ||
+                                       uri.contains("/ca-cert") || uri.endsWith(".js") || uri.endsWith(".css");
 
-        ConstraintSecurityHandler jettySecurityHandler = (ConstraintSecurityHandler) server.getServletHandler().getSecurityHandler();
+                    boolean isBridged = OshLoginService.getBridgedUser(request, getParentHub().getSecurityManager()) != null;
 
-        if (config.securityConfig.requireAuth && jettySecurityHandler != null) {
-            currentHandler = createSecurityHandler(currentHandler, jettySecurityHandler);
+                    if (getParentHub().getSecurityManager().isUninitialized() || isStatic || isBridged) {
+                        if (getHandler() != null) getHandler().handle(target, baseRequest, request, response);
+                    } else {
+                        super.handle(target, baseRequest, request, response);
+                    }
+                }
+            };
+            securityHandler.setAuthenticator(new org.sensorhub.impl.service.BridgedAuthenticator(mainJettySecurityHandler.getAuthenticator(), getParentHub().getSecurityManager()));
+            securityHandler.setLoginService(mainJettySecurityHandler.getLoginService());
+            securityHandler.setIdentityService(mainJettySecurityHandler.getIdentityService());
+
+            Constraint constraint = new Constraint();
+            constraint.setRoles(new String[]{Constraint.ANY_AUTH});
+            constraint.setAuthenticate(true);
+            ConstraintMapping cm = new ConstraintMapping();
+            cm.setConstraint(constraint);
+            cm.setPathSpec("/*");
+            securityHandler.addConstraintMapping(cm);
+
+            context.setSecurityHandler(securityHandler);
         }
 
-        servletContext.setHandler(currentHandler);
-        fileServerHandler = servletContext;
+        // Filter for Redirection and custom Permissions
+        context.addFilter(new FilterHolder(new Filter() {
+            @Override public void init(FilterConfig filterConfig) throws ServletException {}
+            @Override public void destroy() {}
+            @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                HttpServletRequest req = (HttpServletRequest) request;
+                HttpServletResponse resp = (HttpServletResponse) response;
 
-        serverHandlers = server.getHandlers();
+                // 1. Mandatory redirect to setup wizard if uninitialized
+                if (getParentHub().getSecurityManager().isUninitialized()) {
+                    String uri = req.getRequestURI();
+                    if (uri.contains("/setup") || uri.contains("/ca-cert") || uri.startsWith("/_next") || uri.startsWith("/static") || uri.startsWith("/api/auth") ||
+                        uri.contains("/favicon.ico") || uri.contains("/error") || uri.contains("/PUSH") || uri.contains("/UIDL") ||
+                        uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg") || uri.endsWith(".json")) {
+                        chain.doFilter(request, response);
+                    } else {
+                        resp.sendRedirect("/sensorhub/setup/");
+                    }
+                    return;
+                }
 
-        if (Arrays.stream(serverHandlers.getHandlers()).anyMatch(handler -> handler == fileServerHandler)) {
-            reportError("File server handler already registered to Jetty server", new IllegalStateException());
-            return;
-        }
+                // 2. Permission check
+                String uri = req.getRequestURI();
+                boolean isStatic = uri.startsWith("/_next") || uri.startsWith("/static") ||
+                                   uri.contains("/favicon.ico") || uri.contains("/error") ||
+                                   uri.contains("/ca-cert") || uri.endsWith(".js") || uri.endsWith(".css");
 
+                if (isStatic) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+
+                String bridgedUser = OshLoginService.getBridgedUser(req, getParentHub().getSecurityManager());
+                String user = req.getRemoteUser();
+                if (user == null) user = bridgedUser;
+                if (user == null) user = ISecurityManager.ANONYMOUS_USER;
+
+                try {
+                    security.setCurrentUser(user);
+                    boolean permitted = false;
+                    try {
+                        permitted = security.hasPermission(security.get);
+                    } catch (Exception e) {}
+
+                    if (!permitted) {
+                        if (req.getRemoteUser() == null && bridgedUser == null) {
+                            if (!req.authenticate(resp)) return;
+                        } else {
+                            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                            return;
+                        }
+                    }
+                    chain.doFilter(request, response);
+                } finally {
+                    security.clearCurrentUser();
+                }
+            }
+        }), "/*", EnumSet.of(DispatcherType.REQUEST));
+
+        context.addServlet(new ServletHolder("default", org.eclipse.jetty.servlet.DefaultServlet.class), "/");
+
+        fileServerHandler = context;
         fileServerHandler.setServer(server.getJettyServer());
-
         try {
             fileServerHandler.start();
         } catch (Exception e) {
-            reportError("Error starting file server", e);
-            return;
+            throw new SensorHubException("Error starting file server", e);
         }
-
-        serverHandlers.addHandler(fileServerHandler);
-
-        getLogger().info("Static resources being served at {} from {}", config.staticDocsRootUrl, config.staticDocsRootDir);
+        server.getHandlers().addHandler(fileServerHandler);
+        getLogger().info("Static resources served at {} from {}", config.staticDocsRootUrl, config.staticDocsRootDir);
     }
 
     @Override
     protected void doStop() throws SensorHubException {
         super.doStop();
-        if (serverHandlers != null && fileServerHandler != null) {
-            serverHandlers.removeHandler(fileServerHandler);
+        if (httpServer != null && fileServerHandler != null) {
+            ((HttpServer)httpServer).getHandlers().removeHandler(fileServerHandler);
         }
     }
 
@@ -117,37 +186,5 @@ public class FileServer extends AbstractHttpServiceModule<FileServerConfig> {
         if (securityHandler != null)
             securityHandler.unregister();
     }
-
-    private void addServletSecurity(ConstraintSecurityHandler securityHandler, ConstraintSecurityHandler jettySecurityHandler) {
-        if (securityHandler != null) {
-            Constraint constraint = new Constraint();
-            constraint.setRoles(new String[]{Constraint.ANY_AUTH});
-            constraint.setAuthenticate(config.securityConfig.requireAuth);
-            ConstraintMapping cm = new ConstraintMapping();
-            cm.setConstraint(constraint);
-            cm.setPathSpec("/*");
-            cm.setMethodOmissions(new String[]{"OPTIONS"}); // disable auth on OPTIONS requests (needed for CORS)
-            securityHandler.addConstraintMapping(cm);
-        }
-    }
-
-    private ConstraintSecurityHandler createSecurityHandler(Handler nextHandler, ConstraintSecurityHandler jettySecurityHandler) {
-        ConstraintSecurityHandler fileSecurityHandler = new ConstraintSecurityHandler() {
-            @Override
-            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                if (getParentHub().getSecurityManager().isUninitialized()) {
-                    super.handle(target, baseRequest, request, response);
-                } else {
-                    super.handle(target, baseRequest, request, response);
-                }
-            }
-        };
-        fileSecurityHandler.setAuthenticator(jettySecurityHandler.getAuthenticator());
-        fileSecurityHandler.setLoginService(jettySecurityHandler.getLoginService());
-        fileSecurityHandler.setHandler(nextHandler);
-        addServletSecurity(fileSecurityHandler, jettySecurityHandler);
-        return fileSecurityHandler;
-    }
-
 
 }
