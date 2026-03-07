@@ -331,6 +331,27 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     @Override
                     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
                         ISecurityManager sec = getParentHub().getSecurityManager();
+                        String path = req.getPathInfo();
+                        if (path == null) path = "/";
+
+                        // QR Code Generation Endpoint
+                        if (path.equals("/qr")) {
+                            String uri = (String) req.getSession().getAttribute("totp_uri");
+                            if (uri == null) {
+                                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                                return;
+                            }
+                            try {
+                                com.google.zxing.qrcode.QRCodeWriter qrCodeWriter = new com.google.zxing.qrcode.QRCodeWriter();
+                                com.google.zxing.common.BitMatrix bitMatrix = qrCodeWriter.encode(uri, com.google.zxing.BarcodeFormat.QR_CODE, 200, 200);
+                                resp.setContentType("image/png");
+                                com.google.zxing.client.j2se.MatrixToImageWriter.writeToStream(bitMatrix, "PNG", resp.getOutputStream());
+                                return;
+                            } catch (Exception e) {
+                                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                                return;
+                            }
+                        }
 
                         resp.setContentType("text/html");
                         resp.getWriter().println("<html><head><title>OSCAR Setup Wizard</title></head><body><h1>OSCAR Setup Wizard</h1>");
@@ -349,9 +370,27 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
                         if (req.getSession().getAttribute("totp_secret") != null) {
                             resp.getWriter().println("<h2>TOTP Setup</h2>");
-                            resp.getWriter().println("<p>Configure your authenticator app (Google Authenticator, Authy, etc.) using the secret below:</p>");
+                            resp.getWriter().println("<p>Configure your authenticator app (Google Authenticator, Authy, etc.) by scanning the QR code or entering the secret below:</p>");
+                            resp.getWriter().println("<img src='qr'><br><br>");
                             resp.getWriter().println("Secret Key: <code style='font-size: 1.2em; background: #eee; padding: 2px 5px;'>" + req.getSession().getAttribute("totp_secret") + "</code><br><br>");
-                            resp.getWriter().println("<a href='" + req.getSession().getAttribute("totp_uri") + "' style='display:inline-block; padding:10px; background:#007bff; color:white; text-decoration:none; border-radius:5px;'>Open in Authenticator App</a><br>");
+                            resp.getWriter().println("<a href='" + req.getSession().getAttribute("totp_uri") + "' style='display:inline-block; padding:10px; background:#007bff; color:white; text-decoration:none; border-radius:5px;'>Open in Authenticator App</a><br><br>");
+
+                            // Verification Test
+                            resp.getWriter().println("<div style='border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9;'>");
+                            resp.getWriter().println("<h3>Verify TOTP Configuration</h3>");
+                            resp.getWriter().println("<form method='POST' action='setup/verify'>");
+                            resp.getWriter().println("Enter Code from App: <input type='text' name='code' pattern='[0-9]{6}' maxlength='6' required> ");
+                            resp.getWriter().println("<input type='submit' value='Test Code'>");
+                            resp.getWriter().println("</form>");
+
+                            if (req.getParameter("verified") != null) {
+                                if ("true".equals(req.getParameter("verified")))
+                                    resp.getWriter().println("<p style='color: green; font-weight: bold;'>Verification Successful!</p>");
+                                else
+                                    resp.getWriter().println("<p style='color: red; font-weight: bold;'>Invalid Code. Please try again.</p>");
+                            }
+                            resp.getWriter().println("</div>");
+
                             resp.getWriter().println("<p><b>IMPORTANT: Save this secret! You will be locked out if you don't configure TOTP.</b></p>");
                             resp.getWriter().println("<p><b>Tip:</b> If you are prompted for login by the browser and can't provide a TOTP code separately, enter your password followed by a colon and the 6-digit TOTP code (e.g., <code>mypassword:123456</code>).</p>");
                             resp.getWriter().println("<a href='" + contextPath + "/admin/'>I have configured it, take me to Login</a>");
@@ -362,6 +401,17 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
 
                     @Override
                     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        String path = req.getPathInfo();
+                        if (path == null) path = "/";
+
+                        if (path.equals("/verify")) {
+                            String secret = (String) req.getSession().getAttribute("totp_secret");
+                            String code = req.getParameter("code");
+                            boolean ok = org.sensorhub.impl.security.TOTPUtils.validateCode(secret, code);
+                            resp.sendRedirect("?verified=" + ok);
+                            return;
+                        }
+
                         String newPassword = req.getParameter("password");
                         if (newPassword == null || newPassword.length() < 8) {
                             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Password too short");
