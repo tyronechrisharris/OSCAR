@@ -17,6 +17,19 @@ index 8bb9f66..0c26f5c 100644
              }
              return jsonData;
          }
+diff --git a/node_modules/osh-js/source/core/mqtt/MqttProvider.js b/node_modules/osh-js/source/core/mqtt/MqttProvider.js
+index fb0b3a8..7964d2a 100644
+--- a/node_modules/osh-js/source/core/mqtt/MqttProvider.js
++++ b/node_modules/osh-js/source/core/mqtt/MqttProvider.js
+@@ -169,7 +169,7 @@ class MqttProvider {
+                 throw new Error(`The server ${that.endpoint} seems offline`);
+             });
+             this.client.on('error', e => {
+-                throw new Error(error);
++                throw new Error(e);
+             });
+         }
+     }
 diff --git a/node_modules/osh-js/source/core/parsers/JsonDataParser.js b/node_modules/osh-js/source/core/parsers/JsonDataParser.js
 index 67eb795..57490eb 100644
 --- a/node_modules/osh-js/source/core/parsers/JsonDataParser.js
