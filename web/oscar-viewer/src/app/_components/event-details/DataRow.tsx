@@ -6,7 +6,9 @@ import {EventTableData} from "@/lib/data/oscar/TableHelpers";
 import { useLanguage } from '@/contexts/LanguageContext';
 
 
-const StatusTableCell = styled(TableCell)(({theme, status}: { theme: Theme, status: string }) => ({
+const StatusTableCell = styled(TableCell, {
+    shouldForwardProp: (prop) => prop !== 'status',
+})<{ status: string }>(({ theme, status }) => ({
     color: status === 'Gamma' ? theme.palette.error.contrastText : status === 'Neutron' ? theme.palette.info.contrastText : status === 'Gamma & Neutron' ? theme.palette.secondary.contrastText : 'inherit',
     backgroundColor: status === 'Gamma' ? theme.palette.error.main : status === 'Neutron' ? theme.palette.info.main : status === 'Gamma & Neutron' ? theme.palette.secondary.main : 'transparent',
 }));

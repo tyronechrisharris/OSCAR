@@ -13,6 +13,7 @@ import {
     Theme
 } from '@mui/material';
 import {useEffect, useState} from 'react';
+import {useLanguage} from '@/contexts/LanguageContext';
 
 const isotopeChoices=[
     "Unknown",
