@@ -1,3 +1,90 @@
+diff --git a/node_modules/osh-js/core/datasource/consysapi/context/ConSysApi.realtime.context.js b/node_modules/osh-js/core/datasource/consysapi/context/ConSysApi.realtime.context.js
+index d67936e..cc736fd 100644
+--- a/node_modules/osh-js/core/datasource/consysapi/context/ConSysApi.realtime.context.js
++++ b/node_modules/osh-js/core/datasource/consysapi/context/ConSysApi.realtime.context.js
+@@ -123,12 +123,15 @@ var ConSysApiRealTimeContext = /** @class */ (function (_super) {
+         this.streamObject.stream().onChangeStatus = this.onChangeStatus.bind(this);
+     };
+     ConSysApiRealTimeContext.prototype.onStreamMessage = function (messages, format) {
++        var _a;
+         // in case of om+json ,we have to add the timestamp which is not included for each record but at the root level
+         var results = messages;
+-        var version = this.properties.version;
++        var version = (_a = this.properties) === null || _a === void 0 ? void 0 : _a.version;
+         for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
+             var message = messages_1[_i];
+-            message.version = version;
++            if (message) {
++                message.version = version;
++            }
+         }
+         this.handleData(results, format);
+     };
+diff --git a/node_modules/osh-js/core/datasource/sweapi/context/SweApi.realtime.context.js b/node_modules/osh-js/core/datasource/sweapi/context/SweApi.realtime.context.js
+index 786a7e5..5834acf 100644
+--- a/node_modules/osh-js/core/datasource/sweapi/context/SweApi.realtime.context.js
++++ b/node_modules/osh-js/core/datasource/sweapi/context/SweApi.realtime.context.js
+@@ -1,18 +1,3 @@
+-/***************************** BEGIN LICENSE BLOCK ***************************
+-
+- The contents of this file are subject to the Mozilla Public License, v. 2.0.
+- If a copy of the MPL was not distributed with this file, You can obtain one
+- at http://mozilla.org/MPL/2.0/.
+-
+- Software distributed under the License is distributed on an "AS IS" basis,
+- WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+- for the specific language governing rights and limitations under the License.
+-
+- Copyright (C) 2015-2022 Georobotix Inc. All Rights Reserved.
+-
+- Author: Mathieu Dhainaut <mathieu.dhainaut@gmail.com>
+-
+- ******************************* END LICENSE BLOCK ***************************/
+ var __extends = (this && this.__extends) || (function () {
+     var extendStatics = function (d, b) {
+         extendStatics = Object.setPrototypeOf ||
+@@ -76,9 +61,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
+     }
+ };
+ import SweApiContext from "./SweApi.context";
+-import Control from "../../../sweapi/control/Control";
+ import DataStream from "../../../sweapi/datastream/DataStream";
+ import { isDefined } from "../../../utils/Utils";
++import ControlStream from "../../../sweapi/control/Control";
+ var SweApiRealTimeContext = /** @class */ (function (_super) {
+     __extends(SweApiRealTimeContext, _super);
+     function SweApiRealTimeContext() {
+@@ -92,10 +77,10 @@ var SweApiRealTimeContext = /** @class */ (function (_super) {
+         this.streamObject = undefined;
+         // check control status
+         if (regex.test(properties.resource)) {
+-            filter = this.createControlFilter(properties);
++            filter = this.createControlStreamFilter(properties);
+             // is observation streaming
+             var match = regex.exec(properties.resource);
+-            this.streamObject = new Control({
++            this.streamObject = new ControlStream({
+                 id: match[2],
+                 'system@id': match[1]
+             }, networkProperties);
+@@ -123,12 +108,15 @@ var SweApiRealTimeContext = /** @class */ (function (_super) {
+         this.streamObject.stream().onChangeStatus = this.onChangeStatus.bind(this);
+     };
+     SweApiRealTimeContext.prototype.onStreamMessage = function (messages, format) {
++        var _a;
+         // in case of om+json ,we have to add the timestamp which is not included for each record but at the root level
+         var results = messages;
+-        var version = this.properties.version;
++        var version = (_a = this.properties) === null || _a === void 0 ? void 0 : _a.version;
+         for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
+             var message = messages_1[_i];
+-            message.version = version;
++            if (message) {
++                message.version = version;
++            }
+         }
+         this.handleData(results, format);
+     };
 diff --git a/node_modules/osh-js/core/mqtt/mqtt.min.js b/node_modules/osh-js/core/mqtt/mqtt.min.js
 index 99d3f5e..0d785b6 100644
 --- a/node_modules/osh-js/core/mqtt/mqtt.min.js
@@ -34,6 +121,133 @@ index 8bb9f66..69d8818 100644
              return [jsonData];
          }
      };
+diff --git a/node_modules/osh-js/source/core/datasource/consysapi/context/ConSysApi.realtime.context.js b/node_modules/osh-js/source/core/datasource/consysapi/context/ConSysApi.realtime.context.js
+index 2159333..07060ea 100644
+--- a/node_modules/osh-js/source/core/datasource/consysapi/context/ConSysApi.realtime.context.js
++++ b/node_modules/osh-js/source/core/datasource/consysapi/context/ConSysApi.realtime.context.js
+@@ -1,19 +1,3 @@
+-/***************************** BEGIN LICENSE BLOCK ***************************
+-
+- The contents of this file are subject to the Mozilla Public License, v. 2.0.
+- If a copy of the MPL was not distributed with this file, You can obtain one
+- at http://mozilla.org/MPL/2.0/.
+-
+- Software distributed under the License is distributed on an "AS IS" basis,
+- WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+- for the specific language governing rights and limitations under the License.
+-
+- Copyright (C) 2015-2022 Georobotix Inc. All Rights Reserved.
+-
+- Author: Mathieu Dhainaut <mathieu.dhainaut@gmail.com>
+-
+- ******************************* END LICENSE BLOCK ***************************/
+-
+ import ConSysApiContext from "./ConSysApi.context";
+ import DataStream from "../../../consysapi/datastream/DataStream";
+ import {isDefined} from "../../../utils/Utils";
+@@ -65,9 +49,11 @@ class ConSysApiRealTimeContext extends ConSysApiContext {
+     onStreamMessage(messages, format) {
+          // in case of om+json ,we have to add the timestamp which is not included for each record but at the root level
+         let results = messages;
+-        let version = this.properties.version;
++        let version = this.properties?.version;
+         for(let message of messages) {
+-            message.version = version;
++            if (message) {
++                message.version = version;
++            }
+         }
+         this.handleData(results, format);
+     }
+diff --git a/node_modules/osh-js/source/core/datasource/sweapi/context/SweApi.realtime.context.js b/node_modules/osh-js/source/core/datasource/sweapi/context/SweApi.realtime.context.js
+index 123ee1e..98ef957 100644
+--- a/node_modules/osh-js/source/core/datasource/sweapi/context/SweApi.realtime.context.js
++++ b/node_modules/osh-js/source/core/datasource/sweapi/context/SweApi.realtime.context.js
+@@ -1,25 +1,10 @@
+-/***************************** BEGIN LICENSE BLOCK ***************************
+-
+- The contents of this file are subject to the Mozilla Public License, v. 2.0.
+- If a copy of the MPL was not distributed with this file, You can obtain one
+- at http://mozilla.org/MPL/2.0/.
+-
+- Software distributed under the License is distributed on an "AS IS" basis,
+- WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+- for the specific language governing rights and limitations under the License.
+-
+- Copyright (C) 2015-2022 Georobotix Inc. All Rights Reserved.
+-
+- Author: Mathieu Dhainaut <mathieu.dhainaut@gmail.com>
+-
+- ******************************* END LICENSE BLOCK ***************************/
+-
+ import SweApiContext from "./SweApi.context";
+-import Control from "../../../sweapi/control/Control";
+ import DataStream from "../../../sweapi/datastream/DataStream";
+ import {isDefined} from "../../../utils/Utils";
++import ControlStream from "../../../sweapi/control/Control";
+
+ class SweApiRealTimeContext extends SweApiContext {
++
+     init(properties) {
+         this.properties = properties;
+
+@@ -27,18 +12,18 @@ class SweApiRealTimeContext extends SweApiContext {
+             ...properties,
+             streamProtocol: properties.protocol
+         };
++
+         let filter;
+         let regex = new RegExp('\\/systems\\/(.*)\\/controls\\/(.*)\\/status');
+
+         this.streamObject = undefined;
+-
+         // check control status
+         if(regex.test(properties.resource)) {
+-            filter = this.createControlFilter(properties);
++            filter = this.createControlStreamFilter(properties);
+             // is observation streaming
+             const match = regex.exec(properties.resource);
+
+-            this.streamObject = new Control({
++            this.streamObject = new ControlStream({
+                 id: match[2],
+                 'system@id': match[1]
+             }, networkProperties);
+@@ -48,6 +33,7 @@ class SweApiRealTimeContext extends SweApiContext {
+         } else {
+             // check for datastream observations
+             regex = new RegExp('\\/(.*\\/)(.*)\\/observations'); // /datastreams/abc13/observations
++
+             if(regex.test(properties.resource)) {
+                 filter = this.createObservationFilter(properties);
+                 // is observation streaming
+@@ -60,14 +46,17 @@ class SweApiRealTimeContext extends SweApiContext {
+                 }
+             }
+         }
++
+         this.streamObject.stream().onChangeStatus = this.onChangeStatus.bind(this);
+     }
+     onStreamMessage(messages, format) {
+-         // in case of om+json ,we have to add the timestamp which is not included for each record but at the root level
++        // in case of om+json ,we have to add the timestamp which is not included for each record but at the root level
+         let results = messages;
+-        let version = this.properties.version;
++        let version = this.properties?.version;
+         for(let message of messages) {
+-            message.version = version;
++            if (message) {
++                message.version = version;
++            }
+         }
+         this.handleData(results, format);
+     }
+@@ -87,5 +76,4 @@ class SweApiRealTimeContext extends SweApiContext {
+     }
+ }
+
+-
+ export default SweApiRealTimeContext;
 diff --git a/node_modules/osh-js/source/core/parsers/JsonDataParser.js b/node_modules/osh-js/source/core/parsers/JsonDataParser.js
 index 67eb795..a491174 100644
 --- a/node_modules/osh-js/source/core/parsers/JsonDataParser.js
