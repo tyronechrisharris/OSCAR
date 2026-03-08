@@ -112,20 +112,20 @@ export default function MapComponent() {
             const msgLaneName = laneName;
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('connectionRT', (message: any) => {
-                let connection = message.values[0].data.connection;
+                let connection = message?.values?.[0]?.data?.connection;
                 updateLocationList(msgLaneName, connection);
             });
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('gammaRT', (message: any) => {
-                let alarmstate = message.values[0].data.alarmState;
+                let alarmstate = message?.values?.[0]?.data?.alarmState;
                 updateLocationList(msgLaneName, alarmstate);
             });
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('neutronRT', (message: any) => {
-                let alarmstate = message.values[0].data.alarmState;
+                let alarmstate = message?.values?.[0]?.data?.alarmState;
                 updateLocationList(msgLaneName, alarmstate);
             });
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('tamperRT', (message: any) => {
-                let tamperState = message.values[0].data.tamperStatus;
+                let tamperState = message?.values?.[0]?.data?.tamperStatus;
                 if (tamperState) {
                     updateLocationList(msgLaneName, 'Tamper');
                 }

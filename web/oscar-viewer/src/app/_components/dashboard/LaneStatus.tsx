@@ -48,7 +48,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
         for (let [laneName, laneDSColl] of props.dataSourcesByLane.entries()) {
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('connectionRT', (message: any) => {
-                const state = message.values[0].data.isConnected;
+                const state = message?.values?.[0]?.data?.isConnected;
 
 
                 if (state == undefined)
@@ -57,7 +57,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
             });
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('gammaRT', (message: any) => {
-                const state = message.values[0].data.alarmState;
+                const state = message?.values?.[0]?.data?.alarmState;
 
                 if (state == undefined)
                     return;
@@ -69,7 +69,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
             });
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('neutronRT', (message: any) => {
-                const state = message.values[0].data.alarmState;
+                const state = message?.values?.[0]?.data?.alarmState;
 
                 if (state == undefined)
                     return;
@@ -81,7 +81,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
             });
 
             laneDSColl.addSubscribeHandlerToALLDSMatchingName('tamperRT', (message: any) => {
-                const state = message.values[0].data.tamperStatus;
+                const state = message?.values?.[0]?.data?.tamperStatus;
 
                 if (state == undefined)
                     return;
