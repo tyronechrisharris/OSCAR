@@ -119,10 +119,10 @@ export default function StatusTable({currentLane, entry}: StatusTableProps){
             if (obs?.alarmState) {
                 const state = obs.alarmState;
                 if (!["Scan", "Background", "Alarm"].includes(state)) {
-                    newEvent = new AlarmTableData(randomUUID(), currentLane, state, obs.samplingTime);
+                    newEvent = new AlarmTableData(randomUUID(), currentLane, state, obs.samplingTime || obs.resultTime || new Date().toISOString());
                 }
             } else if (obs?.tamperStatus) {
-                newEvent = new AlarmTableData(randomUUID(), currentLane, "Tamper", obs.samplingTime);
+                newEvent = new AlarmTableData(randomUUID(), currentLane, "Tamper", obs.samplingTime || obs.resultTime || new Date().toISOString());
             }
         } else {
             const result = obs?.properties?.result;
