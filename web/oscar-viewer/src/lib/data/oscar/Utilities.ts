@@ -22,8 +22,7 @@ export function isLocationDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(SENSOR_LOCATION_DEF)
-        || datastream.properties.observedProperties[0].definition.includes(LOCATION_VECTOR_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(SENSOR_LOCATION_DEF) || prop.definition?.includes(LOCATION_VECTOR_DEF));
 }
 
 export function isVideoDataStream(datastream: typeof DataStream): boolean {
@@ -31,8 +30,7 @@ export function isVideoDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(RASTER_IMAGE_DEF)
-    || datastream.properties.observedProperties[0].definition.includes(VIDEO_FRAME_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(RASTER_IMAGE_DEF) || prop.definition?.includes(VIDEO_FRAME_DEF));
 }
 
 export function isGammaDataStream(datastream: typeof DataStream): boolean {
@@ -40,8 +38,8 @@ export function isGammaDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(ALARM_DEF)
-        && datastream.properties.observedProperties[1].definition.includes(GAMMA_COUNT_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(ALARM_DEF))
+        && datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(GAMMA_COUNT_DEF));
 }
 
 export function isNeutronDataStream(datastream: typeof DataStream): boolean {
@@ -49,8 +47,8 @@ export function isNeutronDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(ALARM_DEF)
-        && datastream.properties.observedProperties[1].definition.includes(NEUTRON_COUNT_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(ALARM_DEF))
+        && datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(NEUTRON_COUNT_DEF));
 }
 
 export function isTamperDataStream(datastream: typeof DataStream): boolean {
@@ -58,14 +56,14 @@ export function isTamperDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(TAMPER_STATUS_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(TAMPER_STATUS_DEF));
 }
 
 export function isOccupancyDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(OCCUPANCY_PILLAR_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(OCCUPANCY_PILLAR_DEF));
 }
 
 export function isConnectionDataStream(datastream: typeof DataStream): boolean {
@@ -73,7 +71,7 @@ export function isConnectionDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(CONNECTION_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(CONNECTION_DEF));
 }
 
 export function isSpeedDataStream(datastream: typeof DataStream): boolean {
@@ -81,7 +79,7 @@ export function isSpeedDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(SPEED_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(SPEED_DEF));
 }
 
 export function isThresholdDataStream(datastream: typeof DataStream): boolean {
@@ -89,14 +87,14 @@ export function isThresholdDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(THRESHOLD_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(THRESHOLD_DEF));
 }
 
 export function isConfigurationDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(CONFIG_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(CONFIG_DEF));
 }
 
 export function isSiteDiagramPathDataStream(datastream: typeof DataStream): boolean {
@@ -104,7 +102,7 @@ export function isSiteDiagramPathDataStream(datastream: typeof DataStream): bool
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(SITE_DIAGRAM_DEF);
+    return datastream.properties.observedProperties.some((prop: any) => prop.definition?.includes(SITE_DIAGRAM_DEF));
 }
 
 
@@ -113,14 +111,15 @@ export function isReportControlStream(controlStream: typeof ControlStream): bool
     if (!hasDefinitionProperties(controlStream))
         return false;
 
-    return controlStream.properties.controlledProperties[0].definition.includes(REPORT_DEF);
+    return controlStream.properties.controlledProperties.some((prop: any) => prop.definition?.includes(REPORT_DEF));
 }
+
 export function isNationalControlStream(controlStream: typeof ControlStream): boolean {
     if (!hasDefinitionProperties(controlStream))
         return false;
 
-    return controlStream.properties.controlledProperties[0].definition.includes(START_DEF) &&
-        controlStream.properties.controlledProperties[1].definition.includes(END_DEF) &&
+    return controlStream.properties.controlledProperties.some((prop: any) => prop.definition?.includes(START_DEF)) &&
+        controlStream.properties.controlledProperties.some((prop: any) => prop.definition?.includes(END_DEF)) &&
         controlStream.properties.controlledProperties.length == 2;
 }
 
@@ -128,7 +127,7 @@ export function isAdjudicationControlStream(controlStream: typeof ControlStream)
     if (!hasDefinitionProperties(controlStream))
         return false;
 
-    return controlStream.properties.controlledProperties[0].definition.includes(ADJ_DEF);
+    return controlStream.properties.controlledProperties.some((prop: any) => prop.definition?.includes(ADJ_DEF));
 }
 
 
@@ -136,20 +135,19 @@ export function isHLSVideoControlStream(controlStream: typeof ControlStream): bo
     if (!hasDefinitionProperties(controlStream))
         return false;
 
-    return controlStream.properties.controlledProperties[0].definition.includes(HLS_VIDEO_DEF);
+    return controlStream.properties.controlledProperties.some((prop: any) => prop.definition?.includes(HLS_VIDEO_DEF));
 }
 
 
-export function hasDefinitionProperties(stream: typeof ConnectedSystemsApi){
+export function hasDefinitionProperties(stream: any){
     if (!stream || !stream.properties)
         return false;
 
-    let definition = null;
+    if (stream.properties.controlledProperties) {
+        return stream.properties.controlledProperties.some((p: any) => p.definition !== undefined && p.definition !== null);
+    } else if (stream.properties.observedProperties) {
+        return stream.properties.observedProperties.some((p: any) => p.definition !== undefined && p.definition !== null);
+    }
 
-    if (stream instanceof ControlStream)
-        definition = stream.properties.controlledProperties?.[0]?.definition;
-    else if (stream instanceof DataStream)
-        definition = stream.properties.observedProperties?.[0]?.definition
-
-    return definition !== undefined && definition !== null;
+    return false;
 }
