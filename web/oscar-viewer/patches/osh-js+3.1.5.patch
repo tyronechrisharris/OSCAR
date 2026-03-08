@@ -1,0 +1,58 @@
+diff --git a/node_modules/osh-js/core/mqtt/mqtt.min.js b/node_modules/osh-js/core/mqtt/mqtt.min.js
+index 99d3f5e..0d785b6 100644
+--- a/node_modules/osh-js/core/mqtt/mqtt.min.js
++++ b/node_modules/osh-js/core/mqtt/mqtt.min.js
+@@ -116,7 +116,7 @@ else {
+                     var e_2 = n;
+                     n = null, y("work :: done flag is %s", !!e_2), e_2 && e_2();
+                 } }
+-                y("_setupStream :: calling method to clear reconnect"), this._clearReconnect(), y("_setupStream :: using streamBuilder provided to client to create stream"), this.stream = this.streamBuilder(this), r.on("packet", function (e) { y("parser :: on packet push to packets array."), i.push(e); }), t._write = function (e, t, i) { n = i, y("writable stream :: parsing buffer"), r.parse(e), s(); }, y("_setupStream :: pipe stream to writable stream"), this.stream.pipe(t), this.stream.on("error", function (t) { y("streamErrorHandler :: error", t.message), w.includes(t.code) ? (y("streamErrorHandler :: emitting error"), e.emit("error", t)) : C(t); }), this.stream.on("close", function () { var t; y("(%s)stream :: on close", e.options.clientId), (t = e.outgoing) && (y("flushVolatile :: deleting volatile messages from the queue and setting their callbacks as error function"), Object.keys(t).forEach(function (e) { t[e].volatile && "function" == typeof t[e].cb && (t[e].cb(new Error("Connection closed")), delete t[e]); })), y("stream: emit close to MqttClient"), e.emit("close"); }), y("_setupStream: sending packet `connect`");
++                y("_setupStream :: calling method to clear reconnect"), this._clearReconnect(), y("_setupStream :: using streamBuilder provided to client to create stream"), this.stream = this.streamBuilder(this), r.on("packet", function (e) { y("parser :: on packet push to packets array."), i.push(e); }), t._write = function (e, t, i) { n = i, y("writable stream :: parsing buffer"), r.parse(e), s(); }, y("_setupStream :: pipe stream to writable stream"), this.stream.pipe(t), this.stream.on("error", function (t) { y("streamErrorHandler :: error", t.message), w.includes(t.code) ? (y("streamErrorHandler :: emitting error"), e.emit("error", t)) : typeof C === "function" ? C(t) : e.emit("error", t); }), this.stream.on("close", function () { var t; y("(%s)stream :: on close", e.options.clientId), (t = e.outgoing) && (y("flushVolatile :: deleting volatile messages from the queue and setting their callbacks as error function"), Object.keys(t).forEach(function (e) { t[e].volatile && "function" == typeof t[e].cb && (t[e].cb(new Error("Connection closed")), delete t[e]); })), y("stream: emit close to MqttClient"), e.emit("close"); }), y("_setupStream: sending packet `connect`");
+                 var a = Object.create(this.options);
+                 if (a.cmd = "connect", this.topicAliasRecv && (a.properties || (a.properties = {}), this.topicAliasRecv && (a.properties.topicAliasMaximum = this.topicAliasRecv.max)), S(this, a), r.on("error", this.emit.bind(this, "error")), this.options.properties) {
+                     if (!this.options.properties.authenticationMethod && this.options.properties.authenticationData)
+diff --git a/node_modules/osh-js/core/parsers/JsonDataParser.js b/node_modules/osh-js/core/parsers/JsonDataParser.js
+index 8bb9f66..69d8818 100644
+--- a/node_modules/osh-js/core/parsers/JsonDataParser.js
++++ b/node_modules/osh-js/core/parsers/JsonDataParser.js
+@@ -61,12 +61,16 @@ var JsonDataParser = /** @class */ (function (_super) {
+         if (Array.isArray(jsonData)) {
+             for (var _i = 0, jsonData_1 = jsonData; _i < jsonData_1.length; _i++) {
+                 var d = jsonData_1[_i];
+-                d['timestamp'] = new Date(d[this.getTimeField()]).getTime() + this.props.timeShift;
++                if (d) {
++                    d['timestamp'] = new Date(d[this.getTimeField()] || d.samplingTime || d.resultTime || new Date()).getTime() + this.props.timeShift;
++                }
+             }
+             return jsonData;
+         }
+         else {
+-            jsonData['timestamp'] = new Date(jsonData[this.getTimeField()]).getTime() + this.props.timeShift;
++            if (jsonData) {
++                jsonData['timestamp'] = new Date(jsonData[this.getTimeField()] || jsonData.samplingTime || jsonData.resultTime || new Date()).getTime() + this.props.timeShift;
++            }
+             return [jsonData];
+         }
+     };
+diff --git a/node_modules/osh-js/source/core/parsers/JsonDataParser.js b/node_modules/osh-js/source/core/parsers/JsonDataParser.js
+index 67eb795..a491174 100644
+--- a/node_modules/osh-js/source/core/parsers/JsonDataParser.js
++++ b/node_modules/osh-js/source/core/parsers/JsonDataParser.js
+@@ -40,11 +40,15 @@ class JsonDataParser extends GenericParser {
+
+         if(Array.isArray(jsonData)) {
+             for(let d of jsonData) {
+-                d['timestamp'] = new Date(d[this.getTimeField()]).getTime() + this.props.timeShift;
++                if (d) {
++                    d['timestamp'] = new Date(d[this.getTimeField()] || d.samplingTime || d.resultTime || new Date()).getTime() + this.props.timeShift;
++                }
+             }
+             return jsonData;
+         } else {
+-            jsonData['timestamp'] = new Date(jsonData[this.getTimeField()]).getTime() + this.props.timeShift;
++            if (jsonData) {
++                jsonData['timestamp'] = new Date(jsonData[this.getTimeField()] || jsonData.samplingTime || jsonData.resultTime || new Date()).getTime() + this.props.timeShift;
++            }
+             return [jsonData];
+         }
+     }
