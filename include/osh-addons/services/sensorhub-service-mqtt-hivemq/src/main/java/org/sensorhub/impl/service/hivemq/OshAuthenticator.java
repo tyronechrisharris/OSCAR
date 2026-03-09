@@ -60,8 +60,28 @@ public class OshAuthenticator implements SimpleAuthenticator
                     var user = securityMgr.getUserRegistry().get(userID);
                     if (user != null)
                     {
-                        Credential storedCredential = Credential.getCredential(user.getPassword());
-                        if (storedCredential.check(pwd))
+                        String storedPwd = user.getPassword();
+                        String providedPwd = new String(pwd);
+                        boolean passwordMatch = false;
+
+                        try {
+                            if (storedPwd != null && storedPwd.startsWith("PBKDF2WithHmacSHA1:")) {
+                                Class<?> providerClass = null;
+                                try {
+                                    providerClass = Class.forName("com.botts.impl.security.PBKDF2CredentialProvider");
+                                } catch (ClassNotFoundException e) {
+                                    providerClass = Thread.currentThread().getContextClassLoader().loadClass("com.botts.impl.security.PBKDF2CredentialProvider");
+                                }
+                                java.lang.reflect.Method checkMethod = providerClass.getMethod("check", String.class, String.class);
+                                passwordMatch = (Boolean) checkMethod.invoke(null, storedPwd, providedPwd);
+                            } else {
+                                passwordMatch = Credential.getCredential(storedPwd).check(providedPwd);
+                            }
+                        } catch (Exception e) {
+                            passwordMatch = Credential.getCredential(storedPwd).check(providedPwd);
+                        }
+
+                        if (passwordMatch)
                         {
                             authInput.getConnectionInformation().getConnectionAttributeStore().putAsString(MQTT_USER_PROP, userID);
                             authOutput.authenticateSuccessfully();
