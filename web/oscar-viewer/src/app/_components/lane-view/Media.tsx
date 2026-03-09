@@ -77,6 +77,11 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
     const fetchVideoControlStreams = async () => {
         const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
 
+        if (!currLaneEntry) {
+            console.warn(`Lane map entry not found for currentLane: ${currentLane}`);
+            return;
+        }
+
         let videoControlStreams = (currLaneEntry.controlStreams || []).filter((stream: typeof ControlStream) => isHLSVideoControlStream(stream));
 
         if (!videoControlStreams || videoControlStreams.length == 0){

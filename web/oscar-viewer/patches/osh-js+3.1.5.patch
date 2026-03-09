@@ -136,7 +136,7 @@ index 50a6927..560ad54 100644
          }
      };
 diff --git a/node_modules/osh-js/core/mqtt/mqtt.min.js b/node_modules/osh-js/core/mqtt/mqtt.min.js
-index 99d3f5e..0d785b6 100644
+index 99d3f5e..89ffb2a 100644
 --- a/node_modules/osh-js/core/mqtt/mqtt.min.js
 +++ b/node_modules/osh-js/core/mqtt/mqtt.min.js
 @@ -116,7 +116,7 @@ else {
@@ -148,17 +148,27 @@ index 99d3f5e..0d785b6 100644
                  var a = Object.create(this.options);
                  if (a.cmd = "connect", this.topicAliasRecv && (a.properties || (a.properties = {}), this.topicAliasRecv && (a.properties.topicAliasMaximum = this.topicAliasRecv.max)), S(this, a), r.on("error", this.emit.bind(this, "error")), this.options.properties) {
                      if (!this.options.properties.authenticationMethod && this.options.properties.authenticationData)
+@@ -254,7 +254,7 @@ else {
+                 n.reconnecting = !1, n._sendPacket(t);
+             else {
+                 var t_3 = new Error("Connection refused: " + _[r]);
+-                e.code = r, n.emit("error", t_3);
++                t_3.code = r, n.emit("error", t_3);
+             } }); }, T.prototype.handleAuth = function (e, t) { t(); }, T.prototype._handlePublish = function (e, t) { y("_handlePublish: packet %o", e), t = void 0 !== t ? t : C; var r = e.topic.toString(); var n = e.payload, i = e.qos, o = e.messageId, s = this, a = this.options, l = [0, 16, 128, 131, 135, 144, 145, 151, 153]; if (5 === this.options.protocolVersion) {
+                 var t_4;
+                 if (e.properties && (t_4 = e.properties.topicAlias), void 0 !== t_4)
 diff --git a/node_modules/osh-js/core/parsers/JsonDataParser.js b/node_modules/osh-js/core/parsers/JsonDataParser.js
-index 8bb9f66..69d8818 100644
+index 8bb9f66..2058e3d 100644
 --- a/node_modules/osh-js/core/parsers/JsonDataParser.js
 +++ b/node_modules/osh-js/core/parsers/JsonDataParser.js
-@@ -61,12 +61,16 @@ var JsonDataParser = /** @class */ (function (_super) {
+@@ -61,12 +61,18 @@ var JsonDataParser = /** @class */ (function (_super) {
          if (Array.isArray(jsonData)) {
              for (var _i = 0, jsonData_1 = jsonData; _i < jsonData_1.length; _i++) {
                  var d = jsonData_1[_i];
 -                d['timestamp'] = new Date(d[this.getTimeField()]).getTime() + this.props.timeShift;
 +                if (d) {
-+                    d['timestamp'] = new Date(d[this.getTimeField()] || d.samplingTime || d.resultTime || new Date()).getTime() + this.props.timeShift;
++                    var timeVal = d[this.getTimeField()] || (d.samplingTime && d.samplingTime.timeInstant && d.samplingTime.timeInstant.timePosition) || d.samplingTime || d.resultTime || new Date();
++                    d['timestamp'] = new Date(timeVal).getTime() + this.props.timeShift;
 +                }
              }
              return jsonData;
@@ -166,7 +176,8 @@ index 8bb9f66..69d8818 100644
          else {
 -            jsonData['timestamp'] = new Date(jsonData[this.getTimeField()]).getTime() + this.props.timeShift;
 +            if (jsonData) {
-+                jsonData['timestamp'] = new Date(jsonData[this.getTimeField()] || jsonData.samplingTime || jsonData.resultTime || new Date()).getTime() + this.props.timeShift;
++                var timeVal = jsonData[this.getTimeField()] || (jsonData.samplingTime && jsonData.samplingTime.timeInstant && jsonData.samplingTime.timeInstant.timePosition) || jsonData.samplingTime || jsonData.resultTime || new Date();
++                jsonData['timestamp'] = new Date(timeVal).getTime() + this.props.timeShift;
 +            }
              return [jsonData];
          }
