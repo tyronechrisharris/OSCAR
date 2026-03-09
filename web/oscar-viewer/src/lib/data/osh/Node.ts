@@ -120,12 +120,16 @@ export class Node implements INode {
         this.isDefaultNode = options.isDefaultNode || false;
 
 
-        let mqttOpts = {
+        let mqttOpts: any = {
             shared: true,
             prefix: this.csAPIEndpoint,
-            endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
-            username: this.auth?.username,
-            password: this.auth?.password,
+            endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`
+        }
+        if (this.auth?.username) {
+            mqttOpts.username = this.auth.username;
+        }
+        if (this.auth?.password) {
+            mqttOpts.password = this.auth.password;
         }
 
         let networkProperties = {
