@@ -122,6 +122,19 @@ index 786a7e5..5834acf 100644
          }
          this.handleData(results, format);
      };
+diff --git a/node_modules/osh-js/core/mqtt/MqttProvider.js b/node_modules/osh-js/core/mqtt/MqttProvider.js
+index 50a6927..560ad54 100644
+--- a/node_modules/osh-js/core/mqtt/MqttProvider.js
++++ b/node_modules/osh-js/core/mqtt/MqttProvider.js
+@@ -223,7 +223,7 @@ var MqttProvider = /** @class */ (function () {
+                 throw new Error("The server ".concat(that_1.endpoint, " seems offline"));
+             });
+             this.client.on('error', function (e) {
+-                throw new Error(error);
++                throw new Error(e);
+             });
+         }
+     };
 diff --git a/node_modules/osh-js/core/mqtt/mqtt.min.js b/node_modules/osh-js/core/mqtt/mqtt.min.js
 index 99d3f5e..0d785b6 100644
 --- a/node_modules/osh-js/core/mqtt/mqtt.min.js
@@ -322,6 +335,19 @@ index 123ee1e..98ef957 100644
 
 -
  export default SweApiRealTimeContext;
+diff --git a/node_modules/osh-js/source/core/mqtt/MqttProvider.js b/node_modules/osh-js/source/core/mqtt/MqttProvider.js
+index fb0b3a8..7964d2a 100644
+--- a/node_modules/osh-js/source/core/mqtt/MqttProvider.js
++++ b/node_modules/osh-js/source/core/mqtt/MqttProvider.js
+@@ -169,7 +169,7 @@ class MqttProvider {
+                 throw new Error(`The server ${that.endpoint} seems offline`);
+             });
+             this.client.on('error', e => {
+-                throw new Error(error);
++                throw new Error(e);
+             });
+         }
+     }
 diff --git a/node_modules/osh-js/source/core/parsers/JsonDataParser.js b/node_modules/osh-js/source/core/parsers/JsonDataParser.js
 index 67eb795..a491174 100644
 --- a/node_modules/osh-js/source/core/parsers/JsonDataParser.js
