@@ -382,6 +382,7 @@ public abstract class RestApiServlet extends HttpServlet
         // check if we have an upgrade request for websockets
         if (wsFactory.isUpgradeRequest(req, resp))
         {
+            System.out.println("DEBUG_WS: RestApiServlet.createContext upgrading to websocket. RemoteUser=" + req.getRemoteUser() + ", Principal=" + req.getUserPrincipal());
             /*if (req.getSubProtocols().contains("ingest"))
             {
                 // get binding for parsing incoming obs records

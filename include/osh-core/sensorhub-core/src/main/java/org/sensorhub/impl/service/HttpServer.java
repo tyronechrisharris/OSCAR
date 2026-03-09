@@ -218,11 +218,13 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     jettySecurityHandler = new ConstraintSecurityHandler() {
                         @Override
                         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                    // Bypass security checks IF system is uninitialized OR session is bridged
-                            boolean isBridged = OshLoginService.getBridgedUser(request, getParentHub().getSecurityManager()) != null;
-                            if (getParentHub().getSecurityManager().isUninitialized() || isBridged) {
+                            System.out.println("DEBUG_WS: ConstraintSecurityHandler.handle called for target: " + target + " Request URI: " + request.getRequestURI());
+                    // Bypass security checks IF system is uninitialized
+                            if (getParentHub().getSecurityManager().isUninitialized()) {
+                                System.out.println("DEBUG_WS: System uninitialized, bypassing security for " + target);
                         if (_handler != null) _handler.handle(target, baseRequest, request, response);
                             } else {
+                                System.out.println("DEBUG_WS: Calling super.handle for " + target);
                                 super.handle(target, baseRequest, request, response);
                             }
                         }
@@ -265,8 +267,10 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                     @Override public void destroy() {}
                     @Override public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
                         HttpServletRequest req = (HttpServletRequest) request;
+                        System.out.println("DEBUG_WS: Bridged session filter executing for URI: " + req.getRequestURI());
                         String bridgedUser = OshLoginService.getBridgedUser(req, getParentHub().getSecurityManager());
                         if (bridgedUser != null) {
+                            System.out.println("DEBUG_WS: Bridged session filter applying user: " + bridgedUser);
                             HttpServletRequest wrappedReq = new HttpServletRequestWrapper(req) {
                                 @Override public String getRemoteUser() { return bridgedUser; }
                                 @Override public java.security.Principal getUserPrincipal() {
@@ -279,6 +283,7 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                             };
                             chain.doFilter(wrappedReq, response);
                         } else {
+                            System.out.println("DEBUG_WS: Bridged session filter: No bridged user found");
                             chain.doFilter(request, response);
                         }
                     }

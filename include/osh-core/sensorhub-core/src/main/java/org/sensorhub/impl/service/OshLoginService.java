@@ -48,10 +48,12 @@ public class OshLoginService implements LoginService
 
     public static String getBridgedUser(HttpServletRequest req, ISecurityManager securityManager)
     {
+        System.out.println("DEBUG_WS: OshLoginService.getBridgedUser called for URI: " + req.getRequestURI());
         try {
             // 1. First check local session for performance
             javax.servlet.http.HttpSession localSession = req.getSession(false);
             if (localSession != null) {
+                System.out.println("DEBUG_WS: Found local session: " + localSession.getId());
                 String user = (String) localSession.getAttribute("VERIFIED_USER");
                 if (user != null) return user;
 
@@ -69,11 +71,13 @@ public class OshLoginService implements LoginService
 
             // 2. Search all cookies for a bridged session
             String cookieHeader = req.getHeader("Cookie");
+            System.out.println("DEBUG_WS: Cookie header: " + cookieHeader);
             if (cookieHeader != null) {
                 for (String cookie : cookieHeader.split(";")) {
                     String[] parts = cookie.trim().split("=", 2);
                     if (parts.length == 2 && parts[0].trim().contains("JSESSIONID")) {
                         String cid = getCleanId(parts[1].trim());
+                        System.out.println("DEBUG_WS: Checking bridged JSESSIONID: " + cid);
                         if (cid != null) {
                             for (String entry : securityManager.get2FAVerifiedSessions()) {
                                 if (entry.startsWith(cid + ":")) {
@@ -85,6 +89,7 @@ public class OshLoginService implements LoginService
                                         localSession.setAttribute("2FA_VERIFIED", true);
                                         localSession.setAttribute("VERIFIED_USER", foundUser);
                                     }
+                                    System.out.println("DEBUG_WS: Found bridged user from JSESSIONID: " + foundUser);
                                     return foundUser;
                                 }
                             }
@@ -93,6 +98,7 @@ public class OshLoginService implements LoginService
                 }
             }
         } catch (Exception e) {}
+        System.out.println("DEBUG_WS: No bridged user found");
         return null;
     }
 

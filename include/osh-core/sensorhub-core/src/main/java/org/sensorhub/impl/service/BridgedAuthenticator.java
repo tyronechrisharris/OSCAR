@@ -61,9 +61,11 @@ public class BridgedAuthenticator implements Authenticator {
 
         // 2. Check for bridged session
         String username = OshLoginService.getBridgedUser(request, securityManager);
+        System.out.println("DEBUG_WS: BridgedAuthenticator.validateRequest: getBridgedUser returned: " + username + " for URI: " + request.getRequestURI());
         if (username != null) {
             IUserInfo user = securityManager.getUserInfo(username);
             if (user != null) {
+                System.out.println("DEBUG_WS: BridgedAuthenticator.validateRequest: returning UserAuthentication for user: " + username);
                 UserIdentity userIdentity = new OshLoginService(securityManager).createUserIdentity(user, "");
                 return new UserAuthentication(getAuthMethod(), userIdentity);
             }
