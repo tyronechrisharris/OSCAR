@@ -49,11 +49,17 @@ public class OshLoginService implements LoginService
     public static String getBridgedUser(HttpServletRequest req, ISecurityManager securityManager)
     {
         try {
+            System.err.println("--- [DEBUG] getBridgedUser called for path: " + req.getRequestURI());
+            System.err.println("--- [DEBUG] Remote user: " + req.getRemoteUser());
             // 1. First check local session for performance
             javax.servlet.http.HttpSession localSession = req.getSession(false);
             if (localSession != null) {
+                System.err.println("--- [DEBUG] localSession id: " + localSession.getId());
                 String user = (String) localSession.getAttribute("VERIFIED_USER");
-                if (user != null) return user;
+                if (user != null) {
+                    System.err.println("--- [DEBUG] found VERIFIED_USER in localSession: " + user);
+                    return user;
+                }
 
                 // search bridge if VERIFIED_USER missing
                 String cid = getCleanId(localSession.getId());
@@ -62,13 +68,17 @@ public class OshLoginService implements LoginService
                         String found = entry.substring(cid.length() + 1);
                         localSession.setAttribute("VERIFIED_USER", found);
                         localSession.setAttribute("2FA_VERIFIED", true);
+                        System.err.println("--- [DEBUG] found VERIFIED_USER via bridged localSession: " + found);
                         return found;
                     }
                 }
+            } else {
+                System.err.println("--- [DEBUG] localSession is null");
             }
 
             // 2. Search all cookies for a bridged session
             String cookieHeader = req.getHeader("Cookie");
+            System.err.println("--- [DEBUG] Cookie header: " + cookieHeader);
             if (cookieHeader != null) {
                 for (String cookie : cookieHeader.split(";")) {
                     String[] parts = cookie.trim().split("=", 2);
@@ -85,6 +95,7 @@ public class OshLoginService implements LoginService
                                         localSession.setAttribute("2FA_VERIFIED", true);
                                         localSession.setAttribute("VERIFIED_USER", foundUser);
                                     }
+                                    System.err.println("--- [DEBUG] found user via cookie JSESSIONID bridge: " + foundUser);
                                     return foundUser;
                                 }
                             }
@@ -92,7 +103,17 @@ public class OshLoginService implements LoginService
                     }
                 }
             }
-        } catch (Exception e) {}
+
+            // Check auth header directly to see if it's there
+            String authHeader = req.getHeader("Authorization");
+            if (authHeader != null) {
+                System.err.println("--- [DEBUG] Authorization header is present: " + authHeader.substring(0, Math.min(10, authHeader.length())) + "...");
+            }
+
+        } catch (Exception e) {
+            System.err.println("--- [DEBUG] Error in getBridgedUser: " + e.getMessage());
+        }
+        System.err.println("--- [DEBUG] getBridgedUser returning null");
         return null;
     }
 
