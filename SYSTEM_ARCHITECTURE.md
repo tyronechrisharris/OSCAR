@@ -28,6 +28,11 @@ Located in `dist/release/`:
 - `launch-all-arm.sh`: Starts the PostGIS container and the OSH backend (ARM64, e.g., Mac M1/M2/M3).
 - `launch-all.bat`: Starts the PostGIS container and the OSH backend (Windows).
 
+### Automated Provisioning Utilities:
+Located in the repository root:
+- `provision-node.sh`: Securely pushes an API key to a remote node via Tailscale (Unix/Linux/macOS).
+- `provision-node.bat`: Securely pushes an API key to a remote node via Tailscale (Windows).
+
 ### Standalone Database Scripts:
 Located in `dist/release/postgis/`:
 - `run-postgis.sh`: Starts the PostGIS container independently (Linux/macOS).

@@ -47,6 +47,7 @@ public class TestHttpServer
     public void setup() throws Exception
     {
         System.out.println("\n*****************************");
+        System.setProperty("osh.testmode", "true");
         var hub = new SensorHub();
         hub.start();
         registry = hub.getModuleRegistry(); 

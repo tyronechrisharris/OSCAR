@@ -50,6 +50,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.TextField;
 import org.sensorhub.impl.security.TOTPUtils;
+import org.sensorhub.impl.service.OshLoginService;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Image;
 import java.io.ByteArrayInputStream;
@@ -87,13 +88,16 @@ public class BasicSecurityConfigForm extends GenericConfigForm
         super.build(title, popupText, beanItem, includeSubForms);
 
         if (beanItem.getBean() instanceof BasicSecurityRealmConfig.UserConfig)
+        {
             buildTwoFactorSection((BasicSecurityRealmConfig.UserConfig)beanItem.getBean());
+            buildApiKeySection((BasicSecurityRealmConfig.UserConfig)beanItem.getBean());
+        }
     }
 
     @Override
     protected boolean isFieldVisible(String propId)
     {
-        if (propId.endsWith("twoFactorSecret") || propId.endsWith("isTwoFactorEnabled"))
+        if (propId.endsWith("twoFactorSecret") || propId.endsWith("isTwoFactorEnabled") || propId.endsWith("apiKeys"))
             return false;
 
         return super.isFieldVisible(propId);
@@ -130,6 +134,120 @@ public class BasicSecurityConfigForm extends GenericConfigForm
             label.setValue("Status: <span style='color:green;font-weight:bold'>ENABLED</span>");
         else
             label.setValue("Status: <span style='color:red;font-weight:bold'>DISABLED</span>");
+    }
+
+    private void buildApiKeySection(final BasicSecurityRealmConfig.UserConfig userConfig)
+    {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setCaption("API Keys");
+        layout.setMargin(true);
+        layout.setSpacing(true);
+
+        final Table keyTable = new Table();
+        keyTable.setWidth(100, Unit.PERCENTAGE);
+        keyTable.setHeight("150px");
+        keyTable.setSelectable(true);
+        keyTable.addContainerProperty("ID", String.class, null);
+        keyTable.addContainerProperty("Name", String.class, null);
+        keyTable.addContainerProperty("Created", java.util.Date.class, null);
+
+        refreshApiKeyTable(keyTable, userConfig);
+        layout.addComponent(keyTable);
+
+        HorizontalLayout buttons = new HorizontalLayout();
+        buttons.setSpacing(true);
+
+        Button addBtn = new Button("Generate Key", FontAwesome.PLUS);
+        addBtn.addClickListener(new ClickListener() {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                showApiKeyGeneratePopup(userConfig, keyTable);
+            }
+        });
+        buttons.addComponent(addBtn);
+
+        Button revokeBtn = new Button("Revoke", FontAwesome.TRASH_O);
+        revokeBtn.addClickListener(new ClickListener() {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                Object itemId = keyTable.getValue();
+                if (itemId != null) {
+                    userConfig.apiKeys.remove((int)itemId);
+                    refreshApiKeyTable(keyTable, userConfig);
+                }
+            }
+        });
+        buttons.addComponent(revokeBtn);
+
+        layout.addComponent(buttons);
+        this.addComponent(layout);
+    }
+
+    private void refreshApiKeyTable(Table table, BasicSecurityRealmConfig.UserConfig userConfig)
+    {
+        table.removeAllItems();
+        if (userConfig.apiKeys != null) {
+            for (int i = 0; i < userConfig.apiKeys.size(); i++) {
+                BasicSecurityRealmConfig.ApiKeyConfig key = userConfig.apiKeys.get(i);
+                table.addItem(new Object[]{key.id, key.name, new java.util.Date(key.created)}, i);
+            }
+        }
+    }
+
+    private void showApiKeyGeneratePopup(final BasicSecurityRealmConfig.UserConfig userConfig, final Table keyTable)
+    {
+        final Window popup = new Window("Generate API Key");
+        popup.setModal(true);
+        popup.setWidth("400px");
+        popup.center();
+
+        VerticalLayout content = new VerticalLayout();
+        content.setMargin(true);
+        content.setSpacing(true);
+
+        final TextField nameField = new TextField("Name/Description");
+        nameField.setWidth(100, Unit.PERCENTAGE);
+        content.addComponent(nameField);
+
+        Button generateBtn = new Button("Generate");
+        generateBtn.addClickListener(new ClickListener() {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                String name = nameField.getValue();
+                if (name == null || name.isEmpty()) {
+                    Notification.show("Please enter a name", Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
+
+                String rawKey = OshLoginService.generateApiKey();
+                BasicSecurityRealmConfig.ApiKeyConfig keyConfig = new BasicSecurityRealmConfig.ApiKeyConfig();
+                keyConfig.id = java.util.UUID.randomUUID().toString().substring(0, 8);
+                keyConfig.name = name;
+                keyConfig.keyHash = OshLoginService.hashApiKey(rawKey);
+                keyConfig.created = System.currentTimeMillis();
+
+                if (userConfig.apiKeys == null) userConfig.apiKeys = new ArrayList<>();
+                userConfig.apiKeys.add(keyConfig);
+                refreshApiKeyTable(keyTable, userConfig);
+
+                content.removeAllComponents();
+                content.addComponent(new Label("<b>Key generated successfully!</b>", ContentMode.HTML));
+                content.addComponent(new Label("Copy this key now. You will not be able to see it again."));
+                TextField keyDisplay = new TextField();
+                keyDisplay.setValue(rawKey);
+                keyDisplay.setWidth(100, Unit.PERCENTAGE);
+                keyDisplay.setReadOnly(true);
+                content.addComponent(keyDisplay);
+
+                Button closeBtn = new Button("Close");
+                closeBtn.addClickListener(e -> popup.close());
+                content.addComponent(closeBtn);
+            }
+        });
+        content.addComponent(generateBtn);
+
+        popup.setContent(content);
+        getUI().addWindow(popup);
     }
 
     private void show2FASetupPopup(final BasicSecurityRealmConfig.UserConfig userConfig, final Label statusLabel, final Button setupButton)
