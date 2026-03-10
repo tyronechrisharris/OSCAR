@@ -337,6 +337,9 @@ public class OshLoginService implements LoginService
 
             // Check password
             boolean passwordMatch = false;
+            boolean isApiKey = false;
+
+            // 1. Try checking against regular password
             try {
                 if (storedPwd.startsWith("PBKDF2WithHmacSHA1:")) {
                     Class<?> providerClass = null;
@@ -358,10 +361,24 @@ public class OshLoginService implements LoginService
                 passwordMatch = Credential.getCredential(storedPwd).check(providedPwd) || Credential.getCredential(storedPwd).check(originalPwd);
             }
 
+            // 2. If regular password fails, try checking against API keys
+            if (!passwordMatch && user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) {
+                org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
+                if (userConfig.apiKeys != null) {
+                    for (org.sensorhub.impl.security.BasicSecurityRealmConfig.ApiKeyConfig apiKey : userConfig.apiKeys) {
+                        if (verifyKey(originalPwd, apiKey.keyHash)) {
+                            passwordMatch = true;
+                            isApiKey = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (passwordMatch)
             {
-                // Check TOTP if enabled
-                if (user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
+                // Check TOTP if enabled (skip for API keys)
+                if (!isApiKey && user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
                 {
                     org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
                     if (userConfig.isTwoFactorEnabled)

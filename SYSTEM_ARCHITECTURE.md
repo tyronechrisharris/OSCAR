@@ -33,6 +33,8 @@ Located in the repository root:
 - `provision-node.sh`: Securely pushes an API key to a remote node via Tailscale (Unix/Linux/macOS).
 - `provision-node.bat`: Securely pushes an API key to a remote node via Tailscale (Windows).
 
+See [Federation Provisioning](docs/FEDERATION_PROVISIONING.md) for detailed setup and usage instructions.
+
 ### Standalone Database Scripts:
 Located in `dist/release/postgis/`:
 - `run-postgis.sh`: Starts the PostGIS container independently (Linux/macOS).
