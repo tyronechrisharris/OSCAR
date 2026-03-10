@@ -17,6 +17,7 @@ To allow a remote OSCAR node (or any OGC/OSH client) to poll data from your node
         ```bash
         ./provision-node.sh <remote-tailscale-name> <api-key>
         ```
+    *   **Note**: Requires Tailscale SSH and Taildrop to be configured. See [Tailscale Security and Configuration](TAILSCALE_CONFIGURATION.md) for details.
 
 ## 2. Configuring your Node to Federate with another Node
 If you have been given an API key from another OSCAR node and want to pull data from it:

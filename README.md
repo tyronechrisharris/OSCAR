@@ -116,6 +116,7 @@ For documentation on configuring a server on the OSCAR Client refer to the OSCAR
 - [Security Architecture](SECURITY_ARCHITECTURE.md)
 - [System Architecture](SYSTEM_ARCHITECTURE.md)
 - [Federation Provisioning (API Keys)](docs/FEDERATION_PROVISIONING.md)
+- [Tailscale Security and Configuration](docs/TAILSCALE_CONFIGURATION.md)
 
 # Release Checklist
 - Version in `build.gradle`
