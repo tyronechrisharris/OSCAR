@@ -66,16 +66,33 @@ After the build completes, it can be located in `build/distributions/`
 - Remote: **[ip-address]:8282/sensorhub/admin**
 - Locally:  **http://localhost:8282/sensorhub/admin**
 
-The default credentials to access the OSH Node are admin:admin. This can be changed in the Security section of the admin page.
+### First-Time Setup
+On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
+1. Navigate to `http://localhost:8282/` or `http://localhost:8282/sensorhub/admin`.
+2. You will be automatically redirected to the **Setup Wizard**.
+3. **Create an Admin Password**: Set a strong password for the `admin` account.
+4. **Configure TOTP**:
+   - Scan the displayed QR code with an authenticator app (Google Authenticator, Authy, etc.).
+   - **Important**: Save the secret key shown in the wizard!
+   - Use the **Test Code** form to verify your setup before proceeding.
+5. Once complete, you will be redirected to the Admin UI login.
+
+### Logging In
+After initialization, use the following credentials:
+- **Username**: `admin`
+- **Password**: The password you set during the Setup Wizard.
+- **Two-Factor Authentication**:
+  - If your browser or client supports it, enter your password as usual and provide the 6-digit TOTP code when prompted.
+  - If you are prompted for a single login by the browser and can't provide a TOTP code separately, enter your password followed by a colon and the code (e.g., `mypassword:123456`).
 
 **Language Selection**
 The user can select different languages for the Admin UI by using the language drop-down menu located in the top right corner of the Admin UI toolbar. Selecting a new language will instantly switch the UI localization.
 
 **Two-Factor Authentication (2FA)**
-2FA can be configured for users to add an extra layer of security. To set this up:
-1. Log in to the Admin UI.
+2FA is mandatory for the administrator account and can be configured for other users to add an extra layer of security. To set this up for additional users:
+1. Log in to the Admin UI as `admin`.
 2. Navigate to the **Security** section.
-3. Edit the user profile and set up Two-Factor Authentication. A popup window will appear with a QR code.
+3. Edit a user profile and set up Two-Factor Authentication. A popup window will appear with a QR code generated locally on the server.
 4. Scan the QR code with an authenticator app (like Google Authenticator or Authy) to complete the setup.
 
 **Importing/Exporting Lane Configurations via CSV**

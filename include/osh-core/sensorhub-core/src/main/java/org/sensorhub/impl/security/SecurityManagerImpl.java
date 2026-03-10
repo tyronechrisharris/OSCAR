@@ -195,8 +195,49 @@ public class SecurityManagerImpl implements ISecurityManager
     {
         return Collections.unmodifiableCollection(modulePermissions.values());
     }
-    
-    
+
+
+    // Global set to share 2FA verification status across contexts
+    // Stores "sessionID:username"
+    final java.util.Set<String> verifiedSessions = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+
+
+    @Override
+    public java.util.Set<String> get2FAVerifiedSessions()
+    {
+        return verifiedSessions;
+    }
+
+
+    @Override
+    public boolean isUninitialized()
+    {
+        IUserRegistry registry = userDB.get();
+        if (registry == null)
+            return true;
+
+        // System is considered uninitialized if there is no admin user
+        // OR if the admin user still has a default password
+        // OR if the admin user hasn't set up TOTP yet
+        IUserInfo admin = registry.get("admin");
+        if (admin == null)
+            return true;
+
+        String pwd = admin.getPassword();
+        boolean isDefaultPwd = pwd == null || pwd.isEmpty() ||
+                               pwd.equals("admin") || pwd.equals("oscar") || pwd.equals("test") ||
+                               pwd.equals("__INITIAL_ADMIN_PASSWORD__") ||
+                               pwd.contains("8x2vK/T2P9I2f2vK/T2P9A=="); // Default hash signature
+
+        boolean hasTotp = false;
+        if (admin instanceof BasicSecurityRealmConfig.UserConfig) {
+            hasTotp = ((BasicSecurityRealmConfig.UserConfig) admin).twoFactorSecret != null;
+        }
+
+        return isDefaultPwd || !hasTotp;
+    }
+
+
     /*
      * We use a wrapper so we can change the implementation dynamically
      */

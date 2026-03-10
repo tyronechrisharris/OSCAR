@@ -22,6 +22,8 @@ dependencies {
   embeddedApi 'org.eclipse.jetty:jetty-servlets:9.4.57.v20241219'
   embeddedApi 'org.eclipse.jetty.websocket:websocket-server:9.4.57.v20241219'
   embeddedApi 'org.eclipse.jetty:jetty-xml:9.4.57.v20241219'
+  embeddedApi 'com.google.zxing:core:3.5.3'
+  embeddedApi 'com.google.zxing:javase:3.5.3'
   embeddedApi 'javax.validation:validation-api:2.0.1.Final'
   embeddedApi 'dev.failsafe:failsafe:3.3.2'
   embeddedApi('org.geotools:gt-cql2-text:C105.33.2.00') {

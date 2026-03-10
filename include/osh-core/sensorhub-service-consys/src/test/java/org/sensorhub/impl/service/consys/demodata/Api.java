@@ -49,9 +49,7 @@ import net.opengis.sensorml.v20.DescribedObject;
 public class Api
 {
     static String API_ROOT = "http://localhost:8181/sensorhub/api/";
-    static String CREDENTIALS = "admin:test";
-//    static String API_ROOT = "https://api.georobotix.io/ogc/demo1/api/";
-//    static String CREDENTIALS = "admin:admin@demo";
+    static String CREDENTIALS = System.getProperty("osh.test.credentials", "admin:test");
     static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     
     

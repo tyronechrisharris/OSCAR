@@ -1738,6 +1738,8 @@ public class AdminUI extends com.vaadin.ui.UI implements UIConstants
     {
          try {
              VaadinService.getCurrentRequest().getWrappedSession().setAttribute("2FA_VERIFIED", true);
+             javax.servlet.http.HttpServletRequest req = (javax.servlet.http.HttpServletRequest) VaadinService.getCurrentRequest();
+             org.sensorhub.impl.service.OshLoginService.bridgeAllCookies(req, user.getId(), getParentHub().getSecurityManager());
              securityHandler.setCurrentUser(user.getId());
              buildMainUI();
          } catch (Exception e) {

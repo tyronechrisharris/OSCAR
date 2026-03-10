@@ -5,7 +5,7 @@ import AdjudicationData from "@/lib/data/oscar/adjudication/Adjudication";
 import {EventTableData} from "@/lib/data/oscar/TableHelpers";
 import {DataSourceContext} from "@/app/contexts/DataSourceContext";
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import { Stack, Typography} from "@mui/material";
+import { Box, Stack, Typography} from "@mui/material";
 import {LaneMapEntry} from "@/lib/data/oscar/LaneCollection";
 import {isAdjudicationControlStream} from "@/lib/data/oscar/Utilities";
 import ControlStream from "osh-js/source/core/consysapi/controlstream/ControlStream";
@@ -202,19 +202,21 @@ export default function AdjudicationLog(props: {
                 <Stack direction={"column"} spacing={1}>
                     <Typography variant="h5">{t('loggedAdjudications')}</Typography>
                 </Stack>
-                <DataGrid
-                    rows={filteredLog}
-                    columns={logColumns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: {
-                                pageSize: 10
+                <Box sx={{ height: 400, width: '100%' }}>
+                    <DataGrid
+                        rows={filteredLog}
+                        columns={logColumns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10
+                                }
                             }
-                        }
-                    }}
-                    pageSizeOptions={[5, 10, 25, 50, 100]}
-                    disableRowSelectionOnClick={true}
-                />
+                        }}
+                        pageSizeOptions={[5, 10, 25, 50, 100]}
+                        disableRowSelectionOnClick={true}
+                    />
+                </Box>
                 <Dialog
                     open={feedbackDialog.open}
                     onClose={() => setFeedbackDialog({ open: false, text: "" })}
