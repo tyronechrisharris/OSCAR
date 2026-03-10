@@ -120,16 +120,30 @@ export class Node implements INode {
         this.isDefaultNode = options.isDefaultNode || false;
 
 
+        let endpointUrl = `${this.address}:${this.port}${this.oshPathRoot}`;
+        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+        let useProxyToken = !this.auth?.username;
+
+        if (useProxyToken) {
+            // osh-js will automatically append '/mqtt' to the endpoint.
+            // Using a fragment '#' prevents the appended string from corrupting the query string.
+            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
+        }
+
         let mqttOpts: any = {
             shared: true,
             prefix: this.csAPIEndpoint,
-            endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`
+            endpointUrl: endpointUrl
         }
-        if (this.auth?.username) {
+
+        if (useProxyToken) {
+            mqttOpts.username = "__proxy_token__";
+            mqttOpts.password = token;
+        } else {
             mqttOpts.username = this.auth.username;
-        }
-        if (this.auth?.password) {
-            mqttOpts.password = this.auth.password;
+            if (this.auth?.password) {
+                mqttOpts.password = this.auth.password;
+            }
         }
 
         let networkProperties = {
