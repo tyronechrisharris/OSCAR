@@ -133,16 +133,31 @@ export class LaneMapEntry {
             let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
 
+            let endpointUrl = mqttOptUrl;
+            let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+            let useProxyToken = !this.parentNode.auth?.username;
+
+            if (useProxyToken) {
+                if (endpointUrl.includes("?")) {
+                    endpointUrl += `&proxyToken=${token}`;
+                } else {
+                    endpointUrl += `?proxyToken=${token}`;
+                }
+            }
+
             let mqttOpts: any = {
                 shared: true,
                 prefix: this.parentNode.csAPIEndpoint,
-                endpointUrl: mqttOptUrl
+                endpointUrl: endpointUrl
             }
-            if (this.parentNode.auth?.username) {
+            if (useProxyToken) {
+                mqttOpts.username = "__proxy_token__";
+                mqttOpts.password = token;
+            } else {
                 mqttOpts.username = this.parentNode.auth.username;
-            }
-            if (this.parentNode.auth?.password) {
-                mqttOpts.password = this.parentNode.auth.password;
+                if (this.parentNode.auth?.password) {
+                    mqttOpts.password = this.parentNode.auth.password;
+                }
             }
 
             try {
@@ -186,17 +201,33 @@ export class LaneMapEntry {
         let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
         let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
+        let endpointUrl = mqttOptUrl;
+        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+        let useProxyToken = !this.parentNode.auth?.username;
+
+        if (useProxyToken) {
+            if (endpointUrl.includes("?")) {
+                endpointUrl += `&proxyToken=${token}`;
+            } else {
+                endpointUrl += `?proxyToken=${token}`;
+            }
+        }
+
         let mqttOpts: any = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: mqttOptUrl
+            endpointUrl: endpointUrl
         }
-        if (this.parentNode.auth?.username) {
+        if (useProxyToken) {
+            mqttOpts.username = "__proxy_token__";
+            mqttOpts.password = token;
+        } else {
             mqttOpts.username = this.parentNode.auth.username;
+            if (this.parentNode.auth?.password) {
+                mqttOpts.password = this.parentNode.auth.password;
+            }
         }
-        if (this.parentNode.auth?.password) {
-            mqttOpts.password = this.parentNode.auth.password;
-        }
+
         return new ConSysApi(`rtds-${datastream.properties.id}`, {
             protocol: 'mqtt',
             mqttOpts: mqttOpts,
@@ -215,16 +246,31 @@ export class LaneMapEntry {
         let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
         let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
+        let endpointUrl = mqttOptUrl;
+        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+        let useProxyToken = !this.parentNode.auth?.username;
+
+        if (useProxyToken) {
+            if (endpointUrl.includes("?")) {
+                endpointUrl += `&proxyToken=${token}`;
+            } else {
+                endpointUrl += `?proxyToken=${token}`;
+            }
+        }
+
         let mqttOpts: any = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: mqttOptUrl
+            endpointUrl: endpointUrl
         }
-        if (this.parentNode.auth?.username) {
+        if (useProxyToken) {
+            mqttOpts.username = "__proxy_token__";
+            mqttOpts.password = token;
+        } else {
             mqttOpts.username = this.parentNode.auth.username;
-        }
-        if (this.parentNode.auth?.password) {
-            mqttOpts.password = this.parentNode.auth.password;
+            if (this.parentNode.auth?.password) {
+                mqttOpts.password = this.parentNode.auth.password;
+            }
         }
 
         return new ConSysApi(`batchds-${datastream.properties.id}`, {
