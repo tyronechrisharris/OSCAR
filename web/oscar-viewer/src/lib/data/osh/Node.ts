@@ -125,11 +125,9 @@ export class Node implements INode {
         let useProxyToken = !this.auth?.username;
 
         if (useProxyToken) {
-            if (endpointUrl.includes("?")) {
-                endpointUrl += `&proxyToken=${token}`;
-            } else {
-                endpointUrl += `?proxyToken=${token}`;
-            }
+            // osh-js will automatically append '/mqtt' to the endpoint.
+            // Using a fragment '#' prevents the appended string from corrupting the query string.
+            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
         }
 
         let mqttOpts: any = {
