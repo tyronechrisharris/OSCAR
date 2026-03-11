@@ -3,6 +3,9 @@
 ## Overview
 OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation portal monitors based on the OpenSensorHub (OSH) framework.
 
+## Data Flow Diagram
+![OSCAR System Data Flow](docs/system_data_flow.svg)
+
 ## Component Network Flow and Ports
 
 ### Components:
