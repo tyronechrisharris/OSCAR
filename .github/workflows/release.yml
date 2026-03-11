@@ -1,20 +1,16 @@
 name: Automated Build and Versioned Releases
-
 on:
   pull_request:
     branches:
       - main
     types:
       - closed
-
 permissions:
   contents: write
-
 jobs:
   build-and-release:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,51 +36,44 @@ jobs:
       - name: Determine Version and Rename Artifact
         id: date
         run: |
-          # Get current date in M-DD-YYYY format (e.g., 3-14-2026, 3-05-2026)
+          # Get current date in M-DD-YYYY format
           CURRENT_DATE=$(date +'%-m-%d-%Y')
           BASE_NAME="oscar_$CURRENT_DATE"
-
+          
           # Check for existing tags matching today's date
-          # We search for tags starting with oscar_M-DD-YYYY
-          # Sort them and find the last one
           EXISTING_TAGS=$(git tag -l "${BASE_NAME}*" | sort -V)
-
+          
           if [ -z "$EXISTING_TAGS" ]; then
             FINAL_NAME="$BASE_NAME"
           else
             # Get the last tag
             LAST_TAG=$(echo "$EXISTING_TAGS" | sort -V | tail -n 1)
-
-            # Check if the last tag has an underscore suffix (i.e. more than one underscore)
-            # The base name already has one underscore (oscar_3-14-2026)
-            # So a suffixed one would have two underscores, or match the regex *_*_*
+            
             if [[ "$LAST_TAG" == *_*_* ]]; then
-              # Extract the suffix character (e.g., 'B' from 'oscar_3-14-2026_B')
+              # Extract the suffix character and increment it
               SUFFIX=${LAST_TAG##*_}
-              # Convert char to ASCII, increment, and convert back
               NEXT_SUFFIX=$(echo "$SUFFIX" | tr 'A-Y' 'B-Z')
               FINAL_NAME="${BASE_NAME}_${NEXT_SUFFIX}"
             else
-              # First build of the day exists, this is the second, so append '_B'
+              # First build of the day exists, append '_B'
               FINAL_NAME="${BASE_NAME}_B"
             fi
           fi
-
+          
           echo "Determined version: $FINAL_NAME"
           echo "date=$CURRENT_DATE" >> $GITHUB_OUTPUT
           echo "tag_name=$FINAL_NAME" >> $GITHUB_OUTPUT
-
+          
           # Rename the artifact
           mv build/distributions/osh-node-oscar-3.0.0.zip "build/distributions/${FINAL_NAME}.zip"
 
       - name: Create Release
-        uses: softprops/action-gh-release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.date.outputs.tag_name }}
           files: build/distributions/${{ steps.date.outputs.tag_name }}.zip
           body: |
             ## Release Snapshot: ${{ github.event.pull_request.title }}
-
             **Merged from PR:** #${{ github.event.pull_request.number }}
             **Summary:** ${{ github.event.pull_request.body }}
             **Build Date:** ${{ steps.date.outputs.date }}
