@@ -5,11 +5,15 @@ on:
       - main
     types:
       - closed
+  workflow_dispatch: # <-- This enables the manual trigger button
+
 permissions:
   contents: write
+
 jobs:
   build-and-release:
-    if: github.event.pull_request.merged == true
+    # Runs if a PR is merged OR if triggered manually
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -73,7 +77,7 @@ jobs:
           tag_name: ${{ steps.date.outputs.tag_name }}
           files: build/distributions/${{ steps.date.outputs.tag_name }}.zip
           body: |
-            ## Release Snapshot: ${{ github.event.pull_request.title }}
-            **Merged from PR:** #${{ github.event.pull_request.number }}
-            **Summary:** ${{ github.event.pull_request.body }}
+            ## Release Snapshot: ${{ github.event.pull_request.title || 'Manual Trigger' }}
+            **Merged from PR:** #${{ github.event.pull_request.number || 'N/A' }}
+            **Summary:** ${{ github.event.pull_request.body || 'Manually triggered build for testing.' }}
             **Build Date:** ${{ steps.date.outputs.date }}
