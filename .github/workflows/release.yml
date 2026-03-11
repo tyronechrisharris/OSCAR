@@ -69,7 +69,7 @@ jobs:
           echo "tag_name=$FINAL_NAME" >> $GITHUB_OUTPUT
           
           # Rename the artifact
-          mv build/distributions/osh-node-oscar-3.0.0.zip "build/distributions/${FINAL_NAME}.zip"
+          mv build/distributions/oscar-3.0.0.zip "build/distributions/${FINAL_NAME}.zip"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
