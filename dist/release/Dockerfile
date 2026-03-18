@@ -1,7 +1,8 @@
 FROM eclipse-temurin:21-jre-alpine
 
-# Install fonts as required by AI_CONTRIBUTING_RULES.md
-RUN apk add --no-cache fonts-freefont-ttf bash openssl
+# Install fonts as required by AI_CONTRIBUTING_RULES.md (with HTTP bypass for corporate SSL inspection)
+RUN sed -i 's/https/http/g' /etc/apk/repositories && \
+    apk add --no-cache fonts-freefont-ttf bash openssl
 
 WORKDIR /app
 
