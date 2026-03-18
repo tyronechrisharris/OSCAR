@@ -1,4 +1,4 @@
-[edge_node]
+[edge_all_in_one]
 db_max_connections = 50
 db_shared_buffers = "128MB"
 db_effective_cache_size = "1GB"
@@ -6,11 +6,10 @@ db_maintenance_work_mem = "64MB"
 db_wal_buffers = "4MB"
 db_work_mem = "4MB"
 db_max_wal_size = "1GB"
-db_checkpoint_timeout = "5min"
 db_mem_limit = "1G"
 backend_mem_limit = "2G"
 
-[central_hub]
+[hub_single_server]
 db_max_connections = 100
 db_shared_buffers = "4GB"
 db_effective_cache_size = "8GB"
@@ -18,11 +17,13 @@ db_maintenance_work_mem = "512MB"
 db_wal_buffers = "16MB"
 db_work_mem = "16MB"
 db_max_wal_size = "4GB"
-db_checkpoint_timeout = "15min"
 db_mem_limit = "6G"
 backend_mem_limit = "8G"
 
-[dedicated_db]
+[hub_distributed_app]
+backend_mem_limit = "14G"
+
+[hub_distributed_db]
 db_max_connections = 200
 db_shared_buffers = "4GB"
 db_effective_cache_size = "12GB"
@@ -30,6 +31,4 @@ db_maintenance_work_mem = "1GB"
 db_wal_buffers = "16MB"
 db_work_mem = "32MB"
 db_max_wal_size = "8GB"
-db_checkpoint_timeout = "30min"
 db_mem_limit = "14G"
-backend_mem_limit = "0G"

@@ -20,28 +20,47 @@ Configurations are stored in `config/profiles.ini` and `config/profiles.toml` fo
 
 ### Available Profiles
 
-**1. EdgeNode** (Default)
-Optimized for lightweight, single-machine deployments.
+**1. Edge_AllInOne** (Default)
+Optimized for lightweight, single-machine deployments (DB + App + Proxy).
 - Database Memory Limit: 1G
 - Backend Memory Limit: 2G
 - Tuned for 50 max connections, 128MB shared buffers.
 
-**2. CentralHub**
-Designed for a 16GB server shared between the database and the Java backend.
+**2. Hub_SingleServer**
+Designed for a 16GB server shared between the database, the Java backend, and the proxy.
 - Database Memory Limit: 6G
 - Backend Memory Limit: 8G
 - Tuned for 100 max connections, 4GB shared buffers.
 
-**3. DedicatedDB**
-Designed for a 16GB server exclusively running the database (the backend is hosted elsewhere).
+**3. Hub_Distributed_App**
+Designed for a 16GB dedicated App Server (App + Proxy ONLY. DB_HOST points to remote DB).
+- Backend Memory Limit: 14G
+- Database variables omitted as the `osh-postgis` container is not run here.
+
+**4. Hub_Distributed_DB**
+Designed for a 16GB dedicated DB Server (PostGIS ONLY).
 - Database Memory Limit: 14G
-- Backend Memory Limit: 0G
 - Tuned for 200 max connections, 4GB shared buffers, and 12GB effective cache size.
 
-### How to Apply Profiles
+### How to Apply Profiles and Launch Strategies
 To apply these profiles, populate your deployment's environment variables (e.g., via a `.env` file in `dist/release/` or exporting them in your shell prior to deployment).
 
-For example, to apply the **CentralHub** profile, your `.env` should look like:
+**All-In-One vs. Distributed Launch Strategies:**
+*   **All-In-One:** When using `Edge_AllInOne` or `Hub_SingleServer`, you will typically launch all services on a single node:
+    ```bash
+    docker compose up -d
+    ```
+*   **Distributed:** For the two-tier central hub strategy, you separate the workload:
+    *   **On the Database Server (`Hub_Distributed_DB`):** Launch only the `osh-postgis` service.
+        ```bash
+        docker compose up -d osh-postgis
+        ```
+    *   **On the Application Server (`Hub_Distributed_App`):** Configure the `DB_HOST` variable in your `.env` to point to the remote DB server's IP/hostname, and launch only the backend and proxy.
+        ```bash
+        docker compose up -d osh-backend osh-proxy
+        ```
+
+For example, to apply the **Hub_SingleServer** profile, your `.env` should look like:
 ```env
 DB_MAX_CONNECTIONS=100
 DB_SHARED_BUFFERS=4GB
@@ -50,7 +69,6 @@ DB_MAINTENANCE_WORK_MEM=512MB
 DB_WAL_BUFFERS=16MB
 DB_WORK_MEM=16MB
 DB_MAX_WAL_SIZE=4GB
-DB_CHECKPOINT_TIMEOUT=15min
 DB_MEM_LIMIT=6G
 BACKEND_MEM_LIMIT=8G
 ```
