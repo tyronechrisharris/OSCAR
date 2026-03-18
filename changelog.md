@@ -1,5 +1,20 @@
 # OSCAR Build Node Change Log
 All notable changes to this project will be documented in this file. 
+
+## 3.1.0 2026-03-18
+### Added
+- Added Dual-Mode Reverse Proxy (Caddy) for TLS termination.
+- Federated Mode: Native Tailscale integration for automatic Let's Encrypt TLS.
+- Offline Mode: Support for locally generated Java leaf certificates.
+- Containerized OSH Backend with optimized JVM performance settings (6GB Heap).
+- Integrated full stack orchestration via Docker Compose.
+### Changed
+- Refactored `launch-all.sh` and `launch-all.bat` to utilize Docker Compose.
+- Updated `EphemeralCAUtility.java` to export leaf certificates in PEM format for proxy use.
+- Updated `SYSTEM_ARCHITECTURE.md` and `SECURITY_ARCHITECTURE.md` to reflect new proxy-centric flow.
+### Fixed
+- Hardened proxy configuration to handle empty Tailscale domains and prevent startup race conditions.
+
 ## 3.0.0 2026-02-04
 This is the official first release of 3.0.0
 ### Changes
