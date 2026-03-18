@@ -4,7 +4,7 @@ services:
   osh-postgis:
     build:
       context: ./postgis
-      dockerfile: Dockerfile
+      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
     container_name: oscar-postgis-container
     command: >
       postgres
