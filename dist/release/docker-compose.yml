@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  osh-postgis:
+    build:
+      context: ./postgis
+      dockerfile: Dockerfile
+    container_name: oscar-postgis-container
+    environment:
+      POSTGRES_DB: ${DB_NAME:-gis}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./.db_password:/run/secrets/db_password
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -u $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  osh-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oscar-backend-container
+    depends_on:
+      osh-postgis:
+        condition: service_healthy
+    environment:
+      DB_HOST: osh-postgis
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - ./.db_password:/run/secrets/db_password
+      - ./.app_secrets:/app/.app_secrets
+      - ./osh-keystore.p12:/app/osh-keystore.p12
+      - ./osh-leaf.crt:/app/osh-leaf.crt
+      - ./osh-leaf.key:/app/osh-leaf.key
+      - ./db:/app/db
+      - ./files:/app/files
+    ports:
+      - "8282:8282"
+    restart: unless-stopped
+
+  osh-proxy:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: oscar-proxy-container
+    depends_on:
+      - osh-backend
+    environment:
+      TAILSCALE_DOMAIN: ${TAILSCALE_DOMAIN:-}
+      LETS_ENCRYPT_EMAIL: ${LETS_ENCRYPT_EMAIL:-oscar-admin@example.com}
+    command: ["/bin/sh", "-c", " \
+      echo \"Waiting for leaf certificates...\" && \
+      until [ -f /data/osh-leaf.crt ]; do sleep 5; done && \
+      echo \"Leaf certificates found. Starting Caddy...\" && \
+      caddy run --config /etc/caddy/Caddyfile --adapter caddyfile \
+    "]
+    volumes:
+      - ./osh-leaf.crt:/data/osh-leaf.crt:ro
+      - ./osh-leaf.key:/data/osh-leaf.key:ro
+      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped

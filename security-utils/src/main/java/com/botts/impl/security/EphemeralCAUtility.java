@@ -58,7 +58,28 @@ public class EphemeralCAUtility {
         // 5. Export Public Root CA
         exportCertificate(rootCaExportPath, rootCert);
 
+        // 6. Export Leaf Cert and Key for Reverse Proxy (PEM format)
+        exportLeafToPem("osh-leaf.crt", "osh-leaf.key", leafCert, leafKeyPair.getPrivate());
+
         System.out.println("Ephemeral CA and Leaf Certificate generated successfully.");
+    }
+
+    private static void exportLeafToPem(String certPath, String keyPath, X509Certificate cert, PrivateKey privateKey) throws Exception {
+        // Export Certificate
+        try (FileWriter writer = new FileWriter(certPath)) {
+            writer.write("-----BEGIN CERTIFICATE-----\n");
+            writer.write(Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(cert.getEncoded()));
+            writer.write("\n-----END CERTIFICATE-----\n");
+        }
+        lockdownFile(new File(certPath));
+
+        // Export Private Key
+        try (FileWriter writer = new FileWriter(keyPath)) {
+            writer.write("-----BEGIN PRIVATE KEY-----\n");
+            writer.write(Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(privateKey.getEncoded()));
+            writer.write("\n-----END PRIVATE KEY-----\n");
+        }
+        lockdownFile(new File(keyPath));
     }
 
     private static String generateRandomPassword(int length) {

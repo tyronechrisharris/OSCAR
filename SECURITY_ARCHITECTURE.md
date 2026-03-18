@@ -34,8 +34,14 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 ### Ephemeral CA and TLS Certificates
 On first boot, the system generates an ephemeral Root CA and a Leaf TLS certificate.
 - **Root CA Private Key**: Held strictly in memory during the generation of the leaf certificate and never persisted to disk.
-- **Leaf Certificate**: Stored in a PKCS12 keystore (`osh-keystore.p12`).
-- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file and the keystore is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows).
+- **Leaf Certificate**: Stored in a PKCS12 keystore (`osh-keystore.p12`) and exported as PEM (`osh-leaf.crt` and `osh-leaf.key`) for the reverse proxy.
+- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file, the keystore, and PEM exports is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows).
+
+### Reverse Proxy and Dual-Mode TLS
+A Caddy reverse proxy handles TLS termination at the edge of the deployment. It supports two modes:
+1. **Federated Mode**: Uses Tailscale integration to automatically obtain Let's Encrypt TLS certificates for the node's Tailscale domain.
+2. **Offline Mode**: Uses the locally generated PEM leaf certificates for TLS on the local network.
+The proxy is configured to forward `X-Forwarded-For` and `X-Forwarded-Proto` headers, ensuring the OSH framework accurately logs origin IPs.
 - **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
 
 ### Setup Wizard and Credential Management

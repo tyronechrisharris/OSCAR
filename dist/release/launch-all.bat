@@ -30,59 +30,19 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+docker compose version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Docker Compose is not installed or not in PATH.
+    exit /b 1
+)
+
 if not exist "%PROJECT_DIR%\pgdata" (
     echo Creating pgdata directory...
     mkdir "%PROJECT_DIR%\pgdata"
 )
 
-echo Building PostGIS Docker image...
-pushd postgis
-docker build . -f Dockerfile -t %IMAGE_NAME%
-if %errorlevel% neq 0 (
-    echo ERROR: Docker build failed.
-    exit /b 1
-)
-popd
-
-echo Starting PostGIS container...
-
-for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_EXISTS=1
-    )
-)
-
-for /f "tokens=*" %%i in ('docker ps --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_RUNNING=1
-    )
-)
-
-if defined CONTAINER_EXISTS (
-    if defined CONTAINER_RUNNING (
-        echo Container already running: %CONTAINER_NAME%
-    ) else (
-        echo Starting existing container: %CONTAINER_NAME%
-        docker start %CONTAINER_NAME%
-    )
-) else (
-    echo Creating new container: %CONTAINER_NAME%
-    docker run ^
-        --name %CONTAINER_NAME% ^
-        -e POSTGRES_DB=%DB_NAME% ^
-        -e POSTGRES_USER=%USER% ^
-        -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
-        -p %PORT%:5432 ^
-        -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
-        -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
-        -d ^
-        %IMAGE_NAME%
-
-    if %errorlevel% neq 0 (
-        echo ERROR: Failed to start PostGIS container.
-        exit /b 1
-    )
-)
+echo Starting OSCAR Deployment via Docker Compose...
+docker compose up -d
 
 echo Waiting for PostGIS database to become ready...
 
@@ -91,7 +51,7 @@ set RETRY_COUNT=0
 :wait_loop
 docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
 if %errorlevel% equ 0 (
-    echo Received OK from PostGIS. Please wait for initialization...
+    echo Received OK from PostGIS.
     goto after_wait
 )
 
@@ -108,36 +68,6 @@ goto wait_loop
 
 :after_wait
 
-timeout /t 30 >nul
-
-:final_wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    goto after_final_wait
-)
-echo PostGIS still restarting, waiting...
-timeout /t 5 >nul
-goto final_wait_loop
-
-:after_final_wait
-
-echo PostGIS database is ready!
-
-REM Export for OSH backend
-set DB_HOST=%HOST%
-set POSTGRES_PASSWORD_FILE=%POSTGRES_PASSWORD_FILE%
-
-cd "%PROJECT_DIR%\osh-node-oscar"
-if %errorlevel% neq 0 (
-    echo ERROR: osh-node-oscar directory not found.
-    exit /b 1
-)
-
-if exist launch.bat (
-    call launch.bat
-) else (
-    echo WARNING: launch.bat not found. Trying launch.sh through Git Bash...
-    bash launch.sh
-)
+echo OSCAR Stack is initializing. Access the application via https://localhost (Offline Mode) or your Tailscale domain (Federated Mode).
 
 endlocal
