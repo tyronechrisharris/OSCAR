@@ -31,7 +31,7 @@ ENTRYPOINT ["/bin/bash", "-c", " \
     export TRUSTSTORE=\"./truststore.jks\" && \
     export TRUSTSTORE_TYPE=JKS && \
     export TRUSTSTORE_PASSWORD=\"changeit\" && \
-    java -Xms2g -Xmx4g -Xss256k -XX:ReservedCodeCacheSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError \
+    java -Xms6g -Xmx6g -Xss256k -XX:ReservedCodeCacheSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError \
         -Dlogback.configurationFile=./logback.xml \
         -cp \"lib/*\" \
         -Djava.system.class.loader=\"org.sensorhub.utils.NativeClassLoader\" \
