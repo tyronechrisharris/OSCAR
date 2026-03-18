@@ -59,16 +59,16 @@ After the build completes, it can be located in `build/distributions/`
     2. Right-click `osh-node-oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
     3. Select **Extract All..**
     4. Choose your destination, (or leave the default) and extract.
-1. Launch the OSH node and PostGIS Database:
-   The database management system is handled through Docker. The default launch scripts automatically build and run a PostGIS container using the `Dockerfile` located in `dist/release/postgis`, and then start the OSH node.
-   Run the launch script, `launch-all.sh` (or `launch.sh` within the `osh-node-oscar` folder directly if the database is already running) for linux, `launch-all-arm.sh` (or `launch-arm.sh` if it exists) for mac, and `launch-all.bat` (or `launch.bat`) for windows.
+1. Launch the OSCAR Stack:
+   The deployment is orchestrated using Docker Compose. The default launch scripts automatically start the PostGIS database, the OSH Backend, and the Caddy Reverse Proxy.
+   Run the launch script, `launch-all.sh` for linux, `launch-all-arm.sh` for mac, and `launch-all.bat` for windows.
 2. Access the OSH Node
-- Remote: **[ip-address]:8282/sensorhub/admin**
-- Locally:  **http://localhost:8282/sensorhub/admin**
+- Remote: **https://[tailscale-domain]/sensorhub/admin** (Federated) or **https://[ip-address]/sensorhub/admin** (Offline)
+- Locally: **https://localhost/sensorhub/admin**
 
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
-1. Navigate to `http://localhost:8282/` or `http://localhost:8282/sensorhub/admin`.
+1. Navigate to `https://localhost/` or `https://localhost/sensorhub/admin`.
 2. You will be automatically redirected to the **Setup Wizard**.
 3. **Create an Admin Password**: Set a strong password for the `admin` account.
 4. **Configure TOTP**:
@@ -107,8 +107,8 @@ For documentation on configuring a Lane System on the OSH Admin panel, please re
 
 ## Deploy the Client
 After configuring the Lanes on the OSH Admin Panel, you can navigate to the Clients endpoint:
-- Remote: **[ip-address]:8282**
-- Local: **http://localhost:8282/**
+- Remote: **https://[tailscale-domain]** (Federated) or **https://[ip-address]** (Offline)
+- Local: **https://localhost/**
 
 For documentation on configuring a server on the OSCAR Client refer to the OSCAR Documentation provided in the Google Drive documentation folder. 
 
