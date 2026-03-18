@@ -31,14 +31,20 @@ Optimized for single-machine, edge deployments with limited resources.
 - `max_connections`: 100
 
 ### 2. `hub` Profile
-Optimized for central hub deployments on heavier hardware. Handles high-frequency write spikes and complex concurrent spatial/temporal queries.
+Optimized for central hub deployments on heavier hardware (e.g., 16GB RAM shared with OSH Backend) and high load (e.g., 50+ RPMs, high-frequency time-series).
+- `max_connections`: 100
 - `shared_buffers`: 4GB
-- `work_mem`: 64MB
+- `effective_cache_size`: 8GB
 - `maintenance_work_mem`: 512MB
+- `checkpoint_completion_target`: 0.9
 - `wal_buffers`: 16MB
-- `checkpoint_timeout`: 15min
+- `default_statistics_target`: 100
+- `random_page_cost`: 1.1
+- `effective_io_concurrency`: 200
+- `work_mem`: 16MB
+- `min_wal_size`: 1GB
 - `max_wal_size`: 4GB
-- `max_connections`: 1024
+- `checkpoint_timeout`: 15min
 
 **To apply a profile:**
 Set the environment variable in your `.env` file:
