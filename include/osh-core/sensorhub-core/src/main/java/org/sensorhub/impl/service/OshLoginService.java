@@ -15,6 +15,8 @@ Copyright (C) 2012-2016 Sensia Software LLC. All Rights Reserved.
 package org.sensorhub.impl.service;
 
 import java.security.Principal;
+import java.security.SecureRandom;
+import java.util.Base64;
 import javax.security.auth.Subject;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -115,6 +117,71 @@ public class OshLoginService implements LoginService
         }
         System.err.println("--- [DEBUG] getBridgedUser returning null");
         return null;
+    }
+
+
+    public static String generateApiKey() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+
+    public static String hashApiKey(String key) {
+        try {
+            Class<?> providerClass = Class.forName("com.botts.impl.security.PBKDF2CredentialProvider");
+            java.lang.reflect.Method encodeMethod = providerClass.getMethod("encode", String.class);
+            return (String) encodeMethod.invoke(null, key);
+        } catch (Exception e) {
+            return org.eclipse.jetty.util.security.Password.obfuscate(key);
+        }
+    }
+
+
+    public static String getApiKeyUser(HttpServletRequest req, ISecurityManager securityManager) {
+        String key = req.getHeader("X-API-Key");
+        if (key == null) {
+            String auth = req.getHeader("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                key = auth.substring(7).trim();
+            }
+        }
+
+        if (key == null || key.isEmpty()) return null;
+
+        try {
+            for (IUserInfo user : securityManager.getUserRegistry().values()) {
+                if (user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) {
+                    org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
+                    if (userConfig.apiKeys != null) {
+                        for (org.sensorhub.impl.security.BasicSecurityRealmConfig.ApiKeyConfig apiKey : userConfig.apiKeys) {
+                            if (verifyKey(key, apiKey.keyHash)) {
+                                return user.getId();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("--- [DEBUG] Error validating API key: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+
+    private static boolean verifyKey(String key, String hash) {
+        try {
+            if (hash.startsWith("PBKDF2WithHmacSHA1:")) {
+                Class<?> providerClass = Class.forName("com.botts.impl.security.PBKDF2CredentialProvider");
+                java.lang.reflect.Method checkMethod = providerClass.getMethod("check", String.class, String.class);
+                return (Boolean) checkMethod.invoke(null, hash, key);
+            } else {
+                return Credential.getCredential(hash).check(key);
+            }
+        } catch (Exception e) {
+            return Credential.getCredential(hash).check(key);
+        }
     }
 
 
@@ -270,6 +337,9 @@ public class OshLoginService implements LoginService
 
             // Check password
             boolean passwordMatch = false;
+            boolean isApiKey = false;
+
+            // 1. Try checking against regular password
             try {
                 if (storedPwd.startsWith("PBKDF2WithHmacSHA1:")) {
                     Class<?> providerClass = null;
@@ -291,10 +361,24 @@ public class OshLoginService implements LoginService
                 passwordMatch = Credential.getCredential(storedPwd).check(providedPwd) || Credential.getCredential(storedPwd).check(originalPwd);
             }
 
+            // 2. If regular password fails, try checking against API keys
+            if (!passwordMatch && user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) {
+                org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
+                if (userConfig.apiKeys != null) {
+                    for (org.sensorhub.impl.security.BasicSecurityRealmConfig.ApiKeyConfig apiKey : userConfig.apiKeys) {
+                        if (verifyKey(originalPwd, apiKey.keyHash)) {
+                            passwordMatch = true;
+                            isApiKey = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (passwordMatch)
             {
-                // Check TOTP if enabled
-                if (user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
+                // Check TOTP if enabled (skip for API keys)
+                if (!isApiKey && user instanceof org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig)
                 {
                     org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig userConfig = (org.sensorhub.impl.security.BasicSecurityRealmConfig.UserConfig) user;
                     if (userConfig.isTwoFactorEnabled)

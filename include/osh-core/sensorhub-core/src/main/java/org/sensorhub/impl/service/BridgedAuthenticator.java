@@ -14,9 +14,11 @@ Copyright (C) 2012-2024 Sensia Software LLC. All Rights Reserved.
 
 package org.sensorhub.impl.service;
 
+import java.io.IOException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.security.Authenticator;
 import org.eclipse.jetty.security.ServerAuthException;
 import org.eclipse.jetty.security.UserAuthentication;
@@ -53,13 +55,24 @@ public class BridgedAuthenticator implements Authenticator {
     @Override
     public Authentication validateRequest(ServletRequest req, ServletResponse res, boolean mandatory) throws ServerAuthException {
         HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) res;
 
         // 1. Trap uninitialized state
         if (securityManager.isUninitialized()) {
             return Authentication.UNAUTHENTICATED;
         }
 
-        // 2. Check for bridged session
+        // 2. Check for API Key (Machine Auth)
+        String apiKeyUser = OshLoginService.getApiKeyUser(request, securityManager);
+        if (apiKeyUser != null) {
+            IUserInfo user = securityManager.getUserInfo(apiKeyUser);
+            if (user != null) {
+                UserIdentity userIdentity = new OshLoginService(securityManager).createUserIdentity(user, "API_KEY");
+                return new UserAuthentication("API_KEY", userIdentity);
+            }
+        }
+
+        // 3. Check for bridged session (Human Auth)
         String username = OshLoginService.getBridgedUser(request, securityManager);
         if (username != null) {
             IUserInfo user = securityManager.getUserInfo(username);
@@ -69,7 +82,28 @@ public class BridgedAuthenticator implements Authenticator {
             }
         }
 
-        // 3. Fallback to delegate
+        // 4. Bifurcated Logic for Mandatory Auth
+        if (mandatory) {
+            String uri = request.getRequestURI();
+            boolean isHumanRoute = uri.equals("/") || uri.contains("/admin") || uri.contains("/VAADIN") || uri.contains("/setup");
+
+            if (isHumanRoute) {
+                // Human routes redirect to login
+                try {
+                    String contextPath = request.getContextPath();
+                    if (contextPath == null || contextPath.isEmpty()) contextPath = "/sensorhub";
+                    response.sendRedirect(contextPath + "/login?redirect=" + java.net.URLEncoder.encode(uri, "UTF-8"));
+                    return Authentication.SEND_CONTINUE;
+                } catch (IOException e) {
+                    throw new ServerAuthException(e);
+                }
+            } else {
+                // Machine routes return 401 via delegate (or direct if no delegate)
+                return delegate.validateRequest(req, res, mandatory);
+            }
+        }
+
+        // 5. Fallback for non-mandatory requests
         return delegate.validateRequest(req, res, mandatory);
     }
 

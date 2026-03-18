@@ -49,6 +49,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -310,6 +311,57 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 }),"/test");
                 addServletSecurity("/test", false);
 
+                // Login Servlet
+                servletHandler.addServlet(new ServletHolder(new HttpServlet() {
+                    @Override
+                    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        String redirect = req.getParameter("redirect");
+                        if (redirect == null) redirect = req.getContextPath() + "/";
+
+                        resp.setContentType("text/html");
+                        resp.getWriter().println("<html><head><title>OSCAR Login</title>");
+                        resp.getWriter().println("<style>body{font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; background:#f0f2f5;}");
+                        resp.getWriter().println(".login-box{background:white; padding:40px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); width:320px;}");
+                        resp.getWriter().println("h1{text-align:center; color:#1c1e21; margin-bottom:24px;}");
+                        resp.getWriter().println("input{width:100%; padding:12px; margin-bottom:16px; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;}");
+                        resp.getWriter().println("button{width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;}");
+                        resp.getWriter().println("button:hover{background:#0056b3;}</style></head>");
+                        resp.getWriter().println("<body><div class='login-box'><h1>OSCAR Login</h1>");
+                        if ("failed".equals(req.getParameter("error")))
+                            resp.getWriter().println("<p style='color:red; text-align:center;'>Invalid credentials or TOTP code</p>");
+                        resp.getWriter().println("<form method='POST'>");
+                        resp.getWriter().println("<input type='text' name='username' placeholder='Username' required autofocus>");
+                        resp.getWriter().println("<input type='password' name='password' placeholder='Password' required>");
+                        resp.getWriter().println("<input type='text' name='otp' placeholder='TOTP Code (6 digits)' pattern='[0-9]{6}' maxlength='6' required>");
+                        resp.getWriter().println("<input type='hidden' name='redirect' value='" + redirect + "'>");
+                        resp.getWriter().println("<button type='submit'>Login</button>");
+                        resp.getWriter().println("</form></div></body></html>");
+                    }
+
+                    @Override
+                    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                        String user = req.getParameter("username");
+                        String pass = req.getParameter("password");
+                        String otp = req.getParameter("otp");
+                        String redirect = req.getParameter("redirect");
+
+                        ISecurityManager sec = getParentHub().getSecurityManager();
+                        OshLoginService loginService = new OshLoginService(sec);
+                        UserIdentity id = loginService.login(user, pass + ":" + otp, req);
+
+                        if (id != null) {
+                            var session = req.getSession(true);
+                            session.setAttribute("2FA_VERIFIED", true);
+                            session.setAttribute("VERIFIED_USER", user);
+                            OshLoginService.bridgeAllCookies(req, user, sec);
+                            resp.sendRedirect(redirect);
+                        } else {
+                            resp.sendRedirect("login?error=failed&redirect=" + java.net.URLEncoder.encode(redirect, "UTF-8"));
+                        }
+                    }
+                }), "/login");
+                addServletSecurity("/login", false);
+
                 // CA Download Servlet
                 servletHandler.addServlet(new ServletHolder(new HttpServlet() {
                     @Override
@@ -515,8 +567,8 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                         String contextPath = config.servletsRootUrl != null ? config.servletsRootUrl : "/sensorhub";
                         if (contextPath.endsWith("/")) contextPath = contextPath.substring(0, contextPath.length() - 1);
 
-                        // Allow setup, ca-cert, and static resources
-                        if (uri.contains("/setup") ||
+                        // Allow setup, login, ca-cert, and static resources
+                        if (uri.contains("/setup") || uri.contains("/login") ||
                             uri.contains("/ca-cert") || uri.contains("/VAADIN") || uri.contains("/favicon.ico") ||
                             uri.contains("/PUSH") || uri.contains("/UIDL") || uri.contains("/error") ||
                             uri.equals("/") || uri.equals(contextPath) || uri.equals(contextPath + "/") ||

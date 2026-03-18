@@ -89,6 +89,7 @@ public class BasicSecurityRealmConfig extends SecurityModuleConfig
         
         public String twoFactorSecret;
         public boolean isTwoFactorEnabled;
+        public List<ApiKeyConfig> apiKeys = new ArrayList<>();
 
         @Override
         public String getId()
@@ -128,6 +129,17 @@ public class BasicSecurityRealmConfig extends SecurityModuleConfig
     }
     
     
+    public static class ApiKeyConfig
+    {
+        @DisplayInfo(label="Key ID")
+        public String id;
+        @DisplayInfo(label="Name/Description")
+        public String name;
+        public String keyHash;
+        public long created;
+    }
+
+
     @IdField("roleID")
     public static class RoleConfig extends PermissionsConfig implements IUserRole
     {

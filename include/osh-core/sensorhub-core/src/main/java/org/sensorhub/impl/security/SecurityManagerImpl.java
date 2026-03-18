@@ -212,6 +212,10 @@ public class SecurityManagerImpl implements ISecurityManager
     @Override
     public boolean isUninitialized()
     {
+        // Check for test mode
+        if (Boolean.getBoolean("osh.testmode"))
+            return false;
+
         IUserRegistry registry = userDB.get();
         if (registry == null)
             return true;

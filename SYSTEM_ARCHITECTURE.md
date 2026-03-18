@@ -3,6 +3,9 @@
 ## Overview
 OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation portal monitors based on the OpenSensorHub (OSH) framework.
 
+## Data Flow Diagram
+![OSCAR System Data Flow](docs/system_data_flow.svg)
+
 ## Component Network Flow and Ports
 
 ### Components:
@@ -27,6 +30,13 @@ Located in `dist/release/`:
 - `launch-all.sh`: Starts the PostGIS container and the OSH backend (Linux/macOS).
 - `launch-all-arm.sh`: Starts the PostGIS container and the OSH backend (ARM64, e.g., Mac M1/M2/M3).
 - `launch-all.bat`: Starts the PostGIS container and the OSH backend (Windows).
+
+### Automated Provisioning Utilities:
+Located in the repository root:
+- `provision-node.sh`: Securely pushes an API key to a remote node via Tailscale (Unix/Linux/macOS).
+- `provision-node.bat`: Securely pushes an API key to a remote node via Tailscale (Windows).
+
+See [Federation Provisioning](docs/FEDERATION_PROVISIONING.md) and [Tailscale Configuration](docs/TAILSCALE_CONFIGURATION.md) for detailed setup and usage instructions.
 
 ### Standalone Database Scripts:
 Located in `dist/release/postgis/`:

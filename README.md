@@ -112,6 +112,12 @@ After configuring the Lanes on the OSH Admin Panel, you can navigate to the Clie
 
 For documentation on configuring a server on the OSCAR Client refer to the OSCAR Documentation provided in the Google Drive documentation folder. 
 
+## Security and Federation
+- [Security Architecture](SECURITY_ARCHITECTURE.md)
+- [System Architecture](SYSTEM_ARCHITECTURE.md)
+- [Federation Provisioning (API Keys)](docs/FEDERATION_PROVISIONING.md)
+- [Tailscale Security and Configuration](docs/TAILSCALE_CONFIGURATION.md)
+
 # Release Checklist
 - Version in `build.gradle`
 - Version in `dist/config/standard/config.json`
