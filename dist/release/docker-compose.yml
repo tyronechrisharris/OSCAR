@@ -42,7 +42,7 @@ services:
       - ./db:/app/db
       - ./files:/app/files
     ports:
-      - "8282:8282"
+      - "127.0.0.1:8282:8282"
     restart: unless-stopped
 
   osh-proxy:
