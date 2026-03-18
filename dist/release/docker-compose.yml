@@ -6,6 +6,7 @@ services:
       context: ./postgis
       dockerfile: Dockerfile
     container_name: oscar-postgis-container
+    shm_size: 4gb
     environment:
       POSTGRES_DB: ${DB_NAME:-gis}
       POSTGRES_USER: ${DB_USER:-postgres}
