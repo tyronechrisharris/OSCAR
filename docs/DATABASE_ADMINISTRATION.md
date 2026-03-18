@@ -14,50 +14,52 @@ The primary database (default name: `gis`) leverages several crucial PostgreSQL 
 These extensions are automatically initialized when the `osh-postgis` container is created (see `dist/release/postgis/init-extensions.sql`).
 
 ## Database Performance Profiles
-The default PostgreSQL configuration can be insufficient for larger deployments managing heavy sensor loads (e.g., 50+ Radiation Portal Monitors). To solve this, the `osh-postgis` container supports "Performance Profiles", managed via the `DB_PERFORMANCE_PROFILE` environment variable.
+To support varying deployment sizes without risking resource exhaustion or starvation, we provide predefined configuration profiles. These profiles map directly to variables exposed in our `docker-compose.yml`.
 
-You can set this variable in your deployment `.env` file (located in `dist/release/.env` or populated within your deployment shell script).
+Configurations are stored in `config/profiles.ini` and `config/profiles.toml` for standard configuration management.
 
-**Available Profiles:**
+### Available Profiles
 
-### 1. `edge` Profile (Default)
-Optimized for single-machine, edge deployments with limited resources.
-- `shared_buffers`: 256MB
-- `work_mem`: 4MB
-- `maintenance_work_mem`: 64MB
-- `wal_buffers`: 4MB
-- `checkpoint_timeout`: 5min
-- `max_wal_size`: 1GB
-- `max_connections`: 100
+**1. EdgeNode** (Default)
+Optimized for lightweight, single-machine deployments.
+- Database Memory Limit: 1G
+- Backend Memory Limit: 2G
+- Tuned for 50 max connections, 128MB shared buffers.
 
-### 2. `hub` Profile
-Optimized for central hub deployments on heavier hardware (e.g., 16GB RAM shared with OSH Backend) and high load (e.g., 50+ RPMs, high-frequency time-series).
-- `max_connections`: 100
-- `shared_buffers`: 4GB
-- `effective_cache_size`: 8GB
-- `maintenance_work_mem`: 512MB
-- `checkpoint_completion_target`: 0.9
-- `wal_buffers`: 16MB
-- `default_statistics_target`: 100
-- `random_page_cost`: 1.1
-- `effective_io_concurrency`: 200
-- `work_mem`: 16MB
-- `min_wal_size`: 1GB
-- `max_wal_size`: 4GB
-- `checkpoint_timeout`: 15min
+**2. CentralHub**
+Designed for a 16GB server shared between the database and the Java backend.
+- Database Memory Limit: 6G
+- Backend Memory Limit: 8G
+- Tuned for 100 max connections, 4GB shared buffers.
 
-**To apply a profile:**
-Set the environment variable in your `.env` file:
+**3. DedicatedDB**
+Designed for a 16GB server exclusively running the database (the backend is hosted elsewhere).
+- Database Memory Limit: 14G
+- Backend Memory Limit: 0G
+- Tuned for 200 max connections, 4GB shared buffers, and 12GB effective cache size.
+
+### How to Apply Profiles
+To apply these profiles, populate your deployment's environment variables (e.g., via a `.env` file in `dist/release/` or exporting them in your shell prior to deployment).
+
+For example, to apply the **CentralHub** profile, your `.env` should look like:
 ```env
-DB_PERFORMANCE_PROFILE=hub
+DB_MAX_CONNECTIONS=100
+DB_SHARED_BUFFERS=4GB
+DB_EFFECTIVE_CACHE_SIZE=8GB
+DB_MAINTENANCE_WORK_MEM=512MB
+DB_WAL_BUFFERS=16MB
+DB_WORK_MEM=16MB
+DB_MAX_WAL_SIZE=4GB
+DB_CHECKPOINT_TIMEOUT=15min
+DB_MEM_LIMIT=6G
+BACKEND_MEM_LIMIT=8G
 ```
-*(Note: Changing the profile requires restarting the `osh-postgis` container. The parameters are passed dynamically via the entrypoint script each time the container starts.)*
+Restart your containers for the new limits and variables to take effect.
 
 ## Database Maintenance Operations
-Proper administration involves maintaining data integrity and keeping backups up-to-date.
 
 ### Backing Up the Database
-A utility script `backup.sh` (or `backup.bat` on Windows) is located in the repository root. This script connects to the container using `docker exec` and creates a compressed database dump. It automatically sources the secure `POSTGRES_PASSWORD_FILE` (created during initial setup as a Docker Secret) to bypass manual credential entry.
+A utility script `backup.sh` (or `backup.bat` on Windows) is located in the repository root. This script safely connects to the container and creates a database dump. It automatically utilizes the secure `POSTGRES_PASSWORD_FILE` (created during initial setup as a Docker Secret) to bypass manual credential entry.
 
 **Usage:**
 ```bash
@@ -71,5 +73,3 @@ To restore a previously backed-up dump, use the `restore.sh` (or `restore.bat`) 
 ```bash
 ./restore.sh <path_to_dump_file>
 ```
-
-Always ensure the `osh-postgis` container is running and healthy prior to running backup or restore scripts.
