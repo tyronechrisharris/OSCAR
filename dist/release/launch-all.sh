@@ -4,6 +4,21 @@ HOST="${DB_HOST:-localhost}"
 PORT="5432"
 DB_NAME="gis"
 DB_USER="postgres"
+
+# Load environment variables from .env if it exists
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Default to edge profile if not set
+DB_PERFORMANCE_PROFILE="${DB_PERFORMANCE_PROFILE:-edge}"
+
+if [ "$DB_PERFORMANCE_PROFILE" = "hub" ]; then
+    DB_OPTS="-c shared_buffers=1GB -c work_mem=32MB -c maintenance_work_mem=256MB -c wal_buffers=16MB -c checkpoint_timeout=10min -c max_wal_size=2GB -c max_connections=1000"
+else
+    DB_OPTS="-c shared_buffers=128MB -c work_mem=4MB -c maintenance_work_mem=64MB -c wal_buffers=4MB -c checkpoint_timeout=5min -c max_wal_size=1GB -c max_connections=100"
+fi
+
 RETRY_MAX=20
 RETRY_INTERVAL=5
 PROJECT_DIR="$(pwd)"   # Store the original directory
@@ -59,6 +74,7 @@ else
     echo "Creating new container: ${CONTAINER_NAME}"
     docker run \
       --name "$CONTAINER_NAME" \
+      -e DB_PERFORMANCE_PROFILE="$DB_PERFORMANCE_PROFILE" \
       -e POSTGRES_DB="$DB_NAME" \
       -e POSTGRES_USER="$DB_USER" \
       -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
@@ -66,7 +82,7 @@ else
       -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
       -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
       -d \
-      oscar-postgis || { echo "Failed to start PostGIS container"; exit 1; }
+      oscar-postgis $DB_OPTS || { echo "Failed to start PostGIS container"; exit 1; }
 fi
 
 # Wait for PostgreSQL/PostGIS to become ready
