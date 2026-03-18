@@ -25,6 +25,8 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 - **Environment Variable**: `POSTGRES_PASSWORD_FILE` points to this secret path.
 - **Backend Priority**: The OSH Java backend is architected to prioritize the `POSTGRES_PASSWORD_FILE` environment variable during initialization, overriding any plaintext credentials in `config.json`.
 
+For more details on database profiles and architecture, consult the [Database Administration Guide](docs/DATABASE_ADMINISTRATION.md).
+
 ### Configurable Networking and TLS
 - **DB Host**: The database host is configurable via the `DB_HOST` environment variable (default: `localhost`), enabling secure deployment on separate LAN machines.
 - **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by using `sslmode=require` in the JDBC connection string in the `ConnectionManager`.

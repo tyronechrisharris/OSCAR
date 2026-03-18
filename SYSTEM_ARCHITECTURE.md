@@ -53,3 +53,11 @@ Cross-platform scripts are provided in the repository root for maintenance:
 - `restore.sh/bat`: Restores the database from a dump.
 
 These utilities respect the `DB_HOST` and `POSTGRES_PASSWORD_FILE` environment variables.
+
+## Two-Tier Central Hub Deployment Strategy
+To manage extremely high loads and large configurations safely, OSCAR can be deployed in a two-tier "Distributed" architecture. This requires launching specific Docker Compose services on separate dedicated hardware.
+
+- **App Server**: Runs only the `osh-backend` and `osh-proxy` containers. The backend relies on the `DB_HOST` environment variable pointing to the remote database machine.
+- **Database Server**: Runs exclusively the `osh-postgis` container, optimized for high disk IO and memory usage.
+
+See [Database Administration](docs/DATABASE_ADMINISTRATION.md) for detailed documentation on spatial extensions, performance tuning profiles (including configurations for `Hub_Distributed_App` and `Hub_Distributed_DB`), and maintenance operations.
