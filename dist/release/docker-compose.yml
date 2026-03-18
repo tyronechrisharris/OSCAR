@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-gis}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      DB_PERFORMANCE_PROFILE: ${DB_PERFORMANCE_PROFILE:-edge}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
       - ./.db_password:/run/secrets/db_password
