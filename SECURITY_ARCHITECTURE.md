@@ -12,7 +12,7 @@ OSCAR is built on the OpenSensorHub framework. **Under no circumstances may any 
 * Machine-to-machine API routes cannot rely on human-interactive authentication (like 302 redirects to a TOTP login).
 
 **Global Build Constraint:**
-Whenever generating or modifying Dockerfiles for this project, you MUST ensure the font package is explicitly set to `fonts-freefont-ttf`. This is strictly required to prevent downstream rendering failures in the application's graphical reporting components.
+Whenever generating or modifying Dockerfiles for this project, you MUST ensure the font package is explicitly set to `font-freefont` for Alpine-based images, or `fonts-freefont-ttf` for Debian/Ubuntu-based images. This is strictly required to prevent downstream rendering failures in the application's graphical reporting components.
 
 ## Database Security Implementation
 

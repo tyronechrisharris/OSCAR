@@ -10,4 +10,4 @@ For *every single Pull Request* you generate, regardless of the specific issue a
 * **Commit Inclusion:** The documentation updates must be included in the same commit/PR as the code changes. Do not submit a PR where the code and the architecture wiki are out of sync.
 
 **3. Global Build Constraint:**
-Whenever generating or modifying Dockerfiles for this project, you MUST ensure the font package is explicitly set to `fonts-freefont-ttf` to prevent downstream rendering failures.
+Whenever generating or modifying Dockerfiles for this project, you MUST ensure the font package is explicitly set to `font-freefont` for Alpine-based images, or `fonts-freefont-ttf` for Debian/Ubuntu-based images to prevent downstream rendering failures.
