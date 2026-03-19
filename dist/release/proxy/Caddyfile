@@ -1,0 +1,34 @@
+{
+    # Global options
+    email {$LETS_ENCRYPT_EMAIL:oscar-admin@example.com}
+    auto_https off
+}
+
+(proxy_headers) {
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+}
+
+# Offline Mode (Default) - Using locally generated Java certificates
+:443 {
+    tls /data/osh-leaf.crt /data/osh-leaf.key
+    reverse_proxy osh-backend:8282 {
+        import proxy_headers
+    }
+}
+
+# HTTP to HTTPS redirect
+:80 {
+    redir https://{host}{uri}
+}
+
+# Federated Mode - Tailscale (only active if TAILSCALE_DOMAIN is set)
+# We use a separate block for the Tailscale domain if it's provided
+{$TAILSCALE_DOMAIN} {
+    tls {
+        get_certificate tailscale
+    }
+    reverse_proxy osh-backend:8282 {
+        import proxy_headers
+    }
+}

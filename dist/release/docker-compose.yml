@@ -1,0 +1,94 @@
+services:
+  osh-postgis:
+    build:
+      context: ./postgis
+      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
+    container_name: oscar-postgis-container
+    command: >
+      postgres
+      -c max_connections=${DB_MAX_CONNECTIONS:-50}
+      -c shared_buffers=${DB_SHARED_BUFFERS:-128MB}
+      -c effective_cache_size=${DB_EFFECTIVE_CACHE_SIZE:-1GB}
+      -c maintenance_work_mem=${DB_MAINTENANCE_WORK_MEM:-64MB}
+      -c wal_buffers=${DB_WAL_BUFFERS:-4MB}
+      -c work_mem=${DB_WORK_MEM:-4MB}
+      -c max_wal_size=${DB_MAX_WAL_SIZE:-1GB}
+      -c checkpoint_timeout=${DB_CHECKPOINT_TIMEOUT:-5min}
+    environment:
+      POSTGRES_DB: ${DB_NAME:-gis}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASS_FILE: /run/secrets/db_password
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./.db_password:/run/secrets/db_password
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${DB_MEM_LIMIT:-1G}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  osh-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oscar-backend-container
+    depends_on:
+      osh-postgis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: ${BACKEND_MEM_LIMIT:-2G}
+    environment:
+      DB_HOST: osh-postgis
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - ./.db_password:/run/secrets/db_password
+      - ./.app_secrets:/app/.app_secrets
+      - ./osh-keystore.p12:/app/osh-keystore.p12
+      - ./osh-leaf.crt:/app/osh-leaf.crt
+      - ./osh-leaf.key:/app/osh-leaf.key
+      - ./db:/app/db
+      - ./files:/app/files
+    ports:
+      - "127.0.0.1:8282:8282"
+    restart: unless-stopped
+
+  osh-proxy:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: oscar-proxy-container
+    depends_on:
+      - osh-backend
+    environment:
+      TAILSCALE_DOMAIN: ${TAILSCALE_DOMAIN:-}
+      LETS_ENCRYPT_EMAIL: ${LETS_ENCRYPT_EMAIL:-oscar-admin@example.com}
+    command: ["/bin/sh", "-c", " \
+      echo \"Waiting for leaf certificates...\" && \
+      until [ -f /data/osh-leaf.crt ]; do sleep 5; done && \
+      echo \"Leaf certificates found. Starting Caddy...\" && \
+      caddy run --config /etc/caddy/Caddyfile --adapter caddyfile \
+    "]
+    volumes:
+      - ./osh-leaf.crt:/data/osh-leaf.crt:ro
+      - ./osh-leaf.key:/data/osh-leaf.key:ro
+      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
