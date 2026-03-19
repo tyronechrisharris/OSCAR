@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   osh-postgis:
     build:
@@ -19,6 +17,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-gis}
       POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASS_FILE: /run/secrets/db_password
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     volumes:
       - ./pgdata:/var/lib/postgresql/data
