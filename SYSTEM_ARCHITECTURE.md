@@ -9,18 +9,20 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 ## Component Network Flow and Ports
 
 ### Components:
-- **OSH Backend**: Java-based core application.
+- **OSH Proxy**: Caddy-based reverse proxy for external TLS termination (Tailscale/Federated/Offline).
+- **OSH Backend**: Java-based core application (runs on the host OS).
 - **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
 - **Client Web UI**: React/Frontend viewer.
 
 ### Default Port Configuration:
-- **OSH Backend API (HTTP)**: `8282`
-- **OSH Backend Admin UI**: `8282`
+- **External API/UI (HTTPS/HTTP)**: `443`, `80` (via Caddy)
+- **OSH Backend API (Internal TLS)**: `8282` (Proxy connects to host.docker.internal:8282)
 - **PostGIS Database**: `5432`
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy on port `8282`)
 
 ### Network Flows:
-- **Client to OSH**: Clients interact with OSH through its REST API and Web UI on port `8282`.
+- **Client to OSH Proxy**: Clients interact with the Caddy proxy on port `443` (HTTPS) or `80` (HTTP). Caddy terminates the external TLS (e.g., Let's Encrypt via Tailscale) and provides the "green padlock" in browsers.
+- **Proxy to OSH Backend**: Caddy decrypts the external request and re-encrypts it using the internal Ephemeral CA before forwarding it to the OSH backend on the host OS at `https://host.docker.internal:8282`. This ensures two layers of encryption and protects data even when traversing from the Docker network to the host OS. Caddy is configured with `tls_insecure_skip_verify` for this internal hop.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
 
 ## Deployment and Lifecycle Commands
@@ -43,6 +45,10 @@ Located in `dist/release/postgis/`:
 - `run-postgis.sh`: Starts the PostGIS container independently (Linux/macOS).
 - `run-postgis-arm.sh`: Starts the PostGIS container independently (ARM64).
 - `run-postgis.bat`: Starts the PostGIS container independently (Windows).
+
+### Standalone Proxy Scripts:
+Located in `dist/release/proxy/`:
+- `docker-compose up -d`: Starts the Caddy-based TLS termination proxy.
 
 ## Database Utilities
 Cross-platform scripts are provided in the repository root for maintenance:

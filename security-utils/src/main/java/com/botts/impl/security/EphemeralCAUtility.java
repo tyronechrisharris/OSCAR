@@ -34,6 +34,8 @@ public class EphemeralCAUtility {
         String keystorePath = "osh-keystore.p12";
         String secretsPath = ".app_secrets";
         String rootCaExportPath = "root-ca.crt";
+        String leafCertExportPath = "osh-leaf.crt";
+        String leafKeyExportPath = "osh-leaf.key";
 
         if (new File(keystorePath).exists()) {
             System.out.println("Keystore already exists. Skipping generation.");
@@ -58,7 +60,33 @@ public class EphemeralCAUtility {
         // 5. Export Public Root CA
         exportCertificate(rootCaExportPath, rootCert);
 
+        // 6. Export Leaf Cert and Key in PEM format for Proxy
+        exportCertificatePem(leafCertExportPath, leafCert);
+        exportPrivateKeyPem(leafKeyExportPath, leafKeyPair.getPrivate());
+
         System.out.println("Ephemeral CA and Leaf Certificate generated successfully.");
+    }
+
+    private static void exportCertificatePem(String path, X509Certificate cert) throws Exception {
+        String encoded = Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(cert.getEncoded());
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("-----BEGIN CERTIFICATE-----\n");
+            writer.write(encoded);
+            writer.write("\n-----END CERTIFICATE-----\n");
+        }
+        lockdownFile(file);
+    }
+
+    private static void exportPrivateKeyPem(String path, PrivateKey key) throws Exception {
+        String encoded = Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(key.getEncoded());
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("-----BEGIN PRIVATE KEY-----\n");
+            writer.write(encoded);
+            writer.write("\n-----END PRIVATE KEY-----\n");
+        }
+        lockdownFile(file);
     }
 
     private static String generateRandomPassword(int length) {

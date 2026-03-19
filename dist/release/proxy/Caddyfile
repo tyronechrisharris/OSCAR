@@ -1,0 +1,27 @@
+{
+    # Global options
+}
+
+# Tailscale (Federated) / Let's Encrypt Mode
+{$DOMAIN::443} {
+    # In Federated mode, Caddy handles TLS via Tailscale or ACME.
+    # In Offline mode, Caddy uses the exported Ephemeral CA leaf certificate.
+    # If DOMAIN is not set, it defaults to :443 and will attempt to use these PEM files.
+    tls /etc/caddy/osh-leaf.crt /etc/caddy/osh-leaf.key {
+        on_demand
+    }
+
+    reverse_proxy https://host.docker.internal:8282 {
+        header_up Host {host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+    }
+}
