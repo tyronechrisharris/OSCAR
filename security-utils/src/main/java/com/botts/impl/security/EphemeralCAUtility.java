@@ -38,7 +38,11 @@ public class EphemeralCAUtility {
         String leafKeyExportPath = "osh-leaf.key";
 
         if (new File(keystorePath).exists()) {
-            System.out.println("Keystore already exists. Skipping generation.");
+            System.out.println("Keystore already exists. Checking for missing PEM exports...");
+            if (!new File(leafCertExportPath).exists() || !new File(leafKeyExportPath).exists()) {
+                System.out.println("PEM exports missing. Extracting from existing keystore...");
+                extractPemFromKeystore(keystorePath, secretsPath, leafCertExportPath, leafKeyExportPath);
+            }
             return;
         }
 
@@ -87,6 +91,28 @@ public class EphemeralCAUtility {
             writer.write("\n-----END PRIVATE KEY-----\n");
         }
         lockdownFile(file);
+    }
+
+    private static void extractPemFromKeystore(String ksPath, String secretsPath, String certPath, String keyPath) throws Exception {
+        File secretsFile = new File(secretsPath);
+        if (!secretsFile.exists()) {
+            System.err.println("Secrets file not found. Cannot extract PEMs.");
+            return;
+        }
+        String password = new String(Files.readAllBytes(secretsFile.toPath())).trim();
+        KeyStore ks = KeyStore.getInstance("PKCS12");
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(ksPath)) {
+            ks.load(fis, password.toCharArray());
+        }
+        String alias = "jetty";
+        KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias, new KeyStore.PasswordProtection(password.toCharArray()));
+        if (entry != null) {
+            exportCertificatePem(certPath, (X509Certificate) entry.getCertificate());
+            exportPrivateKeyPem(keyPath, entry.getPrivateKey());
+            System.out.println("PEM exports extracted successfully.");
+        } else {
+            System.err.println("Could not find private key entry with alias '" + alias + "' in keystore.");
+        }
     }
 
     private static String generateRandomPassword(int length) {

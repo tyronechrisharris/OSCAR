@@ -47,8 +47,9 @@ Located in `dist/release/postgis/`:
 - `run-postgis.bat`: Starts the PostGIS container independently (Windows).
 
 ### Standalone Proxy Scripts:
-Located in `dist/release/proxy/`:
-- `docker-compose up -d`: Starts the Caddy-based TLS termination proxy.
+Located in `dist/release/osh-proxy/`:
+- `run-proxy.sh`: Starts the Caddy proxy independently (Linux/macOS).
+- `run-proxy.bat`: Starts the Caddy proxy independently (Windows).
 
 ## Database Utilities
 Cross-platform scripts are provided in the repository root for maintenance:

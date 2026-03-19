@@ -10,5 +10,3 @@ RUN mkdir -p /var/log/caddy
 
 # Copy Caddyfile
 COPY Caddyfile /etc/caddy/Caddyfile
-
-# The Caddy image already has /usr/bin/caddy as the entrypoint

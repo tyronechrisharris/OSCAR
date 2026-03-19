@@ -66,6 +66,7 @@ configurations {
 distributions{
     rel {
         distributionBaseName = 'oscar'
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         contents {
             // OSH NODE
             into("osh-node-oscar/") {
