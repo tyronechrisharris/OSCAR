@@ -11,8 +11,8 @@ services:
       - "80:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ../../../osh-leaf.crt:/etc/caddy/osh-leaf.crt
-      - ../../../osh-leaf.key:/etc/caddy/osh-leaf.key
+      - ../osh-node-oscar/osh-leaf.crt:/etc/caddy/osh-leaf.crt
+      - ../osh-node-oscar/osh-leaf.key:/etc/caddy/osh-leaf.key
       - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
       - proxy-data:/data
       - proxy-config:/config

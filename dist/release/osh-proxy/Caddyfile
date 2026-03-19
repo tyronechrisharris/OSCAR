@@ -1,0 +1,29 @@
+{
+    # Global options
+}
+
+# This Caddyfile supports Federated (Tailscale) and Offline (PEM) modes.
+# If $DOMAIN is set (e.g., to a .ts.net address), Caddy will use Tailscale for TLS.
+# Otherwise, it defaults to :443 and uses the provided PEM certificates.
+
+{$DOMAIN::443} {
+    # If a custom domain is provided (like Tailscale), Caddy can manage TLS automatically.
+    # Otherwise, it falls back to the exported PEM certificates for Offline mode.
+    tls {
+        /etc/caddy/osh-leaf.crt /etc/caddy/osh-leaf.key
+    }
+
+    reverse_proxy https://host.docker.internal:8282 {
+        header_up Host {host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+    }
+}
