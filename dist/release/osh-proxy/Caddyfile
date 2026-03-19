@@ -8,15 +8,13 @@
 
 {$DOMAIN::443} {
     # If a custom domain is provided (like Tailscale), Caddy can manage TLS automatically.
-    # Otherwise, it falls back to the exported PEM certificates for Offline mode.
+    # We use 'on_demand' or explicit 'tls tailscale' if $DOMAIN is specified.
+    # For Offline mode, it falls back to the exported PEM certificates.
     tls {
         /etc/caddy/osh-leaf.crt /etc/caddy/osh-leaf.key
     }
 
     reverse_proxy https://host.docker.internal:8282 {
-        header_up Host {host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
         transport http {
             tls_insecure_skip_verify
         }
