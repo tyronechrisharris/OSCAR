@@ -92,4 +92,11 @@ export POSTGRES_PASSWORD_FILE="$POSTGRES_PASSWORD_FILE"
 
 # Launch osh-node-oscar
 cd "$PROJECT_DIR/osh-node-oscar" || { echo "Error: osh-node-oscar not found"; exit 1; }
-./launch.sh
+./launch.sh &
+
+# Launch Caddy Proxy
+cd "$PROJECT_DIR/osh-proxy" || { echo "Error: osh-proxy directory not found"; exit 1; }
+./run-proxy.sh
+
+# Bring OSH process back to foreground
+wait $!

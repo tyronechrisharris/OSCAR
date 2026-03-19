@@ -1,10 +1,12 @@
 @echo off
 set CONTAINER_NAME=oscar-postgis-container
+set PROXY_CONTAINER_NAME=osh-proxy
 set SENSORHUB_NAME=com.botts.impl.security.SensorHubWrapper
 
-echo Stopping container: %CONTAINER_NAME%...
+echo Stopping containers: %CONTAINER_NAME%, %PROXY_CONTAINER_NAME%...
 
 docker stop %CONTAINER_NAME%
+docker stop %PROXY_CONTAINER_NAME%
 
 echo.
 echo Stopping SensorHubWrapper Java Process...

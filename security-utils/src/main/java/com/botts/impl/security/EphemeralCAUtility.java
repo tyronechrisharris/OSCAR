@@ -34,9 +34,15 @@ public class EphemeralCAUtility {
         String keystorePath = "osh-keystore.p12";
         String secretsPath = ".app_secrets";
         String rootCaExportPath = "root-ca.crt";
+        String leafCertExportPath = "osh-leaf.crt";
+        String leafKeyExportPath = "osh-leaf.key";
 
         if (new File(keystorePath).exists()) {
-            System.out.println("Keystore already exists. Skipping generation.");
+            System.out.println("Keystore already exists. Checking for missing PEM exports...");
+            if (!new File(leafCertExportPath).exists() || !new File(leafKeyExportPath).exists()) {
+                System.out.println("PEM exports missing. Extracting from existing keystore...");
+                extractPemFromKeystore(keystorePath, secretsPath, leafCertExportPath, leafKeyExportPath);
+            }
             return;
         }
 
@@ -58,7 +64,55 @@ public class EphemeralCAUtility {
         // 5. Export Public Root CA
         exportCertificate(rootCaExportPath, rootCert);
 
+        // 6. Export Leaf Cert and Key in PEM format for Proxy
+        exportCertificatePem(leafCertExportPath, leafCert);
+        exportPrivateKeyPem(leafKeyExportPath, leafKeyPair.getPrivate());
+
         System.out.println("Ephemeral CA and Leaf Certificate generated successfully.");
+    }
+
+    private static void exportCertificatePem(String path, X509Certificate cert) throws Exception {
+        String encoded = Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(cert.getEncoded());
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("-----BEGIN CERTIFICATE-----\n");
+            writer.write(encoded);
+            writer.write("\n-----END CERTIFICATE-----\n");
+        }
+        lockdownFile(file);
+    }
+
+    private static void exportPrivateKeyPem(String path, PrivateKey key) throws Exception {
+        String encoded = Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(key.getEncoded());
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("-----BEGIN PRIVATE KEY-----\n");
+            writer.write(encoded);
+            writer.write("\n-----END PRIVATE KEY-----\n");
+        }
+        lockdownFile(file);
+    }
+
+    private static void extractPemFromKeystore(String ksPath, String secretsPath, String certPath, String keyPath) throws Exception {
+        File secretsFile = new File(secretsPath);
+        if (!secretsFile.exists()) {
+            System.err.println("Secrets file not found. Cannot extract PEMs.");
+            return;
+        }
+        String password = new String(Files.readAllBytes(secretsFile.toPath())).trim();
+        KeyStore ks = KeyStore.getInstance("PKCS12");
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(ksPath)) {
+            ks.load(fis, password.toCharArray());
+        }
+        String alias = "jetty";
+        KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias, new KeyStore.PasswordProtection(password.toCharArray()));
+        if (entry != null) {
+            exportCertificatePem(certPath, (X509Certificate) entry.getCertificate());
+            exportPrivateKeyPem(keyPath, entry.getPrivateKey());
+            System.out.println("PEM exports extracted successfully.");
+        } else {
+            System.err.println("Could not find private key entry with alias '" + alias + "' in keystore.");
+        }
     }
 
     private static String generateRandomPassword(int length) {

@@ -134,10 +134,19 @@ if %errorlevel% neq 0 (
 )
 
 if exist launch.bat (
-    call launch.bat
+    start /b launch.bat
 ) else (
     echo WARNING: launch.bat not found. Trying launch.sh through Git Bash...
-    bash launch.sh
+    start /b bash launch.sh
+)
+
+:: Launch Caddy Proxy
+cd "%PROJECT_DIR%\osh-proxy"
+if exist run-proxy.bat (
+    call run-proxy.bat
+) else (
+    echo WARNING: run-proxy.bat not found. Trying run-proxy.sh through Git Bash...
+    bash run-proxy.sh
 )
 
 endlocal

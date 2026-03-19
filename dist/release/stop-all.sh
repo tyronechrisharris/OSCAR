@@ -1,17 +1,26 @@
 #!/bin/bash
 
 CONTAINER_NAME="oscar-postgis-container"
+PROXY_CONTAINER_NAME="osh-proxy"
 SENSORHUB_NAME="com.botts.impl.security.SensorHubWrapper"
 
-echo "Stopping container: $CONTAINER_NAME..."
+echo "Stopping containers: $CONTAINER_NAME, $PROXY_CONTAINER_NAME..."
 
 # Stop Docker container if it exists
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo "Container exists. Stopping..."
+    echo "PostGIS container exists. Stopping..."
     docker stop "$CONTAINER_NAME"
-    echo "Container stopped."
+    echo "PostGIS container stopped."
 else
-    echo "Container not found. Nothing to stop."
+    echo "PostGIS container not found. Nothing to stop."
+fi
+
+if docker ps -a --format '{{.Names}}' | grep -q "^${PROXY_CONTAINER_NAME}$"; then
+    echo "Proxy container exists. Stopping..."
+    docker stop "$PROXY_CONTAINER_NAME"
+    echo "Proxy container stopped."
+else
+    echo "Proxy container not found. Nothing to stop."
 fi
 
 echo
