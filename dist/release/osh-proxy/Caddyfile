@@ -8,8 +8,7 @@
 
 {$DOMAIN::443} {
     # If a custom domain is provided (like Tailscale), Caddy can manage TLS automatically.
-    # We use 'on_demand' or explicit 'tls tailscale' if $DOMAIN is specified.
-    # For Offline mode, it falls back to the exported PEM certificates.
+    # We use 'tls { ... }' for Offline mode, which Caddy will fallback to.
     tls {
         /etc/caddy/osh-leaf.crt /etc/caddy/osh-leaf.key
     }
