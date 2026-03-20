@@ -2,142 +2,38 @@
 setlocal enabledelayedexpansion
 
 REM ==== CONFIG ====
-if "%DB_HOST%"=="" (set HOST=localhost) else (set HOST=%DB_HOST%)
-set PORT=5432
-set DB_NAME=gis
-set USER=postgres
-set RETRY_MAX=20
-set RETRY_INTERVAL=5
 set PROJECT_DIR=%cd%
-set CONTAINER_NAME=oscar-postgis-container
-set IMAGE_NAME=oscar-postgis
+set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password"
 
-echo PROJECT_DIR is: %PROJECT_DIR%
-
-REM Set up DB password secret
-if "%POSTGRES_PASSWORD_FILE%"=="" (set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password")
-
+REM Generate new database password if missing
 if not exist "%POSTGRES_PASSWORD_FILE%" (
     echo Generating new database password...
     powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); $pwd = [Convert]::ToBase64String($p); [System.IO.File]::WriteAllText(\"%POSTGRES_PASSWORD_FILE:\=\\%\", $pwd)"
 )
 
-set /p DB_PASSWORD=<"%POSTGRES_PASSWORD_FILE%"
-
+REM Check for Docker
 where docker >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: Docker is not installed or not in PATH.
     exit /b 1
 )
 
-if not exist "%PROJECT_DIR%\pgdata" (
-    echo Creating pgdata directory...
-    mkdir "%PROJECT_DIR%\pgdata"
-)
-
-echo Building PostGIS Docker image...
-pushd postgis
-docker build . -f Dockerfile -t %IMAGE_NAME%
+REM Check for Docker Compose
+where docker-compose >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ERROR: Docker build failed.
-    exit /b 1
-)
-popd
-
-echo Starting PostGIS container...
-
-for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_EXISTS=1
-    )
-)
-
-for /f "tokens=*" %%i in ('docker ps --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_RUNNING=1
-    )
-)
-
-if defined CONTAINER_EXISTS (
-    if defined CONTAINER_RUNNING (
-        echo Container already running: %CONTAINER_NAME%
-    ) else (
-        echo Starting existing container: %CONTAINER_NAME%
-        docker start %CONTAINER_NAME%
-    )
-) else (
-    echo Creating new container: %CONTAINER_NAME%
-    docker run ^
-        --name %CONTAINER_NAME% ^
-        -e POSTGRES_DB=%DB_NAME% ^
-        -e POSTGRES_USER=%USER% ^
-        -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
-        -p %PORT%:5432 ^
-        -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
-        -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
-        -d ^
-        %IMAGE_NAME%
-
-    if %errorlevel% neq 0 (
-        echo ERROR: Failed to start PostGIS container.
-        exit /b 1
-    )
-)
-
-echo Waiting for PostGIS database to become ready...
-
-set RETRY_COUNT=0
-
-:wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    echo Received OK from PostGIS. Please wait for initialization...
-    goto after_wait
-)
-
-echo PostGIS not ready yet, retrying...
-set /a RETRY_COUNT+=1
-
-if %RETRY_COUNT% geq %RETRY_MAX% (
-    echo ERROR: PostGIS did not become ready in time.
+    echo ERROR: docker-compose is not installed or not in PATH.
     exit /b 1
 )
 
-timeout /t %RETRY_INTERVAL% >nul
-goto wait_loop
+echo Starting OSCAR stack via Docker Compose...
 
-:after_wait
+REM Set defaults to silence Docker Compose warnings
+if "%DEPLOYMENT_PROFILE%"=="" (set DEPLOYMENT_PROFILE=federated)
+if "%DOMAIN%"=="" (set DOMAIN=localhost)
 
-timeout /t 30 >nul
+docker-compose up -d
 
-:final_wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    goto after_final_wait
-)
-echo PostGIS still restarting, waiting...
-timeout /t 5 >nul
-goto final_wait_loop
-
-:after_final_wait
-
-echo PostGIS database is ready!
-
-REM Export for OSH backend
-set DB_HOST=%HOST%
-set POSTGRES_PASSWORD_FILE=%POSTGRES_PASSWORD_FILE%
-
-cd "%PROJECT_DIR%\osh-node-oscar"
-if %errorlevel% neq 0 (
-    echo ERROR: osh-node-oscar directory not found.
-    exit /b 1
-)
-
-if exist launch.bat (
-    call launch.bat
-) else (
-    echo WARNING: launch.bat not found. Trying launch.sh through Git Bash...
-    bash launch.sh
-)
+echo OSCAR stack is starting...
+echo Access the OSH Backend via Caddy on ports 80/443.
 
 endlocal
