@@ -22,6 +22,10 @@ fi
 
 echo "Starting OSCAR stack via Docker Compose (ARM64)..."
 
+# Set defaults to silence Docker Compose warnings
+export DEPLOYMENT_PROFILE="${DEPLOYMENT_PROFILE:-federated}"
+export DOMAIN="${DOMAIN:-localhost}"
+
 # Ensure ARM64 Dockerfile is used for PostGIS
 export POSTGIS_DOCKERFILE=Dockerfile-arm64
 DOCKER_DEFAULT_PLATFORM=linux/arm64 docker-compose up -d

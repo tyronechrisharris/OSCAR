@@ -22,6 +22,10 @@ fi
 
 echo "Starting OSCAR stack via Docker Compose..."
 
+# Set defaults to silence Docker Compose warnings
+export DEPLOYMENT_PROFILE="${DEPLOYMENT_PROFILE:-federated}"
+export DOMAIN="${DOMAIN:-localhost}"
+
 docker-compose up -d
 
 echo "OSCAR stack is starting..."

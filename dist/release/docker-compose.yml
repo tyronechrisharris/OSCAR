@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgis:
     build:
@@ -23,8 +21,8 @@ services:
 
   osh:
     build:
-      context: ../..
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.osh
     container_name: osh
     # IMPORTANT: do NOT publish 8282 to the host. Use `expose` for internal access only.
     expose:

@@ -1,0 +1,20 @@
+# Dockerfile for OpenSensorHub (OSH) Backend in Release Distribution
+FROM openjdk:11-jre-slim
+
+# Install fonts as required by AI_CONTRIBUTING_RULES.md
+RUN apt-get update && apt-get install -y fonts-freefont-ttf && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# In the release distribution, artifacts are under osh-node-oscar/
+COPY osh-node-oscar/lib /app/lib
+COPY osh-node-oscar/config.json /app/config.json
+COPY osh-node-oscar/logback.xml /app/logback.xml
+COPY osh-node-oscar/trusted_certificates /app/trusted_certificates
+COPY osh-node-oscar/rules /app/rules
+
+# Expose the internal OSH port
+EXPOSE 8282
+
+# The entrypoint should reflect the java command in standard launch.sh
+ENTRYPOINT ["java", "-Xms6g", "-Xmx6g", "-Xss256k", "-XX:ReservedCodeCacheSize=512m", "-XX:+UseG1GC", "-XX:+HeapDumpOnOutOfMemoryError", "-Dlogback.configurationFile=/app/logback.xml", "-cp", "/app/lib/*", "-Djava.system.class.loader=org.sensorhub.utils.NativeClassLoader", "com.botts.impl.security.SensorHubWrapper", "/app/config.json", "/app/db"]
