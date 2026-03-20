@@ -33,6 +33,8 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
     volumes:
       - .db_password:/run/secrets/db_password
+      - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates:ro
+      - ./osh-node-oscar/rules:/app/rules:ro
     networks:
       - oshnet
     depends_on:

@@ -20,6 +20,10 @@ if ! command -v docker-compose >/dev/null 2>&1; then
     exit 1
 fi
 
+# Ensure necessary directories exist for runtime mounts
+mkdir -p osh-node-oscar/trusted_certificates
+mkdir -p osh-node-oscar/rules
+
 echo "Starting OSCAR stack via Docker Compose..."
 
 # Set defaults to silence Docker Compose warnings

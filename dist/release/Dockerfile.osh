@@ -10,8 +10,7 @@ WORKDIR /app
 COPY osh-node-oscar/lib /app/lib
 COPY osh-node-oscar/config.json /app/config.json
 COPY osh-node-oscar/logback.xml /app/logback.xml
-COPY osh-node-oscar/trusted_certificates /app/trusted_certificates
-COPY osh-node-oscar/rules /app/rules
+# trusted_certificates and rules will be mounted at runtime to avoid build-time dependency
 
 # Expose the internal OSH port
 EXPOSE 8282

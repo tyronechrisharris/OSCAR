@@ -25,6 +25,10 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+REM Ensure necessary directories exist for runtime mounts
+if not exist "osh-node-oscar\trusted_certificates" mkdir "osh-node-oscar\trusted_certificates"
+if not exist "osh-node-oscar\rules" mkdir "osh-node-oscar\rules"
+
 echo Starting OSCAR stack via Docker Compose...
 
 REM Set defaults to silence Docker Compose warnings
