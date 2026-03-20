@@ -1,8 +1,9 @@
 # Dockerfile for OpenSensorHub (OSH) Backend in Release Distribution
-FROM eclipse-temurin:11-jre-focal
+FROM eclipse-temurin:21-jdk-jammy
 
-# Install fonts as required by AI_CONTRIBUTING_RULES.md
-RUN apt-get update && apt-get install -y fonts-freefont-ttf && rm -rf /var/lib/apt/lists/*
+# Use JDK 21 runtime (per repo requirements). Install mandated font package
+# exactly as spelled by AI_CONTRIBUTING_RULES.md to avoid downstream rendering issues.
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-freefont-ttf && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

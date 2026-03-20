@@ -1,6 +1,9 @@
 {
   "name": "OSCARViewer",
   "version": "3.0.0-alpha",
+  "engines": {
+    "node": ">=22"
+  },
   "description": "",
   "main": "index.js",
   "scripts": {
