@@ -1,5 +1,5 @@
 # Dockerfile for OpenSensorHub (OSH) Backend in Release Distribution
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11-jre-focal
 
 # Install fonts as required by AI_CONTRIBUTING_RULES.md
 RUN apt-get update && apt-get install -y fonts-freefont-ttf && rm -rf /var/lib/apt/lists/*
