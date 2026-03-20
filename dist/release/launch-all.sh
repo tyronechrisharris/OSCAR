@@ -1,30 +1,11 @@
 #!/bin/bash
 
-HOST="${DB_HOST:-localhost}"
-PORT="5432"
-DB_NAME="gis"
-DB_USER="postgres"
-RETRY_MAX=20
-RETRY_INTERVAL=5
-PROJECT_DIR="$(pwd)"   # Store the original directory
-CONTAINER_NAME="oscar-postgis-container"
-
-# Set up DB password secret
-if [ -z "$POSTGRES_PASSWORD_FILE" ]; then
-    export POSTGRES_PASSWORD_FILE="${PROJECT_DIR}/.db_password"
-fi
+PROJECT_DIR="$(pwd)"
+export POSTGRES_PASSWORD_FILE="${PROJECT_DIR}/.db_password"
 
 if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     echo "Generating new database password..."
     openssl rand -base64 32 > "$POSTGRES_PASSWORD_FILE"
-fi
-
-#docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-
-# Create pgdata directory if needed
-if [ ! -d "${PROJECT_DIR}/pgdata" ]; then
-  echo "Creating pgdata folder..."
-  mkdir -p "${PROJECT_DIR}/pgdata"
 fi
 
 # Check Docker
@@ -33,65 +14,15 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "Building PostGIS Docker image..."
-
-cd postgis || { echo "Error: postgis directory not found"; exit 1; }
-
-# Build PostGIS
-docker build . \
-  --file=Dockerfile \
-  --tag=oscar-postgis
-
-echo "Starting PostGIS container..."
-
-
-echo "PROJECT_DIR is set to: ${PROJECT_DIR}"
-
-if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-    # The container exists
-    if docker ps --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-        echo "Container already running: ${CONTAINER_NAME}"
-    else
-        echo "Starting existing container: ${CONTAINER_NAME}"
-        docker start "${CONTAINER_NAME}"
-    fi
-else
-    echo "Creating new container: ${CONTAINER_NAME}"
-    docker run \
-      --name "$CONTAINER_NAME" \
-      -e POSTGRES_DB="$DB_NAME" \
-      -e POSTGRES_USER="$DB_USER" \
-      -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
-      -p $PORT:5432 \
-      -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
-      -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
-      -d \
-      oscar-postgis || { echo "Failed to start PostGIS container"; exit 1; }
+# Check Docker Compose
+if ! command -v docker-compose >/dev/null 2>&1; then
+    echo "Error: docker-compose is not installed. Please install docker-compose first."
+    exit 1
 fi
 
-# Wait for PostgreSQL/PostGIS to become ready
-echo "Waiting for PostGIS (PostgreSQL) to be ready..."
+echo "Starting OSCAR stack via Docker Compose..."
 
-RETRY_COUNT=0
-until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-  echo "PostGIS not ready yet, retrying..."
-  sleep "${RETRY_INTERVAL}"
-done
+docker-compose up -d
 
-echo "PostGIS (PostgreSQL) is ready! Please wait for OpenSensorHub to start..."
-
-sleep 30
-
-# Final check
-until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-  echo "PostGIS still restarting, waiting..."
-  sleep 5
-done
-
-# Export for OSH backend
-export DB_HOST="$HOST"
-export POSTGRES_PASSWORD_FILE="$POSTGRES_PASSWORD_FILE"
-
-# Launch osh-node-oscar
-cd "$PROJECT_DIR/osh-node-oscar" || { echo "Error: osh-node-oscar not found"; exit 1; }
-./launch.sh
+echo "OSCAR stack is starting..."
+echo "Access the OSH Backend via Caddy on ports 80/443."
