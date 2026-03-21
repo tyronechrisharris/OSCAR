@@ -26,6 +26,7 @@ RELEASE_ITEMS=(
   "docker-compose.yml"
   "Dockerfile.osh"
   "caddy"
+  "postgis"
 )
 
 for item in "${RELEASE_ITEMS[@]}"; do
