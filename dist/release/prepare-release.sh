@@ -2,7 +2,7 @@
 set -euo pipefail
 #
 # prepare-release.sh
-# Make copying of launch scripts idempotent and safe for CI:
+# Make copying of launch scripts and orchestration files idempotent and safe for CI:
 # - skip copying when source == destination
 # - skip missing files
 # - skip copying when files are identical
@@ -13,68 +13,64 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." >/dev/null 2>&1 && pwd)"
 TARGET_DIR="${1:-${PROJECT_ROOT}/dist/release}"
 
-echo "Preparing release scripts for packaging (target: ${TARGET_DIR})"
+echo "Preparing release distribution (target: ${TARGET_DIR})"
 
-# The directory that historically held the canonical launch scripts. If you
-# change where you keep them, update SOURCE_DIR accordingly.
-SOURCE_DIR="${PROJECT_ROOT}/dist/release"
+mkdir -p "${TARGET_DIR}"
 
-# Files we want to ensure are present in the release. Add or remove names as
-# appropriate for your project.
-LAUNCH_FILES=(
+# Files and directories to include in the release root
+RELEASE_ITEMS=(
   "launch-all.sh"
   "launch-all-arm.sh"
   "launch-all.ps1"
   "launch-all.bat"
+  "docker-compose.yml"
+  "Dockerfile.osh"
+  "caddy"
 )
 
-mkdir -p "${TARGET_DIR}"
-
-# If the source and target directories are the same, nothing to copy — just
-# ensure permissions and exit successfully.
-if command -v realpath >/dev/null 2>&1; then
-  if [ "$(realpath "${SOURCE_DIR}")" = "$(realpath "${TARGET_DIR}")" ]; then
-    echo "Source and target are the same (${SOURCE_DIR}). Ensuring permissions and exiting."
-    for f in "${LAUNCH_FILES[@]}"; do
-      if [ -f "${TARGET_DIR}/${f}" ]; then
-        case "${f}" in
-          *.sh) chmod +x "${TARGET_DIR}/${f}" || true ;;
-          *.bat) chmod +x "${TARGET_DIR}/${f}" || true ;;
-        esac
-      fi
-    done
-    exit 0
-  fi
-fi
-
-for f in "${LAUNCH_FILES[@]}"; do
-  SRC="${SOURCE_DIR}/${f}"
-  DST="${TARGET_DIR}/${f}"
-
-  if [ ! -e "${SRC}" ]; then
-    echo "Skipping missing source ${SRC}"
+for item in "${RELEASE_ITEMS[@]}"; do
+  # Check in both script directory and project root (supporting different run contexts)
+  if [ -e "${SCRIPT_DIR}/${item}" ]; then
+    SRC="${SCRIPT_DIR}/${item}"
+  elif [ -e "${PROJECT_ROOT}/${item}" ]; then
+    SRC="${PROJECT_ROOT}/${item}"
+  else
+    echo "Skipping missing source ${item}"
     continue
   fi
+
+  DST="${TARGET_DIR}/${item}"
 
   # If source and destination refer to the same path/inode, skip the copy.
   if command -v realpath >/dev/null 2>&1; then
     if [ "$(realpath "${SRC}")" = "$(realpath "${DST}" 2>/dev/null || echo '')" ]; then
-      echo "Source and destination are identical for ${f}, skipping copy."
+      echo "Source and destination are identical for ${item}, skipping copy."
+      # Still ensure permissions for scripts even if same file
+      case "${item}" in
+        *.sh) chmod +x "${DST}" || true ;;
+        *.bat) chmod +x "${DST}" || true ;;
+      esac
       continue
     fi
   fi
 
-  # If the destination exists and is byte-for-byte identical, skip the copy.
-  if [ -e "${DST}" ] && cmp -s "${SRC}" "${DST}"; then
+  # If the destination exists and is identical, skip the copy.
+  if [ -d "${SRC}" ]; then
+    if [ -d "${DST}" ]; then
+        echo "Directory ${item} already exists at destination."
+    else
+        echo "Copying directory ${SRC} -> ${DST}"
+        cp -rp "${SRC}" "${DST}"
+    fi
+  elif [ -e "${DST}" ] && cmp -s "${SRC}" "${DST}"; then
     echo "Destination ${DST} already up-to-date."
   else
     echo "Copying ${SRC} -> ${DST}"
     cp -p "${SRC}" "${DST}"
   fi
 
-  # Ensure executable bit for shell scripts and for windows batch mark them as
-  # executable too (keeps parity for some packaging systems).
-  case "${DST}" in
+  # Ensure executable bit for appropriate files
+  case "${item}" in
     *.sh) chmod +x "${DST}" || true ;;
     *.bat) chmod +x "${DST}" || true ;;
   esac

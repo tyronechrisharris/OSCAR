@@ -6,15 +6,26 @@ Windows PowerShell script to start OSCAR stack deterministically:
 #>
 
 param(
-  [string]$OshWaitSeconds = 240
+  [int]$OshWaitSeconds = 240
 )
 
-# Find repo root relative to this script
+# Determine script location
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = (Get-Item "$scriptDir\..\..").FullName
-$composeFile = "$repoRoot\docker-compose.yml"
 
-Set-Location $repoRoot
+# 1. Look for docker-compose.yml in the same directory (standalone release)
+if (Test-Path "$scriptDir\docker-compose.yml") {
+    $releaseRoot = $scriptDir
+    $composeFile = "$releaseRoot\docker-compose.yml"
+# 2. Look for it two levels up (standard dev repo structure)
+} elseif (Test-Path "$scriptDir\..\..\docker-compose.yml") {
+    $releaseRoot = (Get-Item "$scriptDir\..\..").FullName
+    $composeFile = "$releaseRoot\docker-compose.yml"
+} else {
+    Write-Error "Error: Could not find docker-compose.yml in $scriptDir or repo root."
+    exit 1
+}
+
+Set-Location $releaseRoot
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"

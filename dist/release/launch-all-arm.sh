@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Find repo root relative to this script
+# Determine script location
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-COMPOSE_FILE="$REPO_ROOT/docker-compose.yml"
 
-cd "$REPO_ROOT"
+# 1. Look for docker-compose.yml in the same directory (standalone release)
+if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
+    RELEASE_ROOT="$SCRIPT_DIR"
+    COMPOSE_FILE="$RELEASE_ROOT/docker-compose.yml"
+# 2. Look for it two levels up (standard dev repo structure)
+elif [ -f "$SCRIPT_DIR/../../docker-compose.yml" ]; then
+    RELEASE_ROOT="$(cd "$SCRIPT_DIR/../../" && pwd)"
+    COMPOSE_FILE="$RELEASE_ROOT/docker-compose.yml"
+else
+    echo "Error: Could not find docker-compose.yml in $SCRIPT_DIR or repo root."
+    exit 1
+fi
 
-export POSTGRES_PASSWORD_FILE="$REPO_ROOT/.db_password"
+cd "$RELEASE_ROOT"
+
+export POSTGRES_PASSWORD_FILE="$RELEASE_ROOT/.db_password"
 
 if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     echo "Generating new database password..."
