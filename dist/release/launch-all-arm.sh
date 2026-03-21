@@ -1,5 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
+COMPOSE_FILE="docker-compose.yml"
 PROJECT_DIR="$(pwd)"
 export POSTGRES_PASSWORD_FILE="${PROJECT_DIR}/.db_password"
 
@@ -8,31 +10,74 @@ if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     openssl rand -base64 32 > "$POSTGRES_PASSWORD_FILE"
 fi
 
-# Check Docker
-if ! command -v docker >/dev/null 2>&1; then
-    echo "Error: Docker is not installed. Please install Docker first."
-    exit 1
-fi
-
-# Check Docker Compose
-if ! command -v docker-compose >/dev/null 2>&1; then
-    echo "Error: docker-compose is not installed. Please install docker-compose first."
-    exit 1
-fi
-
 # Ensure necessary directories exist for runtime mounts
 mkdir -p osh-node-oscar/trusted_certificates
 mkdir -p osh-node-oscar/rules
 
-echo "Starting OSCAR stack via Docker Compose (ARM64)..."
+echo
+echo "OSCAR deterministic startup (ARM): PostGIS -> OSH -> Caddy"
+echo
 
+echo "Starting PostGIS..."
+export POSTGIS_DOCKERFILE=Dockerfile-arm64
+DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d postgis
+
+echo -n "Waiting for PostGIS (pg_isready)..."
+until docker exec -u postgres postgis pg_isready -d gis -U postgres -h localhost >/dev/null 2>&1; do
+  printf "."
+  sleep 2
+done
+echo " OK"
+
+echo -n "Waiting for 'gis' database to exist..."
+until docker exec -u postgres postgis psql -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>/dev/null | grep -q 1; do
+  printf "."
+  sleep 2
+done
+echo " OK"
+
+echo "Starting OSH backend..."
+DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d osh
+
+echo "Waiting for OSH to become stable..."
+OSH_WAIT_SECS=240
+END=$((SECONDS + OSH_WAIT_SECS))
+while [ $SECONDS -lt $END ]; do
+  STATE="$(docker inspect --format '{{.State.Status}}' osh 2>/dev/null || echo 'missing')"
+  if [ "$STATE" = "exited" ] || [ "$STATE" = "dead" ]; then
+    echo "OSH container exited unexpectedly — last logs:"
+    docker logs --tail 300 osh || true
+    echo "Aborting startup due to OSH failure."
+    exit 2
+  fi
+
+  if [ "$STATE" = "running" ]; then
+    if docker logs osh --tail 200 2>&1 | grep -E "Error starting datastores|Fatal error during sensorhub execution" >/dev/null 2>&1; then
+      echo "OSH reported datastore startup error. Showing logs:"
+      docker logs --tail 300 osh || true
+      exit 2
+    fi
+    sleep 5
+    echo "OSH is running."
+    break
+  fi
+  printf "."
+  sleep 2
+done
+
+if [ $SECONDS -ge $END ]; then
+  echo
+  echo "Timed out waiting for OSH to become stable. Showing last 300 lines of logs:"
+  docker logs --tail 300 osh || true
+  exit 2
+fi
+
+echo "Starting Caddy (last)..."
 # Set defaults to silence Docker Compose warnings
 export DEPLOYMENT_PROFILE="${DEPLOYMENT_PROFILE:-federated}"
 export DOMAIN="${DOMAIN:-localhost}"
 
-# Ensure ARM64 Dockerfile is used for PostGIS
-export POSTGIS_DOCKERFILE=Dockerfile-arm64
-DOCKER_DEFAULT_PLATFORM=linux/arm64 docker-compose up -d
+DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d caddy
 
-echo "OSCAR stack is starting..."
-echo "Access the OSH Backend via Caddy on ports 80/443."
+echo
+echo "OSCAR stack is starting (ARM). Access the OSH Backend via Caddy on ports 80/443."

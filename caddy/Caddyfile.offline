@@ -6,8 +6,7 @@
 }
 
 :443 {
-    # Replace with filenames produced by your Ephemeral CA.
-    # e.g. /certs/fullchain.pem and /certs/privkey.pem
+    # Offline profile: use leaf cert and key exported from the Ephemeral CA
     tls /certs/fullchain.pem /certs/privkey.pem
 
     reverse_proxy osh:8282 {
