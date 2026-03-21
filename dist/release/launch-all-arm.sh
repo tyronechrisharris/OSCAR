@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-COMPOSE_FILE="docker-compose.yml"
-PROJECT_DIR="$(pwd)"
-export POSTGRES_PASSWORD_FILE="${PROJECT_DIR}/.db_password"
+# Find repo root relative to this script
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+COMPOSE_FILE="$REPO_ROOT/docker-compose.yml"
+
+cd "$REPO_ROOT"
+
+export POSTGRES_PASSWORD_FILE="$REPO_ROOT/.db_password"
 
 if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     echo "Generating new database password..."

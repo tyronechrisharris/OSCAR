@@ -6,9 +6,15 @@ Windows PowerShell script to start OSCAR stack deterministically:
 #>
 
 param(
-  [string]$ComposeFile = "docker-compose.yml",
-  [int]$OshWaitSeconds = 240
+  [string]$OshWaitSeconds = 240
 )
+
+# Find repo root relative to this script
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = (Get-Item "$scriptDir\..\..").FullName
+$composeFile = "$repoRoot\docker-compose.yml"
+
+Set-Location $repoRoot
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -16,7 +22,7 @@ $ErrorActionPreference = "Stop"
 function Write-Log { param($m) Write-Host "[$(Get-Date -Format o)] $m" }
 
 Write-Log "OSCAR deterministic startup (Windows/PowerShell): PostGIS -> OSH -> Caddy"
-Write-Log "Using compose file: $ComposeFile"
+Write-Log "Using compose file: $composeFile"
 
 # Ensure necessary directories exist for runtime mounts
 $oshDir = "osh-node-oscar"
@@ -25,7 +31,7 @@ if (-not (Test-Path "$oshDir\rules")) { New-Item -ItemType Directory -Path "$osh
 
 # 1) Start PostGIS
 Write-Log "Starting PostGIS..."
-& docker compose -f $ComposeFile up -d postgis
+& docker compose -f $composeFile up -d postgis
 
 # Wait for pg_isready (TCP)
 Write-Host -NoNewline "Waiting for PostGIS (pg_isready)"
@@ -55,7 +61,7 @@ while ($true) {
 
 # 2) Start OSH and watch startup
 Write-Log "Starting OSH backend..."
-& docker compose -f $ComposeFile up -d osh
+& docker compose -f $composeFile up -d osh
 
 Write-Log "Waiting for OSH to become stable..."
 $endTime = (Get-Date).AddSeconds($OshWaitSeconds)
@@ -105,6 +111,6 @@ Write-Log "Starting Caddy (last)..."
 if ([string]::IsNullOrEmpty($env:DEPLOYMENT_PROFILE)) { $env:DEPLOYMENT_PROFILE = "federated" }
 if ([string]::IsNullOrEmpty($env:DOMAIN)) { $env:DOMAIN = "localhost" }
 
-& docker compose -f $ComposeFile up -d caddy
+& docker compose -f $composeFile up -d caddy
 
 Write-Log "OSCAR stack startup complete. Access the OSH Backend via Caddy on ports 80/443."
