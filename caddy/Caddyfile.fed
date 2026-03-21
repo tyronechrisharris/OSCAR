@@ -1,0 +1,27 @@
+{$DOMAIN} {
+    # Federated (Let’s Encrypt) profile.
+    # Caddy will use its built-in ACME provider (Let's Encrypt) to obtain certs
+    # for the hostname in $DOMAIN. Ensure the DOMAIN env var is set and DNS
+    # points to this host.
+
+    # If you prefer Tailscale-native ACME, replace or extend the tls block with
+    # the tailscale issuer (requires a caddy tailscale plugin and TAILSCALE_AUTH_KEY).
+    #
+    # Example (requires caddy-tailscale plugin):
+    # tls {
+    #   issuer tailscale { }
+    # }
+
+    reverse_proxy osh:8282 {
+        # Forward original client information so OSH logs correct alarm origins:
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Host {host}
+        # If OSH expects X-Real-IP, also send it:
+        header_up X-Real-IP {remote_host}
+    }
+
+    log {
+        output file /data/logs/caddy.access.log
+    }
+}

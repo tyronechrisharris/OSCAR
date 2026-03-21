@@ -1,97 +1,113 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-HOST="${DB_HOST:-localhost}"
-PORT="5432"
-DB_NAME="gis"
-DB_USER="postgres"
-RETRY_MAX=20
-RETRY_INTERVAL=5
-PROJECT_DIR="$(pwd)"   # Store the original directory
-CONTAINER_NAME="oscar-postgis-container"
+# Determine script location
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-# Set up DB password secret
-if [ -z "$POSTGRES_PASSWORD_FILE" ]; then
-    export POSTGRES_PASSWORD_FILE="${PROJECT_DIR}/.db_password"
+# Ensure docker present
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Error: 'docker' not found in PATH. Please install Docker and the Docker Compose plugin."
+    exit 1
 fi
+
+# Ensure docker compose plugin available
+if ! docker compose version >/dev/null 2>&1; then
+    echo "Error: 'docker compose' plugin is not available. Ensure you have Docker Compose v2 (the 'docker compose' plugin)."
+    exit 1
+fi
+
+# 1. Look for docker-compose.yml in the same directory (standalone release)
+if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
+    RELEASE_ROOT="$SCRIPT_DIR"
+    COMPOSE_FILE="$RELEASE_ROOT/docker-compose.yml"
+# 2. Look for it two levels up (standard dev repo structure)
+elif [ -f "$SCRIPT_DIR/../../docker-compose.yml" ]; then
+    RELEASE_ROOT="$(cd "$SCRIPT_DIR/../../" && pwd)"
+    COMPOSE_FILE="$RELEASE_ROOT/docker-compose.yml"
+else
+    echo "Error: Could not find docker-compose.yml in $SCRIPT_DIR or repo root."
+    exit 1
+fi
+
+cd "$RELEASE_ROOT"
+
+export POSTGRES_PASSWORD_FILE="$RELEASE_ROOT/.db_password"
 
 if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     echo "Generating new database password..."
     openssl rand -base64 32 > "$POSTGRES_PASSWORD_FILE"
 fi
 
-#docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+# Ensure necessary directories exist for runtime mounts
+mkdir -p osh-node-oscar/trusted_certificates
+mkdir -p osh-node-oscar/rules
 
-# Create pgdata directory if needed
-if [ ! -d "${PROJECT_DIR}/pgdata" ]; then
-  echo "Creating pgdata folder..."
-  mkdir -p "${PROJECT_DIR}/pgdata"
-fi
+echo
+echo "OSCAR deterministic startup: PostGIS -> OSH -> Caddy"
+echo
 
-# Check Docker
-if ! command -v docker >/dev/null 2>&1; then
-    echo "Error: Docker is not installed. Please install Docker first."
-    exit 1
-fi
+echo "Starting PostGIS..."
+docker compose -f "$COMPOSE_FILE" up -d postgis
 
-echo "Building PostGIS Docker image..."
+echo -n "Waiting for PostGIS (pg_isready)..."
+until docker exec postgis pg_isready -h localhost -d gis -U postgres >/dev/null 2>&1; do
+  printf "."
+  sleep 2
+done
+echo " OK"
 
-cd postgis || { echo "Error: postgis directory not found"; exit 1; }
+echo -n "Waiting for 'gis' database to exist..."
+until docker exec postgis psql -h localhost -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>/dev/null | grep -q 1; do
+  printf "."
+  sleep 2
+done
+echo " OK"
 
-# Build PostGIS
-docker build . \
-  --file=Dockerfile \
-  --tag=oscar-postgis
+echo "Starting OSH backend..."
+docker compose -f "$COMPOSE_FILE" up -d --build osh
 
-echo "Starting PostGIS container..."
+echo "Waiting for OSH to become stable..."
+OSH_WAIT_SECS=240
+END=$((SECONDS + OSH_WAIT_SECS))
+while [ $SECONDS -lt $END ]; do
+  STATE="$(docker inspect --format '{{.State.Status}}' osh 2>/dev/null || echo 'missing')"
+  if [ "$STATE" = "exited" ] || [ "$STATE" = "dead" ]; then
+    echo "OSH container exited unexpectedly — last logs:"
+    docker logs --tail 300 osh || true
+    echo "Aborting startup due to OSH failure."
+    exit 2
+  fi
 
-
-echo "PROJECT_DIR is set to: ${PROJECT_DIR}"
-
-if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-    # The container exists
-    if docker ps --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-        echo "Container already running: ${CONTAINER_NAME}"
-    else
-        echo "Starting existing container: ${CONTAINER_NAME}"
-        docker start "${CONTAINER_NAME}"
+  if [ "$STATE" = "running" ]; then
+    # If OSH logs show datastore errors, fail early and show logs
+    if docker logs osh --tail 200 2>&1 | grep -E "Error starting datastores|Fatal error during sensorhub execution" >/dev/null 2>&1; then
+      echo "OSH reported datastore startup error. Showing logs:"
+      docker logs --tail 300 osh || true
+      exit 2
     fi
-else
-    echo "Creating new container: ${CONTAINER_NAME}"
-    docker run \
-      --name "$CONTAINER_NAME" \
-      -e POSTGRES_DB="$DB_NAME" \
-      -e POSTGRES_USER="$DB_USER" \
-      -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
-      -p $PORT:5432 \
-      -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
-      -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
-      -d \
-      oscar-postgis || { echo "Failed to start PostGIS container"; exit 1; }
+
+    # OSH is running and no immediate errors visible — assume startup succeeded
+    sleep 5
+    echo "OSH is running."
+    break
+  fi
+  printf "."
+  sleep 2
+done
+
+if [ $SECONDS -ge $END ]; then
+  echo
+  echo "Timed out waiting for OSH to become stable. Showing last 300 lines of logs:"
+  docker logs --tail 300 osh || true
+  exit 2
 fi
 
-# Wait for PostgreSQL/PostGIS to become ready
-echo "Waiting for PostGIS (PostgreSQL) to be ready..."
+echo "Starting Caddy (last)..."
+# Set defaults to silence Docker Compose warnings
+export DEPLOYMENT_PROFILE="${DEPLOYMENT_PROFILE:-federated}"
+export DOMAIN="${DOMAIN:-localhost}"
 
-RETRY_COUNT=0
-until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-  echo "PostGIS not ready yet, retrying..."
-  sleep "${RETRY_INTERVAL}"
-done
+docker compose -f "$COMPOSE_FILE" up -d caddy
 
-echo "PostGIS (PostgreSQL) is ready! Please wait for OpenSensorHub to start..."
-
-sleep 30
-
-# Final check
-until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-  echo "PostGIS still restarting, waiting..."
-  sleep 5
-done
-
-# Export for OSH backend
-export DB_HOST="$HOST"
-export POSTGRES_PASSWORD_FILE="$POSTGRES_PASSWORD_FILE"
-
-# Launch osh-node-oscar
-cd "$PROJECT_DIR/osh-node-oscar" || { echo "Error: osh-node-oscar not found"; exit 1; }
-./launch.sh
+echo
+echo "OSCAR stack is starting. Access the OSH Backend via Caddy on ports 80/443."

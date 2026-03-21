@@ -80,17 +80,27 @@ public class SensorHubWrapper {
 			keyStorePassword = getPasswordValue(KEYSTORE_PASSWORD, "changeit");
 		}
 
-		System.setProperty("javax.net.ssl.keyStore", keyStoreEnv);
-		System.setProperty("javax.net.ssl.keyStoreType", keyStoreTypeEnv);
-		System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword.getValue());
+		if (nonBlank(keyStoreEnv)) {
+			if (!nonBlank(keyStoreTypeEnv)) {
+				keyStoreTypeEnv = "PKCS12";
+			}
+			System.setProperty("javax.net.ssl.keyStore", keyStoreEnv);
+			System.setProperty("javax.net.ssl.keyStoreType", keyStoreTypeEnv);
+			System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword.getValue());
+		}
 
 		String trustStoreEnv = System.getenv(TRUSTSTORE);
 		String trustStoreTypeEnv = System.getenv(TRUSTSTORE_TYPE);
 		PasswordValue trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, "changeit");
 
-		System.setProperty("javax.net.ssl.trustStore", trustStoreEnv);
-		System.setProperty("javax.net.ssl.trustStoreType", trustStoreTypeEnv);
-		System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword.getValue());
+		if (nonBlank(trustStoreEnv)) {
+			if (!nonBlank(trustStoreTypeEnv)) {
+				trustStoreTypeEnv = "PKCS12";
+			}
+			System.setProperty("javax.net.ssl.trustStore", trustStoreEnv);
+			System.setProperty("javax.net.ssl.trustStoreType", trustStoreTypeEnv);
+			System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword.getValue());
+		}
 
 		if (debug) {
 			System.out.println("Key store:            " + keyStoreEnv);

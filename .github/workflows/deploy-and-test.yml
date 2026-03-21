@@ -1,24 +1,16 @@
-name: Deploy and Test
-
+name: Deploy and Test OSCAR Stack
 on:
+  push:
+    branches:
+      - 'feature/add-caddy-proxy-dual-mode-tls-*'
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Automated Build and Versioned Releases"]
-    types:
-      - completed
-
-permissions:
-  contents: read
 
 jobs:
   deploy-and-test:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -26,85 +18,51 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Download Latest Release Artifact
-        uses: robinraju/release-downloader@v1.10
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
         with:
-          latest: true
-          fileName: 'oscar_*.zip'
-          out-file-path: 'build/distributions/'
+          node-version: '22'
 
-      - name: Unzip Release Artifact
+      - name: Build project
         run: |
-          mkdir -p deployment
-          unzip build/distributions/oscar_*.zip -d deployment
+          chmod +x ./build-all.sh
+          ./build-all.sh
 
-      - name: Launch Program
+      - name: Extract Distribution
         run: |
-          cd deployment/*/
+          mkdir -p deploy
+          unzip build/distributions/oscar-3.0.0.zip -d deploy
+          # Historical release ZIP structure puts everything in a subfolder oscar-3.0.0/
+          # but we want to run from that root
+          mv deploy/oscar-3.0.0/* deploy/
+          rmdir deploy/oscar-3.0.0/
+
+      - name: Deploy Stack
+        run: |
+          cd deploy
           chmod +x launch-all.sh
-          # Run the launch script in the background
-          ./launch-all.sh > launch_output.log 2>&1 &
+          # Set mandatory env vars for headless CI
+          export DEPLOYMENT_PROFILE=federated
+          export DOMAIN=localhost
+          ./launch-all.sh
 
-          # Wait for the program to fully start up.
-          echo "Waiting for OSH node to start (up to 3 minutes)..."
-          for i in {1..36}; do
-            if curl -s -f -L http://localhost:8282/sensorhub/admin > /dev/null; then
-              echo "OSH Node is up!"
-              break
-            fi
-            sleep 5
-            if [ $i -eq 36 ]; then
-              echo "Timeout waiting for OSH node."
-              exit 1
-            fi
-          done
-
-      - name: Basic Tests
+      - name: Run Smoke Tests
         run: |
-          echo "Running basic test to ensure main UI is reachable..."
-          curl -s -f -L http://localhost:8282/sensorhub/admin > /dev/null
-          echo "Main UI reachable."
-
-      - name: Dump Docker Logs
-        if: always()
-        run: |
-          echo "Collecting Docker container logs..."
-          docker ps -a
-          for container in $(docker ps -aq); do
-            echo "============================================="
-            echo "Logs for container $container:"
-            echo "============================================="
-            docker logs $container
-          done
-
-      - name: Dump OSH Node Logs
-        if: always()
-        run: |
-          echo "Collecting OSH Node logs..."
-          # The application directory where launch-all.sh is executed
-          APP_DIR=$(ls -d deployment/*/)
-
-          if [ -f "${APP_DIR}/launch_output.log" ]; then
-            echo "============================================="
-            echo "launch_output.log:"
-            echo "============================================="
-            cat "${APP_DIR}/launch_output.log"
+          # Wait a bit for services to settle beyond internal healthchecks
+          sleep 30
+          # Verify Caddy is responsive on 80/443 (insecurely since it might be self-signed/localhost)
+          curl -v http://localhost || exit 1
+          curl -vk https://localhost || exit 1
+          # Verify OSH is NOT accessible on 8282 from host
+          if curl -s --max-time 5 http://localhost:8282; then
+            echo "Security violation: OSH port 8282 is accessible from host!"
+            exit 1
+          else
+            echo "Success: OSH port 8282 is isolated."
           fi
 
-          if [ -d "${APP_DIR}/logs" ]; then
-            for logfile in "${APP_DIR}/logs"/*; do
-              echo "============================================="
-              echo "Log file: $logfile"
-              echo "============================================="
-              cat "$logfile"
-            done
-          fi
-
-      - name: Upload Logs as Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-logs
-          path: |
-            deployment/*/launch_output.log
-            deployment/*/logs/
+      - name: Capture Logs on Failure
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs
