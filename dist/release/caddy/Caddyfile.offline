@@ -1,0 +1,22 @@
+# Offline profile: serve TLS using local leaf certs produced by the Ephemeral CA.
+
+:80 {
+    # Redirect all HTTP to HTTPS
+    redir https://{host}{uri} permanent
+}
+
+:443 {
+    # Offline profile: use leaf cert and key exported from the Ephemeral CA
+    tls /certs/fullchain.pem /certs/privkey.pem
+
+    reverse_proxy osh:8282 {
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+    }
+
+    log {
+        output file /data/logs/caddy_offline.access.log
+    }
+}

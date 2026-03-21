@@ -1,0 +1,79 @@
+services:
+  postgis:
+    build:
+      context: ./dist/release/postgis
+      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
+    container_name: postgis
+    environment:
+      - POSTGRES_DB=${DB_NAME:-gis}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oshnet
+
+  osh:
+    build:
+      context: .
+      dockerfile: Dockerfile.osh
+    container_name: osh
+    # IMPORTANT: do NOT publish 8282 to the host. Use `expose` for internal access only.
+    expose:
+      - "8282"
+    environment:
+      - DB_HOST=postgis
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
+    volumes:
+      - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates:ro
+      - ./osh-node-oscar/rules:/app/rules:ro
+    secrets:
+      - db_password
+    networks:
+      - oshnet
+    depends_on:
+      postgis:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        if [ "$DEPLOYMENT_PROFILE" = "federated" ]; then
+          caddy run --config /etc/caddy/Caddyfile.fed --watch
+        else
+          caddy run --config /etc/caddy/Caddyfile.offline --watch
+        fi
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DEPLOYMENT_PROFILE=${DEPLOYMENT_PROFILE:-federated}   # federated | offline
+      - DOMAIN=${DOMAIN}                                     # required for federated profile
+    volumes:
+      - ./caddy/Caddyfile.fed:/etc/caddy/Caddyfile.fed:ro
+      - ./caddy/Caddyfile.offline:/etc/caddy/Caddyfile.offline:ro
+      - ./caddy/data:/data          # persistent ACME/lets encrypt data
+      - ./caddy/config:/config      # persistent caddy config
+      - ./certs:/certs:ro           # offline leaf certs (mounted read-only)
+    networks:
+      - oshnet
+
+networks:
+  oshnet:
+    driver: bridge
+
+secrets:
+  db_password:
+    file: .db_password
