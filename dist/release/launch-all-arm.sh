@@ -51,21 +51,21 @@ export POSTGIS_DOCKERFILE=Dockerfile-arm64
 DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d postgis
 
 echo -n "Waiting for PostGIS (pg_isready)..."
-until docker exec -u postgres postgis pg_isready -d gis -U postgres -h localhost >/dev/null 2>&1; do
+until docker exec postgis pg_isready -h localhost -d gis -U postgres >/dev/null 2>&1; do
   printf "."
   sleep 2
 done
 echo " OK"
 
 echo -n "Waiting for 'gis' database to exist..."
-until docker exec -u postgres postgis psql -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>/dev/null | grep -q 1; do
+until docker exec postgis psql -h localhost -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>/dev/null | grep -q 1; do
   printf "."
   sleep 2
 done
 echo " OK"
 
 echo "Starting OSH backend..."
-DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d osh
+DOCKER_DEFAULT_PLATFORM=linux/arm64 docker compose -f "$COMPOSE_FILE" up -d --build osh
 
 echo "Waiting for OSH to become stable..."
 OSH_WAIT_SECS=240

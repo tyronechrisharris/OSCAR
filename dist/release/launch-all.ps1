@@ -48,7 +48,7 @@ Write-Log "Starting PostGIS..."
 Write-Host -NoNewline "Waiting for PostGIS (pg_isready)"
 while ($true) {
   try {
-    $rc = & docker exec -u postgres postgis pg_isready -d gis -U postgres -h localhost > $null 2>&1
+    $rc = & docker exec postgis pg_isready -h localhost -d gis -U postgres > $null 2>&1
     if ($LASTEXITCODE -eq 0) { Write-Host " OK"; break }
   } catch {
     # ignore and retry
@@ -61,7 +61,7 @@ while ($true) {
 Write-Host -NoNewline "Waiting for 'gis' database to exist"
 while ($true) {
   try {
-    $out = & docker exec -u postgres postgis psql -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>$null
+    $out = & docker exec postgis psql -h localhost -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='gis'" 2>$null
     if ($out -match "1") { Write-Host " OK"; break }
   } catch {
     # ignore and wait
@@ -72,7 +72,7 @@ while ($true) {
 
 # 2) Start OSH and watch startup
 Write-Log "Starting OSH backend..."
-& docker compose -f $composeFile up -d osh
+& docker compose -f $composeFile up -d --build osh
 
 Write-Log "Waiting for OSH to become stable..."
 $endTime = (Get-Date).AddSeconds($OshWaitSeconds)

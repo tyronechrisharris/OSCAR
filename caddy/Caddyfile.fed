@@ -14,8 +14,6 @@
 
     reverse_proxy osh:8282 {
         # Forward original client information so OSH logs correct alarm origins:
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
         header_up Host {host}
         # If OSH expects X-Real-IP, also send it:
         header_up X-Real-IP {remote_host}
