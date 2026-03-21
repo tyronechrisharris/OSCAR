@@ -10,8 +10,7 @@ services:
       - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-    secrets:
-      - db_password
+      - ./.db_password:/run/secrets/db_password:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -35,8 +34,7 @@ services:
     volumes:
       - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates:ro
       - ./osh-node-oscar/rules:/app/rules:ro
-    secrets:
-      - db_password
+      - ./.db_password:/run/secrets/db_password:ro
     networks:
       - oshnet
     depends_on:
@@ -73,7 +71,3 @@ services:
 networks:
   oshnet:
     driver: bridge
-
-secrets:
-  db_password:
-    file: .db_password

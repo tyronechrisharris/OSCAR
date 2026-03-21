@@ -4,6 +4,18 @@ set -euo pipefail
 # Determine script location
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# Ensure docker present
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Error: 'docker' not found in PATH. Please install Docker and the Docker Compose plugin."
+    exit 1
+fi
+
+# Ensure docker compose plugin available
+if ! docker compose version >/dev/null 2>&1; then
+    echo "Error: 'docker compose' plugin is not available. Ensure you have Docker Compose v2 (the 'docker compose' plugin)."
+    exit 1
+fi
+
 # 1. Look for docker-compose.yml in the same directory (standalone release)
 if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
     RELEASE_ROOT="$SCRIPT_DIR"
