@@ -92,9 +92,15 @@ public class SensorHubWrapper {
 
 		String trustStoreEnv = System.getenv(TRUSTSTORE);
 		String trustStoreTypeEnv = System.getenv(TRUSTSTORE_TYPE);
-		PasswordValue trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, null);
-		if (trustStorePassword.getValue() == null) {
-			throw new IOException("CRITICAL ERROR: TRUSTSTORE_PASSWORD not set. Cannot load truststore password. Halting startup.");
+		PasswordValue trustStorePassword;
+		if (appSecrets.exists()) {
+			String val = firstLineOfFile(appSecrets.getAbsolutePath());
+			trustStorePassword = new PasswordValue(val, "TRUSTSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
+		} else {
+			trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, null);
+			if (trustStorePassword.getValue() == null) {
+				throw new IOException("CRITICAL ERROR: TRUSTSTORE_PASSWORD not set. Cannot load truststore password. Halting startup.");
+			}
 		}
 
 		System.setProperty("javax.net.ssl.trustStore", trustStoreEnv);
