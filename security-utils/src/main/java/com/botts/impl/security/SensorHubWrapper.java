@@ -80,7 +80,10 @@ public class SensorHubWrapper {
 			String val = firstLineOfFile(appSecrets.getAbsolutePath());
 			keyStorePassword = new PasswordValue(val, "KEYSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
 		} else {
-			keyStorePassword = getPasswordValue(KEYSTORE_PASSWORD, "changeit");
+			keyStorePassword = getPasswordValue(KEYSTORE_PASSWORD, null);
+			if (keyStorePassword.getValue() == null) {
+				throw new IOException("CRITICAL ERROR: .app_secrets not found and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
+			}
 		}
 
 		System.setProperty("javax.net.ssl.keyStore", keyStoreEnv);
@@ -89,7 +92,10 @@ public class SensorHubWrapper {
 
 		String trustStoreEnv = System.getenv(TRUSTSTORE);
 		String trustStoreTypeEnv = System.getenv(TRUSTSTORE_TYPE);
-		PasswordValue trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, "changeit");
+		PasswordValue trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, null);
+		if (trustStorePassword.getValue() == null) {
+			throw new IOException("CRITICAL ERROR: TRUSTSTORE_PASSWORD not set. Cannot load truststore password. Halting startup.");
+		}
 
 		System.setProperty("javax.net.ssl.trustStore", trustStoreEnv);
 		System.setProperty("javax.net.ssl.trustStoreType", trustStoreTypeEnv);

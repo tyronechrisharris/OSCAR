@@ -7,16 +7,26 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export KEYSTORE="./osh-keystore.p12"
 export KEYSTORE_TYPE=PKCS12
 
+# Persistent CA Check & Generation
+# If keystore doesn't exist, this will generate it and create .app_secrets.
+# If it does exist, it will check for auto-renewal of the leaf certificate.
+java -cp "lib/*" com.botts.impl.security.LocalCAUtility
 
 if [ -f ".app_secrets" ]; then
     export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets)
 else
-    export KEYSTORE_PASSWORD="atakatak"
+    echo "CRITICAL ERROR: .app_secrets not found. Cannot load keystore password. Halting startup."
+    exit 1
 fi
 
 export TRUSTSTORE="./truststore.jks"
   export TRUSTSTORE_TYPE=JKS
-  export TRUSTSTORE_PASSWORD="changeit"
+  if [ ! -z "$TRUSTSTORE_PASSWORD" ]; then
+    export TRUSTSTORE_PASSWORD="$TRUSTSTORE_PASSWORD"
+  else
+    echo "CRITICAL ERROR: TRUSTSTORE_PASSWORD not set. Cannot load truststore password. Halting startup."
+    exit 1
+  fi
 
   if [ -f "./.initial_admin_password" ]; then
       export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"

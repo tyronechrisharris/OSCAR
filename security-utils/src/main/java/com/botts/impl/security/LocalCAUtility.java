@@ -83,7 +83,7 @@ public class LocalCAUtility {
             } else {
                 password = System.getenv("KEYSTORE_PASSWORD");
                 if (password == null || password.isEmpty()) {
-                    password = "atakatak"; // Fallback to default used in launch scripts
+                    throw new IOException("CRITICAL ERROR: .app_secrets not found and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
                 }
             }
 
