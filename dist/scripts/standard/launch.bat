@@ -8,11 +8,6 @@ CALL %~dp0load_trusted_certs.bat
 set KEYSTORE=.\osh-keystore.p12
 set KEYSTORE_TYPE=PKCS12
 
-REM Ephemeral CA Generation
-if not exist "%KEYSTORE%" (
-    echo Generating ephemeral certificates...
-    java -cp "lib/*" com.botts.impl.security.EphemeralCAUtility
-)
 
 if exist ".app_secrets" (
     set /p KEYSTORE_PASSWORD=<.app_secrets

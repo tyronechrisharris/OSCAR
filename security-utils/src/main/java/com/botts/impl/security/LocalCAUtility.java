@@ -26,39 +26,100 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 
-public class EphemeralCAUtility {
+public class LocalCAUtility {
 
     public static void main(String[] args) throws Exception {
+        checkAndRenewCertificates();
+    }
+
+    public static void checkAndRenewCertificates() throws Exception {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         String keystorePath = "osh-keystore.p12";
         String secretsPath = ".app_secrets";
         String rootCaExportPath = "root-ca.crt";
+        String rootAlias = "root-ca";
+        String leafAlias = "jetty";
 
-        if (new File(keystorePath).exists()) {
-            System.out.println("Keystore already exists. Skipping generation.");
-            return;
+        File keystoreFile = new File(keystorePath);
+        File secretsFile = new File(secretsPath);
+
+        String password;
+        if (!keystoreFile.exists()) {
+            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate...");
+
+            // 1. Generate Keystore Password
+            password = generateRandomPassword(32);
+            saveSecret(secretsPath, password);
+
+            // 2. Generate Root CA (Persistent)
+            KeyPair rootKeyPair = generateKeyPair();
+            X509Certificate rootCert = generateCertificate("CN=OSCAR Root CA", "CN=OSCAR Root CA", rootKeyPair.getPublic(), rootKeyPair.getPrivate(), true, 7300);
+
+            // 3. Generate Leaf Certificate signed by Root CA
+            KeyPair leafKeyPair = generateKeyPair();
+            X509Certificate leafCert = generateCertificate("CN=localhost", "CN=OSCAR Root CA", leafKeyPair.getPublic(), rootKeyPair.getPrivate(), false, 365);
+
+            // 4. Save Both to Keystore
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            ks.load(null, null);
+            ks.setKeyEntry(leafAlias, leafKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{leafCert, rootCert});
+            ks.setKeyEntry(rootAlias, rootKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{rootCert});
+
+            try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
+                ks.store(fos, password.toCharArray());
+            }
+            lockdownFile(keystoreFile);
+
+            // 5. Export Public Root CA
+            exportCertificate(rootCaExportPath, rootCert);
+            lockdownFile(new File(rootCaExportPath));
+
+            System.out.println("Persistent CA and Leaf Certificate generated successfully.");
+        } else {
+            // Check for renewal
+            if (!secretsFile.exists()) {
+                throw new IOException("Keystore exists but .app_secrets is missing. Cannot verify certificates.");
+            }
+
+            password = Files.readAllLines(secretsFile.toPath()).get(0).trim();
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(keystoreFile)) {
+                ks.load(fis, password.toCharArray());
+            }
+
+            X509Certificate leafCert = (X509Certificate) ks.getCertificate(leafAlias);
+            if (leafCert == null) {
+                throw new Exception("Leaf certificate not found in keystore under alias: " + leafAlias);
+            }
+
+            long thirtyDaysMillis = 1000L * 60 * 60 * 24 * 30;
+            Date expirationThreshold = new Date(System.currentTimeMillis() + thirtyDaysMillis);
+
+            if (leafCert.getNotAfter().before(expirationThreshold)) {
+                System.out.println("Leaf certificate expires within 30 days. Renewing...");
+
+                PrivateKey rootPrivKey = (PrivateKey) ks.getKey(rootAlias, password.toCharArray());
+                X509Certificate rootCert = (X509Certificate) ks.getCertificate(rootAlias);
+
+                if (rootPrivKey == null || rootCert == null) {
+                    throw new Exception("Root CA private key or certificate missing from keystore. Cannot renew Leaf.");
+                }
+
+                KeyPair leafKeyPair = generateKeyPair();
+                X509Certificate renewedLeafCert = generateCertificate("CN=localhost", "CN=OSCAR Root CA", leafKeyPair.getPublic(), rootPrivKey, false, 365);
+
+                ks.setKeyEntry(leafAlias, leafKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{renewedLeafCert, rootCert});
+
+                try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
+                    ks.store(fos, password.toCharArray());
+                }
+                lockdownFile(keystoreFile);
+                System.out.println("Leaf certificate renewed successfully.");
+            } else {
+                System.out.println("Leaf certificate is still valid for more than 30 days. No renewal needed.");
+            }
         }
-
-        // 1. Generate Keystore Password
-        String password = generateRandomPassword(32);
-        saveSecret(secretsPath, password);
-
-        // 2. Generate Root CA (In-memory private key)
-        KeyPair rootKeyPair = generateKeyPair();
-        X509Certificate rootCert = generateCertificate("CN=OSCAR Root CA", "CN=OSCAR Root CA", rootKeyPair.getPublic(), rootKeyPair.getPrivate(), true);
-
-        // 3. Generate Leaf Certificate signed by Root CA
-        KeyPair leafKeyPair = generateKeyPair();
-        X509Certificate leafCert = generateCertificate("CN=localhost", "CN=OSCAR Root CA", leafKeyPair.getPublic(), rootKeyPair.getPrivate(), false);
-
-        // 4. Save Leaf to Keystore
-        saveToKeystore(keystorePath, password, "jetty", leafKeyPair.getPrivate(), new Certificate[]{leafCert, rootCert});
-
-        // 5. Export Public Root CA
-        exportCertificate(rootCaExportPath, rootCert);
-
-        System.out.println("Ephemeral CA and Leaf Certificate generated successfully.");
     }
 
     private static String generateRandomPassword(int length) {
@@ -118,12 +179,12 @@ public class EphemeralCAUtility {
         return keyGen.generateKeyPair();
     }
 
-    private static X509Certificate generateCertificate(String dn, String issuerDn, PublicKey publicKey, PrivateKey signerPrivateKey, boolean isCa) throws Exception {
+    private static X509Certificate generateCertificate(String dn, String issuerDn, PublicKey publicKey, PrivateKey signerPrivateKey, boolean isCa, int days) throws Exception {
         X500Name subjectName = new X500Name(dn);
         X500Name issuerName = new X500Name(issuerDn);
         BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
         Date notBefore = new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24);
-        Date notAfter = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365);
+        Date notAfter = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24L * days);
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
                 issuerName, serialNumber, notBefore, notAfter, subjectName, publicKey);

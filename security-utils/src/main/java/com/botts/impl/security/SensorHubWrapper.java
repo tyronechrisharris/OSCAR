@@ -62,7 +62,10 @@ public class SensorHubWrapper {
 	 */
 	public static final String SHOW_CMD = "SHOW_CMD";
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
+		// Run CA check and renewal
+		LocalCAUtility.checkAndRenewCertificates();
+
 		String showCmdEnv = System.getenv(SHOW_CMD);
 		boolean debug = nonBlank(showCmdEnv);
 

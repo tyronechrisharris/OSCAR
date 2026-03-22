@@ -7,11 +7,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export KEYSTORE="./osh-keystore.p12"
 export KEYSTORE_TYPE=PKCS12
 
-# Ephemeral CA Generation
-if [ ! -f "$KEYSTORE" ]; then
-    echo "Generating ephemeral certificates..."
-    java -cp "lib/*" com.botts.impl.security.EphemeralCAUtility
-fi
 
 if [ -f ".app_secrets" ]; then
     export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets)
