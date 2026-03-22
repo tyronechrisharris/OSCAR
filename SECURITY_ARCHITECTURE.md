@@ -31,11 +31,13 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 
 ## Application-Level Security Hardening
 
-### Ephemeral CA and TLS Certificates
-On first boot, the system generates an ephemeral Root CA and a Leaf TLS certificate.
-- **Root CA Private Key**: Held strictly in memory during the generation of the leaf certificate and never persisted to disk.
-- **Leaf Certificate**: Stored in a PKCS12 keystore (`osh-keystore.p12`).
-- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file and the keystore is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows).
+### Persistent Local CA and TLS Certificates
+On first boot, the system generates a persistent Root CA and a leaf TLS certificate.
+- **Root CA Private Key**: Securely stored within the PKCS12 keystore (`osh-keystore.p12`) under the alias `root-ca`. This allows for automated, silent renewal of leaf certificates.
+- **Lifespan**: The Root CA is generated with a 20-year lifespan, while the Leaf certificate has a 1-year lifespan.
+- **Automated Renewal**: Upon each startup, the system checks the expiration of the active Leaf certificate. If it expires within 30 days, a new Leaf certificate is automatically generated and signed by the persistent Root CA.
+- **Leaf Certificate**: Stored in the same PKCS12 keystore (`osh-keystore.p12`) under the alias `jetty`.
+- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file and the keystore is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows). The system implements a "fail-secure" startup policy: if `.app_secrets` is missing, the application will halt with a critical error rather than falling back to default passwords.
 - **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
 
 ### Setup Wizard and Credential Management

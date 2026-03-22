@@ -1,27 +1,30 @@
 #!/bin/bash
 
-# Make sure all the necessary certificates are trusted by the system.
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Persistent CA Check & Generation
+# If keystore doesn't exist, this will generate it and create .app_secrets.
+# If it does exist, it will check for auto-renewal of the leaf certificate.
+java -cp "lib/*" com.botts.impl.security.LocalCAUtility
+
+if [ -f ".app_secrets" ]; then
+    export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets)
+    # Use the same auto-generated secret for the truststore if not provided
+    if [ -z "$TRUSTSTORE_PASSWORD" ]; then
+        export TRUSTSTORE_PASSWORD="$KEYSTORE_PASSWORD"
+    fi
+else
+    echo "CRITICAL ERROR: .app_secrets not found. Cannot load keystore password. Halting startup."
+    exit 1
+fi
+
+# Make sure all the necessary certificates are trusted by the system.
 "$SCRIPT_DIR/load_trusted_certs.sh"
 
 export KEYSTORE="./osh-keystore.p12"
 export KEYSTORE_TYPE=PKCS12
-
-# Ephemeral CA Generation
-if [ ! -f "$KEYSTORE" ]; then
-    echo "Generating ephemeral certificates..."
-    java -cp "lib/*" com.botts.impl.security.EphemeralCAUtility
-fi
-
-if [ -f ".app_secrets" ]; then
-    export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets)
-else
-    export KEYSTORE_PASSWORD="atakatak"
-fi
-
 export TRUSTSTORE="./truststore.jks"
-  export TRUSTSTORE_TYPE=JKS
-  export TRUSTSTORE_PASSWORD="changeit"
+export TRUSTSTORE_TYPE=JKS
 
   if [ -f "./.initial_admin_password" ]; then
       export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"
