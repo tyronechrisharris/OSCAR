@@ -78,11 +78,15 @@ public class LocalCAUtility {
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
             // Check for renewal
-            if (!secretsFile.exists()) {
-                throw new IOException("Keystore exists but .app_secrets is missing. Cannot verify certificates.");
+            if (secretsFile.exists()) {
+                password = Files.readAllLines(secretsFile.toPath()).get(0).trim();
+            } else {
+                password = System.getenv("KEYSTORE_PASSWORD");
+                if (password == null || password.isEmpty()) {
+                    password = "atakatak"; // Fallback to default used in launch scripts
+                }
             }
 
-            password = Files.readAllLines(secretsFile.toPath()).get(0).trim();
             KeyStore ks = KeyStore.getInstance("PKCS12");
             try (java.io.FileInputStream fis = new java.io.FileInputStream(keystoreFile)) {
                 ks.load(fis, password.toCharArray());
@@ -90,20 +94,22 @@ public class LocalCAUtility {
 
             X509Certificate leafCert = (X509Certificate) ks.getCertificate(leafAlias);
             if (leafCert == null) {
-                throw new Exception("Leaf certificate not found in keystore under alias: " + leafAlias);
+                System.err.println("Leaf certificate not found in keystore under alias: " + leafAlias + ". Skipping renewal check.");
+                return;
             }
 
             long thirtyDaysMillis = 1000L * 60 * 60 * 24 * 30;
             Date expirationThreshold = new Date(System.currentTimeMillis() + thirtyDaysMillis);
 
             if (leafCert.getNotAfter().before(expirationThreshold)) {
-                System.out.println("Leaf certificate expires within 30 days. Renewing...");
+                System.out.println("Leaf certificate expires within 30 days. Attempting renewal...");
 
                 PrivateKey rootPrivKey = (PrivateKey) ks.getKey(rootAlias, password.toCharArray());
                 X509Certificate rootCert = (X509Certificate) ks.getCertificate(rootAlias);
 
                 if (rootPrivKey == null || rootCert == null) {
-                    throw new Exception("Root CA private key or certificate missing from keystore. Cannot renew Leaf.");
+                    System.err.println("Root CA private key or certificate missing from keystore. This is expected for upgrades from ephemeral CA. Skipping renewal.");
+                    return;
                 }
 
                 KeyPair leafKeyPair = generateKeyPair();
