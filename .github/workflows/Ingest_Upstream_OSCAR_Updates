@@ -1,0 +1,81 @@
+name: Ingest Upstream OSCAR Updates to Flat Workspace
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  schedule:
+    - cron: '0 0 * * *' # Runs nightly at midnight UTC to poll for changes
+  repository_dispatch:
+    types: [submodule_updated] # Allows triggering via external webhooks
+
+jobs:
+  pull-and-flatten:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.SYNC_PAT }}
+      BRANCH_NAME: upstream-sync-${{ github.run_id }}
+      PR_TITLE: "Automated Ingestion: Upstream Submodule Updates"
+
+    steps:
+      - name: 1. Checkout the Flat Repository (Destination)
+        uses: actions/checkout@v4
+        with:
+          path: oscar_flat
+          token: ${{ secrets.SYNC_PAT }}
+
+      - name: 2. Checkout the Parent Master Repository (Source)
+        uses: actions/checkout@v4
+        with:
+          repository: tyronechrisharris/osh-oakridge-buildnode
+          path: oscar_master
+          submodules: recursive
+          token: ${{ secrets.SYNC_PAT }}
+
+      - name: 3. Update Submodules to Latest Upstream Commits
+        run: |
+          echo "Pulling the latest merged code from all remote submodule tracking branches..."
+          cd $GITHUB_WORKSPACE/oscar_master
+          git submodule update --remote --recursive
+
+      - name: 4. Sync Files from Master Submodules to Flat Workspace
+        run: |
+          echo "Reversing the rsync pipeline..."
+          # This copies the newly updated submodule files into your flat structure
+          rsync -av \
+            --exclude='.git/' \
+            --exclude='.gitmodules' \
+            --exclude='.gitignore' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            $GITHUB_WORKSPACE/oscar_master/ $GITHUB_WORKSPACE/oscar_flat/
+
+      - name: 5. Configure Git User Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 6. Detect Changes and Create PR in Flat Repo
+        run: |
+          cd $GITHUB_WORKSPACE/oscar_flat
+          
+          if [[ -n $(git status -s) ]]; then
+            echo "Changes detected from upstream submodules. Generating Pull Request..."
+            
+            git checkout -b $BRANCH_NAME
+            git add .
+            git commit -m "$PR_TITLE"
+            git push origin $BRANCH_NAME
+            
+            NEW_PR_URL=$(gh pr create \
+              --title "$PR_TITLE" \
+              --body "### 🔄 Auto-Ingested via Sync
+              
+              This automated PR pulls in the latest merged changes from the upstream OSCAR submodules (OSH core, addons, viewer, etc.) into the flat workspace. 
+              
+              **Trigger:** \`${{ github.event_name }}\`" \
+              --head $BRANCH_NAME \
+              --base main)
+              
+            echo "Successfully created PR: $NEW_PR_URL"
+          else
+            echo "No upstream changes detected. The flat workspace is already up to date."
+          fi
