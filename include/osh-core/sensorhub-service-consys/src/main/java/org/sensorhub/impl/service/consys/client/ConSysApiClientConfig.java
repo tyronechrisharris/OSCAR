@@ -10,7 +10,7 @@ public class ConSysApiClientConfig extends ClientConfig {
 
     @DisplayInfo(desc="Filtered view to select systems/datastreams to register with Connected Systems")
     @DisplayInfo.Required
-    public ObsSystemDatabaseViewConfig dataSourceSelector;
+    public ObsSystemDatabaseViewConfig dataSourceSelector = new ObsSystemDatabaseViewConfig();
 
 
     @DisplayInfo(label="Connected Systems Endpoint", desc="Connected Systems endpoint where the requests are sent")

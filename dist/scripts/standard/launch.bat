@@ -55,6 +55,12 @@ if not "%INITIAL_ADMIN_PASSWORD_FILE%"=="" (
 REM Start the node
 java -Xms6g -Xmx6g -Xss256k -XX:ReservedCodeCacheSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError ^
     -Dlogback.configurationFile=./logback.xml ^
+    -Djavax.net.ssl.keyStore=%KEYSTORE% ^
+    -Djavax.net.ssl.keyStoreType=%KEYSTORE_TYPE% ^
+    -Djavax.net.ssl.keyStorePassword=%KEYSTORE_PASSWORD% ^
+    -Djavax.net.ssl.trustStore=%TRUSTSTORE% ^
+    -Djavax.net.ssl.trustStoreType=%TRUSTSTORE_TYPE% ^
+    -Djavax.net.ssl.trustStorePassword=%TRUSTSTORE_PASSWORD% ^
     -cp "lib/*" ^
     -Djava.system.class.loader="org.sensorhub.utils.NativeClassLoader" ^
     com.botts.impl.security.SensorHubWrapper config.json db
