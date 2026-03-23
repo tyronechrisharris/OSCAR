@@ -8,7 +8,7 @@ import java.util.TimerTask;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEHelper;
 import org.xml.sax.SAXException;
@@ -25,7 +25,12 @@ public class MeteobridgeOutput extends AbstractSensorOutput<MeteobridgeSensor> {
     
 	
 	public MeteobridgeOutput(MeteobridgeSensor parentSensor) {
-		super("weather", parentSensor);
+		super(parentSensor);
+	}
+	
+	@Override
+	public String getName() {
+		return "weather";
 	}
 	
 	/**
@@ -211,7 +216,7 @@ public class MeteobridgeOutput extends AbstractSensorOutput<MeteobridgeSensor> {
 		latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
         // Publish
-        eventHandler.publish(new DataEvent(latestRecordTime, MeteobridgeOutput.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, MeteobridgeOutput.this, dataBlock));
 	}
 	
 	protected void start() {

@@ -1,7 +1,7 @@
 package org.sensorhub.impl.sensor.domoticz;
 
 import java.io.IOException;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.sensor.domoticz.DomoticzDriver.ValidDevice;
 import org.sensorhub.impl.sensor.domoticz.DomoticzHandler.DomoticzResponse;
@@ -17,8 +17,14 @@ public class DomoticzLumOutput extends AbstractSensorOutput<DomoticzDriver>
 	DataBlock lumBlock;
 	
 	public DomoticzLumOutput(DomoticzDriver parentSensor) {
-		super("lumData", parentSensor);
+		super(parentSensor);
 	}
+	
+	@Override
+    public String getName()
+    {
+        return "DomoticzLumData";
+    }
 
 
     protected void init() throws IOException
@@ -64,7 +70,7 @@ public class DomoticzLumOutput extends AbstractSensorOutput<DomoticzDriver>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, DomoticzLumOutput.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, DomoticzLumOutput.this, dataBlock));
     }
     
     protected void start()

@@ -14,23 +14,27 @@ Copyright (C) 2018 Delta Air Lines, Inc. All Rights Reserved.
 
 package org.sensorhub.impl.sensor.flightAware;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import org.sensorhub.api.data.DataEvent;
+
+import org.sensorhub.api.data.IMultiSourceDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.sensor.flightAware.DecodeFlightRouteResponse.Waypoint;
-import org.sensorhub.utils.aero.AeroHelper;
-import org.sensorhub.utils.aero.impl.AeroUtils;
-import org.sensorhub.utils.aero.impl.FlightPlanRecord;
-import org.vast.data.DataBlockProxy;
-import com.google.common.base.Strings;
-import com.google.common.cache.CacheBuilder;
+import org.vast.data.AbstractDataBlock;
+import org.vast.data.DataBlockMixed;
+import org.vast.swe.SWEConstants;
+import org.vast.swe.SWEHelper;
+import org.vast.swe.helper.GeoPosHelper;
+import net.opengis.swe.v20.Count;
+import net.opengis.swe.v20.DataArray;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
+import net.opengis.swe.v20.DataType;
 
 
 /**
@@ -41,139 +45,114 @@ import net.opengis.swe.v20.DataEncoding;
  * @author Tony Cook
  * @since Sep 5, 2017
  */
-public class FlightPlanOutput extends AbstractSensorOutput<FlightAwareDriver> implements FlightPlanListener
+public class FlightPlanOutput extends AbstractSensorOutput<FlightAwareDriver> implements IMultiSourceDataInterface  
 {
+    static final String DEF_FLIGHTPLAN_REC = SWEHelper.getPropertyUri("aero/FlightPlan");
+    static final String DEF_AIRPORT_CODE = SWEHelper.getPropertyUri("aero/AirportCode/ICAO");
+    static final String DEF_WAYPOINT = SWEHelper.getPropertyUri("aero/Waypoint");
+    static final String DEF_WAYPOINT_TYPE = SWEHelper.getPropertyUri("aero/WaypointType");
+    static final String DEF_WAYPOINT_CODE = SWEHelper.getPropertyUri("aero/WaypointCode/ICAO");static final String DEF_FLIGHT_NUM = SWEHelper.getPropertyUri("aero/FlightNumber");
+    static final String DEF_FLIGHT_LEVEL = SWEHelper.getPropertyUri("aero/FlightLevel");
+
     private static final int AVERAGE_SAMPLING_PERIOD = (int)TimeUnit.MINUTES.toMillis(15); 
 
-    DataComponent dataStruct;
-    DataEncoding encoding;
-    FlightPlanRecord flightPlan;
-    
-    Map<String, DataBlock> latestRecords = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
-            .expireAfterAccess(24, TimeUnit.HOURS)
-            .<String, DataBlock>build().asMap();
+	DataComponent dataStruct;
+    DataArray waypointArray;
+	DataEncoding encoding;	
+	Map<String, Long> latestUpdateTimes = new ConcurrentHashMap<>();
+	Map<String, DataBlock> latestRecords = new ConcurrentHashMap<>();
 
 
-    public FlightPlanOutput(FlightAwareDriver parentSensor) 
-    {
-        super("flightPlan", parentSensor);
-    }
-    
+	public FlightPlanOutput(FlightAwareDriver parentSensor) 
+	{
+		super("flightPlan", parentSensor);
+	}
 
-    protected void init()
-    {
-        var fac = new AeroHelper();
+	protected void init()
+	{
+		GeoPosHelper fac = new GeoPosHelper();
 
-        // data structure
-        this.dataStruct = FlightPlanRecord.getSchema(getName());
-        this.flightPlan = DataBlockProxy.generate(dataStruct, FlightPlanRecord.class);
+		// SWE Common data structure
+		this.dataStruct = fac.newDataRecord();
+		dataStruct.setName(getName());
+		dataStruct.setDefinition(DEF_FLIGHTPLAN_REC);
+        dataStruct.addComponent("time", fac.newTimeIsoUTC(SWEConstants.DEF_SAMPLING_TIME, "Issue Time", null));
+        dataStruct.addComponent("flightId", fac.newText(ENTITY_ID_URI, "Flight ID", null));
+        dataStruct.addComponent("flightNumber", fac.newText(DEF_FLIGHT_NUM, "Flight Number", null));
+        dataStruct.addComponent("srcAirport", fac.newText(DEF_AIRPORT_CODE, "Departure Airport", "ICAO identification code of departure airport"));
+        dataStruct.addComponent("destAirport", fac.newText(DEF_AIRPORT_CODE, "Arrival Airport", "ICAO identification code of arrival airport"));
+        dataStruct.addComponent("altAirports", fac.newText(DEF_AIRPORT_CODE, "Alternate Airports", "ICAO identification codes of alternate airports"));
+        dataStruct.addComponent("departTime", fac.newTimeIsoUTC(SWEConstants.DEF_FORECAST_TIME, "Departure Time", "Scheduled departure time"));
 
-        // default encoding is text
-        encoding = fac.newTextEncoding(",", "\n");
-    }
-    
+        // array of waypoints
+        Count numPoints = fac.newCount(SWEConstants.DEF_NUM_POINTS, "Number of Waypoints", null);
+        numPoints.setId("NUM_POINTS");
+        dataStruct.addComponent("numPoints", numPoints);
 
-    @Override
-    public synchronized void newFlightPlan(FlightObject fltObj)
-    {
+        DataComponent waypt = fac.newDataRecord();
+        waypt.setDefinition(DEF_WAYPOINT);
+        waypt.addComponent("code", fac.newText(DEF_WAYPOINT_CODE, "Waypoint Code", "Waypoint ICAO identification code"));
+        waypt.addComponent("type", fac.newText(DEF_WAYPOINT_TYPE, "Waypoint Type", "Type of navigation point (airport, waypoint, VOR, VORTAC, DME, etc.)"));
+        waypt.addComponent("time", fac.newTimeIsoUTC(SWEConstants.DEF_FORECAST_TIME, "Estimated Time", "Estimated time over waypoint"));
+        waypt.addComponent("lat", fac.newQuantity(SWEHelper.getPropertyUri("GeodeticLatitude"), "Latitude", null, "deg"));
+        waypt.addComponent("lon", fac.newQuantity(SWEHelper.getPropertyUri("Longitude"), "Longitude", null, "deg"));
+        waypt.addComponent("alt", fac.newQuantity(DEF_FLIGHT_LEVEL, "Flight Level", null, "[ft_i]", DataType.DOUBLE));
+        
+        waypointArray = fac.newDataArray();
+        waypointArray.setElementType("waypoint", waypt);
+        waypointArray.setElementCount(numPoints);
+        dataStruct.addComponent("waypoints", waypointArray);
+
+		// default encoding is text
+		encoding = fac.newTextEncoding(",", "\n");
+	}
+
+	public synchronized void sendFlightPlan(String oshFlightId, FlightObject fltPlan)
+	{
         long msgTime = System.currentTimeMillis();
         
         // renew datablock
-        var dataBlk = latestRecord == null ?
-            dataStruct.createDataBlock() : latestRecord.renew();
-        flightPlan.wrap(dataBlk);
+        int numWpts = fltPlan.decodedRoute.size();
+        waypointArray.updateSize(numWpts);
+        DataBlock dataBlk = dataStruct.createDataBlock();
         
         // set datablock values
-        flightPlan.setIssueTime(toInstant(fltObj.pitr));
-        flightPlan.setSource("FA");
-        flightPlan.setFlightNumber(trim(fltObj.ident));
-        flightPlan.setOriginAirport(trim(fltObj.orig));
-        flightPlan.setDestinationAirport(trim(fltObj.dest));
-        flightPlan.setDepartureTime(toInstant(fltObj.edt));
-        flightPlan.setArrivalTime(toInstant(fltObj.eta));
-        flightPlan.setTailNumber(trim(fltObj.reg));
-        flightPlan.setAircraftType(trim(fltObj.aircrafttype));
-        flightPlan.setCruiseAltitude(toDouble(fltObj.alt));
-        flightPlan.setCruiseSpeed(toDouble(fltObj.speed));
-        flightPlan.setCruiseMach(Double.NaN);
-        flightPlan.setCostIndex(Double.NaN);
-        flightPlan.setFuelFactor(Double.NaN);
-        flightPlan.setCodedRoute(trim(fltObj.route));
-        
-        // compute flight date
-        var fdt = toInstant(fltObj.fdt);
-        computeFlightDate(flightPlan, fdt);
-        
-        // decoded waypoints
-        if (fltObj.decodedRoute != null)
+        int i = 0;        
+        dataBlk.setDoubleValue(i++, fltPlan.getMessageTime());
+        dataBlk.setStringValue(i++, oshFlightId);
+        dataBlk.setStringValue(i++, fltPlan.ident);
+        dataBlk.setStringValue(i++, fltPlan.orig);
+        dataBlk.setStringValue(i++, fltPlan.dest);
+        dataBlk.setStringValue(i++, null);
+        dataBlk.setDoubleValue(i++, fltPlan.getDepartureTime());
+        dataBlk.setIntValue(i++, numWpts);
+        AbstractDataBlock waypointData = ((DataBlockMixed)dataBlk).getUnderlyingObject()[i];
+        i = 0;
+        for (Waypoint waypt: fltPlan.decodedRoute)
         {
-            for (Waypoint wpt: fltObj.decodedRoute)
-            {
-                var fpWpt = flightPlan.addWaypoint();
-                fpWpt.setCode(wpt.name);
-                fpWpt.setLatitude(wpt.latitude);
-                fpWpt.setLongitude(wpt.longitude);
-                fpWpt.setBaroAltitude(wpt.altitude);
-            }
+            waypointData.setStringValue(i++, waypt.name); 
+            waypointData.setStringValue(i++, waypt.type);
+            waypointData.setDoubleValue(i++, Double.NaN);
+            waypointData.setDoubleValue(i++, waypt.latitude);
+            waypointData.setDoubleValue(i++, waypt.longitude);
+            waypointData.setDoubleValue(i++, waypt.altitude);
         }
         
-        // create FOI if needed
-        var flightId = AeroUtils.getFlightID(flightPlan);
-        flightPlan.setFlightID(flightId);
-        String foiUid = AeroUtils.ensureFlightFoi(getParentProducer(), flightId);
-        
         // skip if same as last record for a given foi
-        if (isDuplicate(flightId, dataBlk))
+        if (isDuplicate(oshFlightId, dataBlk))
             return;
         
         // update latest record and send event
         latestRecord = dataBlk;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(latestRecordTime, this, foiUid, dataBlk));
+        latestRecords.put(oshFlightId, dataBlk);
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, oshFlightId, this, dataBlk));
 	}
-    
-    
-    protected String trim(String val)
-    {
-        return (val == null) ? val : val.trim();
-    }
-    
-    
-    protected Instant toInstant(String val)
-    {
-        if (Strings.isNullOrEmpty(val))
-            return null;
-        
-        long epochSeconds = Long.parseLong(val);
-        return Instant.ofEpochSecond(epochSeconds);
-    }
-    
-    
-    protected void computeFlightDate(FlightPlanRecord ofp, Instant fdt)
-    {
-        var orig = ofp.getOriginAirport();
-        if (fdt != null && orig != null)
-        {
-            var tz = AeroUtils.getAirportTimeZones().get(orig);
-            ofp.setFlightDate(LocalDate.ofInstant(fdt, ZoneId.of(tz)));
-        }
-    }
-    
-    
-    protected double toDouble(String val)
-    {
-        if (Strings.isNullOrEmpty(val))
-            return Double.NaN;
-        
-        return Double.parseDouble(val);
-    }
 	
 	
 	protected boolean isDuplicate(String flightId, DataBlock newRec)
 	{
 	    DataBlock oldRec = latestRecords.get(flightId);
-        latestRecords.put(flightId, newRec);
 	    
 	    // we're sure it's not duplicate if we never received anything
 	    // or if the data blocks have different sizes
@@ -195,18 +174,17 @@ public class FlightPlanOutput extends AbstractSensorOutput<FlightAwareDriver> im
 	}
 
 
+	public double getAverageSamplingPeriod()
+	{
+		return AVERAGE_SAMPLING_PERIOD;
+	}
 
-    public double getAverageSamplingPeriod()
-    {
-        return AVERAGE_SAMPLING_PERIOD;
-    }
 
-
-    @Override 
-    public DataComponent getRecordDescription()
-    {
-        return dataStruct;
-    }
+	@Override 
+	public DataComponent getRecordDescription()
+	{
+		return dataStruct;
+	}
 
 
 	@Override
@@ -214,5 +192,36 @@ public class FlightPlanOutput extends AbstractSensorOutput<FlightAwareDriver> im
 	{
 		return encoding;
 	}
+
+
+	@Override
+	public Collection<String> getEntityIDs()
+	{
+		return parentSensor.getEntityIDs();
+	}
+
+
+	@Override
+	public Map<String, DataBlock> getLatestRecords()
+	{
+		return Collections.unmodifiableMap(latestRecords);
+	}
+
+
+	@Override
+	public DataBlock getLatestRecord(String entityId) {
+		//		for(Map.Entry<String, DataBlock> dbe: latestRecords.entrySet()) {
+		//			String key = dbe.getKey();
+		//			DataBlock val = dbe.getValue();
+		//			System.err.println(key + " : " + val);
+		//		}
+		int lastColonIdx = entityId.lastIndexOf(':');
+		if(lastColonIdx == -1) {
+			return null;
+		}
+		String flightId = entityId.substring(lastColonIdx + 1);
+		return latestRecords.get(flightId);
+	}
+
 
 }
