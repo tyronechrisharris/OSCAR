@@ -30,7 +30,7 @@ import org.sensorhub.impl.sensor.videocam.VideoResolution;
  * RTSP/RTP protocol
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since March 2017
  */
 public class FoscamVideoOutput extends RTPVideoOutput<FoscamDriver>

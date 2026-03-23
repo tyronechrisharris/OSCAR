@@ -23,7 +23,7 @@ import java.util.List;
  * Base class for storing PTZ related camera config
  * </p>
  *
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 public class FoscamPTZconfig

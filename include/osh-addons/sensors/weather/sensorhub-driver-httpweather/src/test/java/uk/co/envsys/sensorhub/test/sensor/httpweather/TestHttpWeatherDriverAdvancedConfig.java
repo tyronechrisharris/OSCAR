@@ -7,10 +7,10 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.vast.data.TextEncodingImpl;
 import org.vast.swe.AsciiDataWriter;
 import org.vast.swe.SWEUtils;
@@ -50,7 +50,7 @@ public class TestHttpWeatherDriverAdvancedConfig extends HttpWeatherTestUtils im
     @Test
 	public void testOutputDescMatchesConfig() throws Exception {
 		// Just print the descriptions for now
-		for (IStreamingDataInterface di: driver.getObservationOutputs().values()) {
+		for (ISensorDataInterface di: driver.getObservationOutputs().values()) {
             DataComponent dataMsg = di.getRecordDescription();
             if(DEBUG) {
             	System.out.println();
@@ -78,7 +78,7 @@ public class TestHttpWeatherDriverAdvancedConfig extends HttpWeatherTestUtils im
     
     @Test
     public void testReceiveSendMeasurements() throws Exception {
-        IStreamingDataInterface weatherOutput = driver.getObservationOutputs().get("httpweather");
+        ISensorDataInterface weatherOutput = driver.getObservationOutputs().get("httpweather");
         if(DEBUG) {
 	        System.out.println();
 	        writer = new AsciiDataWriter();
@@ -120,9 +120,9 @@ public class TestHttpWeatherDriverAdvancedConfig extends HttpWeatherTestUtils im
      * Checks the output from OSH to ensure it matches what we sent to the HTTP Endpoint.
      */
 	@Override
-	public void handleEvent(Event e) {
-		assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+	public void handleEvent(Event<?> e) {
+		assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         DataBlock record = newDataEvent.getRecords()[0];
         if(DEBUG) {
 	        try {
