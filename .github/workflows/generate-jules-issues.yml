@@ -26,6 +26,7 @@ jobs:
           repository: Botts-Innovative-Research/osh-oakridge-buildnode
           fetch-depth: 0 
           submodules: recursive
+          token: ${{ secrets.SYNC_PAT }}
 
       - name: 2. Generate Diffs and Open Issues
         run: |
@@ -105,8 +106,7 @@ jobs:
               --repo $TARGET_REPO \
               --title "🚀 Upstream Sync: Analyze $SUB_NAME ($NEW_TAG)" \
               --body-file $BODY_FILE \
-              --label "enhancement" \
-              --label "needs-triage"
+              --label "enhancement"
               
           done
 
