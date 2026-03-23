@@ -46,42 +46,23 @@ popd
 
 echo Starting PostGIS container...
 
-for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_EXISTS=1
-    )
-)
+docker rm -f %CONTAINER_NAME% >nul 2>&1
 
-for /f "tokens=*" %%i in ('docker ps --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_RUNNING=1
-    )
-)
+echo Creating new container: %CONTAINER_NAME%
+docker run ^
+    --name %CONTAINER_NAME% ^
+    -e POSTGRES_DB=%DB_NAME% ^
+    -e POSTGRES_USER=%USER% ^
+    -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
+    -p %PORT%:5432 ^
+    -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
+    -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
+    -d ^
+    %IMAGE_NAME%
 
-if defined CONTAINER_EXISTS (
-    if defined CONTAINER_RUNNING (
-        echo Container already running: %CONTAINER_NAME%
-    ) else (
-        echo Starting existing container: %CONTAINER_NAME%
-        docker start %CONTAINER_NAME%
-    )
-) else (
-    echo Creating new container: %CONTAINER_NAME%
-    docker run ^
-        --name %CONTAINER_NAME% ^
-        -e POSTGRES_DB=%DB_NAME% ^
-        -e POSTGRES_USER=%USER% ^
-        -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
-        -p %PORT%:5432 ^
-        -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
-        -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
-        -d ^
-        %IMAGE_NAME%
-
-    if %errorlevel% neq 0 (
-        echo ERROR: Failed to start PostGIS container.
-        exit /b 1
-    )
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to start PostGIS container.
+    exit /b 1
 )
 
 echo Waiting for PostGIS database to become ready...

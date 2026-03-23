@@ -98,9 +98,11 @@ public class SpreadsheetParser {
 
         LaneConfig laneConfig = new LaneConfig();
         laneConfig.moduleClass = LaneSystem.class.getCanonicalName();
-        laneConfig.id = UUID.randomUUID().toString();
+
+        String uid = row.get(SchemaV1.UID);
+        laneConfig.id = (uid != null && !uid.isBlank()) ? uid : UUID.randomUUID().toString();
         laneConfig.name = row.get(SchemaV1.NAME);
-        laneConfig.uniqueID = row.get(SchemaV1.UID);
+        laneConfig.uniqueID = uid;
         laneConfig.autoStart = Boolean.parseBoolean(row.get(SchemaV1.AUTO_START));
 
         if (!row.get(SchemaV1.LATITUDE).isBlank() && !row.get(SchemaV1.LONGITUDE).isBlank()) {
