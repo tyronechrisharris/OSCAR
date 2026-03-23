@@ -49,7 +49,7 @@ docker run \
   --name $CONTAINER_NAME \
   -e POSTGRES_DB=$DB_NAME \
   -e POSTGRES_USER=$DB_USER \
-  -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
+  -e POSTGRES_PASS=$(cat "$POSTGRES_PASSWORD_FILE") \
   -e DATADIR=/var/lib/postgresql/data \
   -p 5432:5432 \
   -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
