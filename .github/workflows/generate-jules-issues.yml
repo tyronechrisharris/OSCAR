@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       old_version:
-        description: 'Previous Release Tag (e.g., 3.0.0)'
+        description: 'Previous Upstream Tag (e.g., 3.0.0)'
         required: true
         default: '3.0.0'
       new_version:
-        description: 'New Release Tag (e.g., v3.1.0)'
+        description: 'New Upstream Tag (e.g., v3.1.0)'
         required: true
         default: 'v3.1.0'
 
@@ -26,15 +26,14 @@ jobs:
           repository: Botts-Innovative-Research/osh-oakridge-buildnode
           fetch-depth: 0 
           submodules: recursive
-          token: ${{ secrets.SYNC_PAT }}
 
-      - name: 2. Generate Diffs and Open Issues
+      - name: 2. Generate Upstream Diffs and Open Issues
         run: |
           mkdir -p $GITHUB_WORKSPACE/jules_issues
           OLD_TAG="${{ github.event.inputs.old_version }}"
           NEW_TAG="${{ github.event.inputs.new_version }}"
           
-          echo "Comparing $OLD_TAG to $NEW_TAG..."
+          echo "Isolating upstream changes between $OLD_TAG and $NEW_TAG..."
           
           git config --file .gitmodules --get-regexp path | awk '{ print $2 }' | while read -r sub_path; do
             echo "Processing submodule: $sub_path"
@@ -48,7 +47,7 @@ jobs:
             fi
             
             if [ "$OLD_HASH" = "$NEW_HASH" ]; then
-              echo "  -> No changes detected in $sub_path. Skipping."
+              echo "  -> No upstream changes detected in $sub_path. Skipping."
               continue
             fi
             
@@ -60,38 +59,42 @@ jobs:
             BODY_FILE="$GITHUB_WORKSPACE/jules_issues/${SUB_NAME}-issue.md"
             PATCH_FILE="$GITHUB_WORKSPACE/jules_issues/${SUB_NAME}-upgrade.patch"
             
+            # Generate the patch file STRICTLY representing upstream 3.0 -> 3.1
             git diff $OLD_HASH $NEW_HASH > $PATCH_FILE
             
             # --- JULES SYSTEM PROMPT INJECTION ---
-            echo "@Jules, we need to integrate upstream updates from $OLD_TAG to $NEW_TAG into our flat \`$sub_path\` directory." > $BODY_FILE
-            echo "Our codebase has significantly diverged from upstream due to the introduction of Internationalization (i18n) and strict security upgrades." >> $BODY_FILE
+            echo "@Jules, we need to integrate upstream logic changes into our \`oscar-flat\` repository." > $BODY_FILE
             echo "" >> $BODY_FILE
-            echo "### 🛑 PHASE 1: DO NOT WRITE CODE YET" >> $BODY_FILE
-            echo "This is an analysis task. Do not attempt to blindly apply the attached patch file, as it will overwrite our i18n string replacements and security logic." >> $BODY_FILE
+            echo "Attached below is a patch file representing the exact changes made upstream between versions **$OLD_TAG** and **$NEW_TAG** for the \`$sub_path\` module." >> $BODY_FILE
             echo "" >> $BODY_FILE
-            echo "**Your Instructions:**" >> $BODY_FILE
-            echo "1. Review the attached diff to understand the logical intent of the upstream changes (e.g., bug fixes, new features, logic optimizations)." >> $BODY_FILE
-            echo "2. Analyze the current state of our files in the \`$sub_path\` directory." >> $BODY_FILE
-            echo "3. Reply to this issue with a detailed **Integration Plan**. For each changed file, explain:" >> $BODY_FILE
-            echo "   - What the upstream change is doing conceptually." >> $BODY_FILE
-            echo "   - How we can achieve that same logical outcome while preserving our existing i18n structure and security measures." >> $BODY_FILE
-            echo "   - Identify any hardcoded strings in the upstream patch that will need to be converted to our i18n format." >> $BODY_FILE
+            echo "### 🛑 CRITICAL CONSTRAINTS & ARCHITECTURE" >> $BODY_FILE
+            echo "Our codebase in \`oscar-flat\` has diverged significantly from upstream to support international deployments and hardened environments. Do not blindly apply or copy-paste this patch." >> $BODY_FILE
             echo "" >> $BODY_FILE
-            echo "Wait for my approval on your Integration Plan before proceeding to Phase 2." >> $BODY_FILE
+            echo "- **Internationalization (i18n):** We rely heavily on custom string replacements for localization. New upstream strings must be mapped to this structure." >> $BODY_FILE
+            echo "- **Deployment & Security Strategy:** Any integrated code must strictly align with our existing containerized deployment model and secure routing network architecture. **You MUST reference \`SECURITY_ARCHITECTURE.md\` and \`SYSTEM_ARCHITECTURE.md\` for exact context.** Do not introduce dependencies, configurations, or logic that compromise isolated services, bypass existing security protocols, or break our deployment orchestration." >> $BODY_FILE
+            echo "" >> $BODY_FILE
+            echo "### Your Task: The Integration Plan" >> $BODY_FILE
+            echo "Please execute the following reasoning steps and reply with a recommendation:" >> $BODY_FILE
+            echo "1. **Analyze the Blueprint:** Read the attached upstream patch file to understand the logical intent of the updates (e.g., bug fixes, new features, data flow changes)." >> $BODY_FILE
+            echo "2. **Analyze Our Codebase:** Examine the current state of our files located in the flat \`$sub_path\` directory of this repository." >> $BODY_FILE
+            echo "3. **Draft the Plan:** Reply to this issue explaining how we can weave the new upstream logic into our customized codebase. Specifically highlight how you will handle i18n conversions and ensure the new logic respects our documented security boundaries." >> $BODY_FILE
+            echo "4. **Documentation Updates:** Outline any necessary documentation updates required by these code changes, ensuring they strictly adhere to the guidelines established in \`AI_CONTRIBUTING_RULES.md\`." >> $BODY_FILE
+            echo "" >> $BODY_FILE
+            echo "Wait for my approval on your Integration Plan before writing the final code or opening a Pull Request." >> $BODY_FILE
             echo "" >> $BODY_FILE
             echo "---" >> $BODY_FILE
-            echo "### Changed Files:" >> $BODY_FILE
+            echo "### Upstream Changed Files Overview:" >> $BODY_FILE
             echo "\`\`\`text" >> $BODY_FILE
             git diff --name-status $OLD_HASH $NEW_HASH >> $BODY_FILE
             echo "\`\`\`" >> $BODY_FILE
             echo "" >> $BODY_FILE
             
-            # Size Check for GitHub Issue limits
+            # Size Check
             FILE_SIZE=$(wc -c < "$PATCH_FILE")
             if [ $FILE_SIZE -gt 60000 ]; then
-              echo "⚠️ **Note:** The patch file for this update is too large to embed in the issue body. The raw \`.patch\` file has been attached to the GitHub Actions workflow run artifacts." >> $BODY_FILE
+              echo "⚠️ **Note:** The upstream patch file is attached to the GitHub Actions workflow run artifacts because it is too large to embed in this text box." >> $BODY_FILE
             else
-              echo "<details><summary><b>Click to expand .patch file</b></summary>" >> $BODY_FILE
+              echo "<details><summary><b>Click to expand upstream .patch file ($OLD_TAG -> $NEW_TAG)</b></summary>" >> $BODY_FILE
               echo "" >> $BODY_FILE
               echo "\`\`\`diff" >> $BODY_FILE
               cat $PATCH_FILE >> $BODY_FILE
@@ -104,14 +107,15 @@ jobs:
             echo "Creating GitHub Issue for $SUB_NAME..."
             gh issue create \
               --repo $TARGET_REPO \
-              --title "🚀 Upstream Sync: Analyze $SUB_NAME ($NEW_TAG)" \
+              --title "🧠 AI Integration: Map Upstream $NEW_TAG logic to $SUB_NAME" \
               --body-file $BODY_FILE \
-              --label "enhancement"
+              --label "enhancement" \
+              --label "needs-triage"
               
           done
 
-      - name: 3. Upload Patch Files as Action Artifacts
+      - name: 3. Upload Upstream Patch Files as Action Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: jules-patches-${{ github.event.inputs.old_version }}-to-${{ github.event.inputs.new_version }}
+          name: upstream-deltas-${{ github.event.inputs.old_version }}-to-${{ github.event.inputs.new_version }}
           path: jules_issues/*-upgrade.patch
