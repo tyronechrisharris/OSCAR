@@ -1,11 +1,11 @@
 name: Ingest Upstream OSCAR Updates to Flat Workspace
 
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *' # Runs nightly at midnight UTC to poll for changes
+    - cron: '0 0 * * *'
   repository_dispatch:
-    types: [submodule_updated] # Allows triggering via external webhooks
+    types: [submodule_updated]
 
 jobs:
   pull-and-flatten:
@@ -30,16 +30,26 @@ jobs:
           submodules: recursive
           token: ${{ secrets.SYNC_PAT }}
 
-      - name: 3. Update Submodules to Latest Upstream Commits
+      - name: 3. Force Correct Submodule Branches and Update
         run: |
-          echo "Pulling the latest merged code from all remote submodule tracking branches..."
+          echo "Configuring correct upstream branches for submodules..."
           cd $GITHUB_WORKSPACE/oscar_master
+          
+          # Force branches based on known upstream configs
+          git config -f .gitmodules submodule.include/osh-addons.branch master
+          git config -f .gitmodules submodule.include/osh-core.branch master
+          git config -f .gitmodules submodule.include/osh-oakridge-modules.branch main
+          git config -f .gitmodules submodule.web/oscar-viewer.branch main
+          
+          # Sync the new configuration
+          git submodule sync
+          
+          echo "Pulling the latest merged code from all remote submodule tracking branches..."
           git submodule update --remote --recursive
 
       - name: 4. Sync Files from Master Submodules to Flat Workspace
         run: |
           echo "Reversing the rsync pipeline..."
-          # This copies the newly updated submodule files into your flat structure
           rsync -av \
             --exclude='.git/' \
             --exclude='.gitmodules' \
