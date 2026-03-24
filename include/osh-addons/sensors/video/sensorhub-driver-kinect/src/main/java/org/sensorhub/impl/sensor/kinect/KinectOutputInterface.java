@@ -26,9 +26,9 @@ public abstract class KinectOutputInterface extends AbstractSensorOutput<KinectS
 
 	protected Device device = null;
 	
-	public KinectOutputInterface(String name, KinectSensor parentSensor, Device kinectDevice) {
+	public KinectOutputInterface(KinectSensor parentSensor, Device kinectDevice) {
 		
-		super(name, parentSensor);
+		super(parentSensor);
 		
 		device = kinectDevice;
 	}
@@ -37,6 +37,7 @@ public abstract class KinectOutputInterface extends AbstractSensorOutput<KinectS
 
 	public abstract void start();
 	
+	@Override
 	protected void stop() {
 
 		device.stopDepth();

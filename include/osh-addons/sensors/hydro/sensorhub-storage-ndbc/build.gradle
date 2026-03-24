@@ -4,14 +4,14 @@ version = '0.1.0'
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedImpl 'org.jsoup:jsoup:1.11.2'
+  implementation 'org.jsoup:jsoup:1.11.2'
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research Inc.')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.ndbc.Activator')
+    attributes 'Bundle-Vendor': 'Botts Innovative Research Inc.'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.storage.ndbc.Activator'
   }
 }
 

@@ -21,7 +21,7 @@ import {useAppDispatch} from "@/lib/state/Hooks";
 import {selectLastToggleState, setToggleState} from "@/lib/state/LaneViewSlice";
 import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasource";
 import StatusTable from "../_components/lane-view/StatusTable";
-import {useLanguage} from "@/contexts/LanguageContext";
+import {useLanguage} from "@/app/contexts/LanguageContext";
 
 
 export default function LaneViewPage() {
@@ -45,8 +45,8 @@ export default function LaneViewPage() {
 
 
     const toggleButtons = [
-        <ToggleButton value={"occupancy"} key={"occupancy"} disabled={toggleView == 'occupancy'}>{t('occupancyTable')}</ToggleButton>,
-        <ToggleButton value={"fault"} key={"fault"} disabled={toggleView == 'fault'}>{t('faultTable')}</ToggleButton>
+        <ToggleButton value={"occupancy"} key={"occupancy"} disabled={toggleView == 'occupancy'}>Occupancy Table</ToggleButton>,
+        <ToggleButton value={"fault"} key={"fault"} disabled={toggleView == 'fault'}>Fault Table</ToggleButton>
     ];
 
     const handleToggle = (event: React.MouseEvent<HTMLElement>, newView: string) =>{
@@ -72,27 +72,25 @@ export default function LaneViewPage() {
 
             const rtDS = lane.datasourcesRealtime[i];
 
-            if (rtDS) {
-                if (isGammaDataStream(ds)) {
-                    rtDS.properties.mqttOpts.shared = true
-                    laneDsCollection.addDS('gammaRT', rtDS);
-                    setGammaDS(rtDS)
-                }
-                if (isNeutronDataStream(ds)) {
-                    rtDS.properties.mqttOpts.shared = true
-                    laneDsCollection.addDS('neutronRT', rtDS);
-                    setNeutronDS(rtDS);
-                }
-                if (isTamperDataStream(ds)) {
-                    rtDS.properties.mqttOpts.shared = true
-                    laneDsCollection.addDS('tamperRT', rtDS);
-                    setTamperDS(rtDS)
-                }
-                if (isThresholdDataStream(ds)) {
-                    rtDS.properties.mqttOpts.shared = true
-                    laneDsCollection?.addDS('gammaTrshldRT', rtDS);
-                    setThresholdDS(rtDS);
-                }
+            if (isGammaDataStream(ds)) {
+                rtDS.properties.mqttOpts.shared = true
+                laneDsCollection.addDS('gammaRT', rtDS);
+                setGammaDS(rtDS)
+            }
+            if (isNeutronDataStream(ds)) {
+                rtDS.properties.mqttOpts.shared = true
+                laneDsCollection.addDS('neutronRT', rtDS);
+                setNeutronDS(rtDS);
+            }
+            if (isTamperDataStream(ds)) {
+                rtDS.properties.mqttOpts.shared = true
+                laneDsCollection.addDS('tamperRT', rtDS);
+                setTamperDS(rtDS)
+            }
+            if (isThresholdDataStream(ds)) {
+                rtDS.properties.mqttOpts.shared = true
+                laneDsCollection?.addDS('gammaTrshldRT', rtDS);
+                setThresholdDS(rtDS);
             }
         }
 
@@ -107,12 +105,14 @@ export default function LaneViewPage() {
     }, [laneMapRef, currentLane, laneMapRef.current.size]);
 
     return (
-        <Stack spacing={2} direction={"column"}>
-            <Grid container spacing={2} alignItems="center">
-                <Grid item xs={"auto"} >
+        <Grid container spacing={2} width={"100%"}>
+
+            {/* HEADER */}
+            <Grid item container xs={12} spacing={2} alignItems={"center"}>
+                <Grid item>
                     <BackButton/>
                 </Grid>
-                <Grid item xs>
+                <Grid item>
                     <Typography variant="h4">
                         { t('laneId') } :
                         {currentLane}
@@ -120,15 +120,13 @@ export default function LaneViewPage() {
                 </Grid>
             </Grid>
 
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
-                <Paper variant='outlined' sx={{ width: "100%"}}>
-                    {dataSourcesByLane &&
-                        <LaneStatus dataSourcesByLane={dataSourcesByLane}/>
-                    }
-                </Paper>
+            <Grid item xs={12}>
+                {dataSourcesByLane &&
+                    <LaneStatus dataSourcesByLane={dataSourcesByLane}/>
+                }
             </Grid>
 
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
+            <Grid item xs={12}>
                 <Media
                     datasources={{
                         gamma: gammaDS,
@@ -138,26 +136,18 @@ export default function LaneViewPage() {
 
                     currentLane={currentLane}
                 />
-
             </Grid>
 
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
-                <Paper variant='outlined' sx={{ width: "100%", height: "100%", padding: 2}}>
-                    <Grid container direction="column" sx={{ width: "100%"}}>
-                        <Grid item sx={{ display: "flex", justifyContent: "center", padding: 1 }}>
+            <Grid item xs={12}>
+                <Paper variant='outlined' sx={{ width: "100%", height: "100%", padding: 0}}>
+                    <Grid container sx={{ width: "100%"}}>
+                        <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", padding: 2 }}>
                             <ToggleButtonGroup
                                 size="small"
                                 orientation="horizontal"
                                 onChange={handleToggle}
                                 exclusive
                                 value={toggleView}
-                                sx={{
-                                    boxShadow: 1,
-                                    '& .MuiToggleButton-root': {
-                                        margin: 0.5,
-                                        padding: "5px",
-                                    },
-                                }}
                             >
                                 {toggleButtons}
                             </ToggleButtonGroup>
@@ -173,6 +163,7 @@ export default function LaneViewPage() {
                     </Grid>
                 </Paper>
             </Grid>
-        </Stack>
+
+        </Grid>
     );
 }

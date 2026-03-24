@@ -45,9 +45,9 @@ public class MeshSensor extends AbstractSensorModule<MeshConfig> implements File
 
 	
 	@Override
-    protected void doInit() throws SensorHubException
+	public void init() throws SensorHubException
 	{
-		super.doInit();
+		super.init();
 
 		// IDs
 		this.uniqueID = "urn:osh:sensor:mrms:mesh";
@@ -61,7 +61,7 @@ public class MeshSensor extends AbstractSensorModule<MeshConfig> implements File
 	
 
 	@Override
-	protected void doStart() throws SensorHubException
+	public void start() throws SensorHubException
 	{
 	    startDirectoryWatcher();
         readLatestDataFile();
@@ -69,7 +69,7 @@ public class MeshSensor extends AbstractSensorModule<MeshConfig> implements File
 
 
 	@Override
-	protected void doStop() throws SensorHubException
+	public void stop() throws SensorHubException
 	{
 	    if (watcherThread != null)
             watcherThread.interrupt();
