@@ -19,7 +19,7 @@ if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
     openssl rand -base64 32 > "$POSTGRES_PASSWORD_FILE"
 fi
 
-#docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
 # Create pgdata directory if needed
 if [ ! -d "${PROJECT_DIR}/pgdata" ]; then
@@ -47,27 +47,17 @@ echo "Starting PostGIS container..."
 
 echo "PROJECT_DIR is set to: ${PROJECT_DIR}"
 
-if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-    # The container exists
-    if docker ps --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-        echo "Container already running: ${CONTAINER_NAME}"
-    else
-        echo "Starting existing container: ${CONTAINER_NAME}"
-        docker start "${CONTAINER_NAME}"
-    fi
-else
-    echo "Creating new container: ${CONTAINER_NAME}"
-    docker run \
-      --name "$CONTAINER_NAME" \
-      -e POSTGRES_DB="$DB_NAME" \
-      -e POSTGRES_USER="$DB_USER" \
-      -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
-      -p $PORT:5432 \
-      -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
-      -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
-      -d \
-      oscar-postgis || { echo "Failed to start PostGIS container"; exit 1; }
-fi
+echo "Creating new container: ${CONTAINER_NAME}"
+docker run \
+  --name "$CONTAINER_NAME" \
+  -e POSTGRES_DB="$DB_NAME" \
+  -e POSTGRES_USER="$DB_USER" \
+  -e POSTGRES_PASSWORD_FILE="/run/secrets/db_password" \
+  -p $PORT:5432 \
+  -v "${PROJECT_DIR}/pgdata:/var/lib/postgresql/data" \
+  -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
+  -d \
+  oscar-postgis || { echo "Failed to start PostGIS container"; exit 1; }
 
 # Wait for PostgreSQL/PostGIS to become ready
 echo "Waiting for PostGIS (PostgreSQL) to be ready..."

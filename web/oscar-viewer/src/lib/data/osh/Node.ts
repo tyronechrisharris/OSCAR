@@ -127,6 +127,7 @@ export class Node implements INode {
         if (useProxyToken) {
             // osh-js will automatically append '/mqtt' to the endpoint.
             // Using a fragment '#' prevents the appended string from corrupting the query string.
+            // Injecting token directly into endpointUrl cache key so osh-js avoids using stale connection maps
             endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
         }
 
