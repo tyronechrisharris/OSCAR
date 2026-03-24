@@ -140,5 +140,8 @@
   "adjudicationReport": "Adjudication Report",
   "eventReport": "Event Report",
   "generatingReport": "Generating Report...",
-  "generateReportBtn": "Generate Report"
+  "generateReportBtn": "Generate Report",
+  "webIdQrAnalysis": "WebID QR Analysis",
+  "qrScanningStatus": "Scanning QR Code...",
+  "qrStartScan": "Start Scan"
 }
