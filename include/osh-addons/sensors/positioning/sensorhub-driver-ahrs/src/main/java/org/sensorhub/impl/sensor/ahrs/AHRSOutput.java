@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.sensorhub.api.comm.ICommProvider;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEHelper;
 import org.vast.swe.helper.GeoPosHelper;
@@ -43,7 +43,13 @@ public class AHRSOutput extends AbstractSensorOutput<AHRSSensor>
     
     public AHRSOutput(AHRSSensor parentSensor)
     {
-        super("ahrsData", parentSensor);
+        super(parentSensor);
+    }
+
+    @Override
+    public String getName()
+    {
+    	return "ahrsData";
     }
    
     protected void init()
@@ -82,7 +88,7 @@ public class AHRSOutput extends AbstractSensorOutput<AHRSSensor>
 //    	imuData.addComponent("attitude", quat);
 
     	Vector att = fac.newEulerOrientationECEF(
-                SWEHelper.getPropertyUri("Attitude"), "deg");
+                SWEHelper.getPropertyUri("Attitude"));
       	att.setDataType(DataType.FLOAT);
       	ahrsData.addComponent("Attitude", att);
    
@@ -113,7 +119,7 @@ public class AHRSOutput extends AbstractSensorOutput<AHRSSensor>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(latestRecordTime, AHRSOutput.this, dataBlock));        
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, AHRSOutput.this, dataBlock));        
     }
 
     protected boolean decodeNextMessage()

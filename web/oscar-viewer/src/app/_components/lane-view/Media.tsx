@@ -59,7 +59,6 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
 
         const stopPreviousStream = async () => {
             const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
-            if (!currLaneEntry) return;
 
             const prevStream = videoStreams[currentPage - 1];
             if (!prevStream)
@@ -71,36 +70,18 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         stopPreviousStream().then(startStream);
 
         return () => {
-            const currLaneEntry = laneMapRef.current.get(currentLane);
-            if (currLaneEntry) {
-                sendCommand(currLaneEntry.parentNode, currentStream.properties.id, generateHLSVideoCommandJSON(false));
-            }
+            sendCommand(laneMapRef.current.get(currentLane).parentNode, currentStream.properties.id, generateHLSVideoCommandJSON(false));
         }
     }, [currentPage, videoStreams]);
 
     const fetchVideoControlStreams = async () => {
         const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
 
-        if (!currLaneEntry) {
-            console.error("no current lane entry found");
-            return;
-        }
-
-        let streams = currLaneEntry.controlStreams;
-        if (!streams || streams.length === 0) {
-            try {
-                streams = await currLaneEntry.parentNode.fetchNodeControlStreams();
-            } catch (error) {
-                console.error("Failed to fetch control streams", error);
-                streams = [];
-            }
-        }
-
-        let videoControlStreams = streams.filter((stream: typeof ControlStream) => isHLSVideoControlStream(stream));
+        let videoControlStreams = currLaneEntry.controlStreams.filter((stream: typeof ControlStream) => isHLSVideoControlStream(stream));
 
         if (!videoControlStreams || videoControlStreams.length == 0){
             console.error("no video control stream");
-            return;
+            throw new LiveVideoError("No video control stream available.");
         }
 
         let uniqueVideoControlStreams = videoControlStreams.reduce((acc: typeof ControlStream[], stream: typeof ControlStream) => {

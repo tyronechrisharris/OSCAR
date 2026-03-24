@@ -7,11 +7,12 @@ import {setCurrentLane} from '@/lib/state/LaneViewSlice';
 import {useAppDispatch} from "@/lib/state/Hooks";
 import {useRouter} from "next/dist/client/components/navigation";
 import {setAlarmTrigger} from "@/lib/state/EventDataSlice";
-import {useLanguage} from "@/contexts/LanguageContext";
+import {useLanguage} from "@/app/contexts/LanguageContext";
 
 
 export interface LaneStatusProps {
     id: number;
+    parentNode: string;
     name: string;
     isOnline: boolean;
     isTamper: boolean;
@@ -162,6 +163,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
                 const newLane: LaneStatusProps = {
                     id: idVal.current++,
                     name: laneName,
+                    parentNode: '',
                     isOnline: newState === 'Online',
                     isTamper: newState === 'Tamper',
                     isFault: newState.includes('Fault'),
@@ -177,7 +179,8 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
     }
 
     return (
-        <Stack padding={2} justifyContent={"start"} spacing={1}>
+
+        <Stack justifyContent={"start"} spacing={1}>
             <Typography variant="h6">{t('laneStatus')}</Typography>
             <>
                 <Box sx={{overflowY: "auto", maxHeight: 275, flexGrow: 1}}>
@@ -190,6 +193,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
                                             key={item.id}
                                             id={item.id}
                                             name={item.name}
+                                            parentNode={item.parentNode}
                                             isOnline={item.isOnline}
                                             isFault={item.isFault}
                                             isTamper={item.isTamper}

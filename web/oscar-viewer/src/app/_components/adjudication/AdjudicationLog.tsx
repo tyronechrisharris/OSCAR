@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useContext, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import AdjudicationData from "@/lib/data/oscar/adjudication/Adjudication";
 import {EventTableData} from "@/lib/data/oscar/TableHelpers";
 import {DataSourceContext} from "@/app/contexts/DataSourceContext";
@@ -12,45 +12,39 @@ import ControlStream from "osh-js/source/core/consysapi/controlstream/ControlStr
 import {AdjudicationCodes} from "@/lib/data/oscar/adjudication/models/AdjudicationConstants";
 import ControlStreamFilter from "osh-js/source/core/consysapi/controlstream/ControlStreamFilter";
 import { Dialog, DialogTitle, DialogContent } from "@mui/material";
-import { useLanguage } from '@/contexts/LanguageContext';
-
+import {useLanguage} from "@/app/contexts/LanguageContext";
+import {INode} from "@/lib/data/osh/Node";
+import {EventType} from "osh-js/source/core/event/EventType";
 
 
 export default function AdjudicationLog(props: {
     event: EventTableData;
-    shouldFetch: boolean;
-    onFetch: () => void;
+    node: INode;
 }) {
     const { t } = useLanguage();
-
     const locale = navigator.language || 'en-US';
     const laneMapRef = useContext(DataSourceContext).laneMapRef;
     const [adjLog, setAdjLog] = useState<AdjudicationData[]>([]);
     const [filteredLog, setFilteredLog] = useState<AdjudicationData[]>([]);
-    const [laneAdjControlStream, setLaneAdjControlStream] = useState<typeof ControlStream>();
-
     const [feedbackDialog, setFeedbackDialog] = useState({
         open: false,
         text: ""
     });
+    const [nodeEndpoint, setNodeEndpoint] = useState<string | null>(null);
 
     const logColumns: GridColDef<AdjudicationData>[] = [
         {
             field: 'occupancyCount',
-            headerName: t('occupancyId'),
-            width: 175,
-            type: 'string',
-        },
-        {
-            field: 'username',
-            headerName: t('user'),
-            width: 150,
+            headerName: 'Occupancy ID',
+            minWidth: 100,
+            flex: 1,
             type: 'string',
         },
         {
             field: 'time',
-            headerName: t('timestamp'),
-            width: 200,
+            headerName: 'Timestamp',
+            minWidth: 140,
+            flex: 1,
             type: 'string',
             valueFormatter: (params) => (new Date(params)).toLocaleString(locale, {
                 year: 'numeric',
@@ -62,9 +56,26 @@ export default function AdjudicationLog(props: {
             }),
         },
         {
+            field: 'username',
+            headerName: 'User',
+            minWidth: 80,
+            flex: 0.8,
+            type: 'string',
+        },
+        {
+            field: 'adjudicationCode',
+            headerName: 'Adjudication Code',
+            minWidth: 150,
+            flex: 1.5,
+            valueGetter: (value, row) => {
+                return row.adjudicationCode.label
+            }
+        },
+        {
             field: 'feedback',
-            headerName: t('feedback'),
-            width: 250,
+            headerName: 'Feedback',
+            minWidth: 120,
+            flex: 1,
             type: 'string',
             renderCell: (params) => {
                 const fullText = params.value ?? "";
@@ -82,7 +93,7 @@ export default function AdjudicationLog(props: {
                                 style={{ color: "#1976d2", border: "none", background: "none", cursor: "pointer" }}
                                 onClick={() => setFeedbackDialog({ open: true, text: fullText })}
                             >
-                                {t('readMore')}
+                                Read more
                             </button>
                         )}
                     </div>
@@ -90,22 +101,10 @@ export default function AdjudicationLog(props: {
             }
         },
         {
-            field: 'secondaryInspectionStatus',
-            headerName: t('secondaryInspectionStatus'),
-            width: 200
-        },
-        {
-            field: 'adjudicationCode',
-            headerName: t('adjudicationCode'),
-            width: 400,
-            valueGetter: (value, row) => {
-                return row.adjudicationCode.label
-            }
-        },
-        {
             field: 'isotopes',
-            headerName: t('isotopes'),
-            width: 200,
+            headerName: 'Isotopes',
+            minWidth: 100,
+            flex: 1,
             valueGetter: (value) => {
                 if (value === "") return "Unknown";
                 else return value;
@@ -113,46 +112,72 @@ export default function AdjudicationLog(props: {
         },
         {
             field: 'filePaths',
-            headerName: t('filePaths'),
-            width: 200,
-            type: 'string'
+            headerName: 'FilePaths',
+            minWidth: 100,
+            flex: 1,
+            renderCell: (params) => {
+                const paths: string[] = Array.isArray(params.value) ? params.value : [];
+                if (paths.length === 0) return null;
+                return (
+                    <span>
+                        {paths.map((path, index) =>
+
+                            <React.Fragment key={index}>
+                                {index > 0 && ', '}
+                                {nodeEndpoint ? (
+                                    <a
+                                        href={nodeEndpoint + path}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: '#1976d2', textDecoration: 'underline' }}
+                                    >
+                                        {path.split("/")[1]}
+                                    </a>
+                                ) : path}
+                            </React.Fragment>
+                        )}
+                    </span>
+                );
+            }
+        },
+        {
+            field: 'secondaryInspectionStatus',
+            headerName: 'Secondary Inspection',
+            minWidth: 120,
+            flex: 1,
         },
         {
             field: 'vehicleId',
-            headerName: t('vehicleId'),
-            width: 150,
+            headerName: 'Vehicle ID',
+            minWidth: 80,
+            flex: 0.8,
             valueGetter: (value) => {
                 if (value === "") return "Unknown";
                 else return value;
             }
         },
     ];
-    async function getControlStream(){
+
+    useEffect(() => {
+        if (props.node == null || !props.node.address || !props.node.port)
+            return;
+        const protocol = props.node.isSecure ? 'https://' : 'http://';
+        const endpoint =  `${protocol}${props.node.address}:${props.node.port}${props.node.oshPathRoot}${props.node.bucketsEndpoint}/`
+
+        setNodeEndpoint(endpoint)
+    }, [props.node]);
+
+
+    const fetchStatuses = useCallback(async() => {
         const currentLane = props.event.laneId;
         const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
 
-        let streams = currLaneEntry.controlStreams.length > 0 ? currLaneEntry.controlStreams : await currLaneEntry.parentNode.fetchNodeControlStreams();
-        if(!streams)
+        let controlStream: typeof ControlStream = currLaneEntry.controlStreams.find((cs) => isAdjudicationControlStream(cs));
+        console.log('control stream', controlStream)
+        if(!controlStream) {
+            console.warn("No Adjudication control stream found for this lane");
             return;
-
-        let adjudicationControlStream: typeof ControlStream = streams.find((stream: typeof ControlStream) => isAdjudicationControlStream(stream));
-        if (!adjudicationControlStream)
-            return
-
-        setLaneAdjControlStream(adjudicationControlStream);
-    }
-
-    useEffect(() => {
-        getControlStream();
-    }, [props.event.laneId]);
-
-    useEffect(() => {
-        if (laneAdjControlStream)
-            fetchObservations(laneAdjControlStream);
-    }, [laneAdjControlStream]);
-
-
-    async function fetchObservations(controlStream: typeof ControlStream) {
+        }
         // TODO: Paginate this
         let commandStatuses = await controlStream.searchStatus(new ControlStreamFilter({ statusCode: "COMPLETED" }), 100);
 
@@ -164,7 +189,7 @@ export default function AdjudicationLog(props: {
                     return null;
 
                 let results = obs?.results[0].data;
-                let data = new AdjudicationData(obs.reportTime, props.event.occupancyCount, results.occupancyObsId, results.alarmingSystemUid);
+                let data = new AdjudicationData(obs.reportTime, props.event.occupancyCount, results.occupancyObsId);
                 data.setFeedback(results.feedback);
                 data.setIsotopes(results.isotopes ?? NaN);
                 data.setSecondaryInspectionStatus(results.secondaryInspectionStatus);
@@ -179,30 +204,84 @@ export default function AdjudicationLog(props: {
             });
             setAdjLog(adjDataArr);
         }
-        props.onFetch();
-    }
+    }, []);
+
+    useEffect(() => {
+        if (props.event)
+            fetchStatuses();
+    }, [props.event]);
+
+    useEffect(() => {
+        const currentLane = props.event.laneId;
+        const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+
+
+        let controlStream: typeof ControlStream = currLaneEntry.controlStreams.find((cs) => isAdjudicationControlStream(cs));
+        console.log('control stream', controlStream)
+        if(!controlStream) {
+            console.warn("No Adjudication control stream found for this lane");
+            return;
+        }
+
+        let controlSource = currLaneEntry.createRealTimeConSysApi(controlStream);
+
+        console.log('control source', controlSource)
+        if (!controlSource) {
+            console.warn("Cannot create rt datasource for this controlstream");
+            return;
+        }
+
+        const handleStatuses = (data: any) => {
+            const newAdjData: AdjudicationData[] = [];
+
+            const values = data?.values ?? [];
+            for (const value of values) {
+                const statusData = value?.data;
+                if (!statusData?.results) continue;
+
+                for (const result of statusData.results) {
+                    const results = result?.data;
+                    if (!results) continue;
+
+                    let adjData = new AdjudicationData(statusData.reportTime, props.event.occupancyCount, results.occupancyObsId);
+                    adjData.setFeedback(results.feedback);
+                    adjData.setIsotopes(results.isotopes ?? NaN);
+                    adjData.setSecondaryInspectionStatus(results.secondaryInspectionStatus);
+                    adjData.setAdjudicationCode(AdjudicationCodes.getCodeObjByIndex(results.adjudicationCode));
+                    adjData.setVehicleId(results.vehicleId ?? NaN);
+                    adjData.setFilePaths(results.filePaths ?? NaN)
+                    adjData.setTime(statusData.reportTime)
+                    adjData.setOccupancyCount(props.event.occupancyCount);
+                    adjData.setOccupancyObsId(results.occupancyObsId);
+                    adjData.setUser(results.username ?? NaN)
+                    newAdjData.push(adjData);
+                }
+            }
+            setAdjLog(prev => [...prev, ...newAdjData]);
+        }
+
+        controlSource.subscribe(handleStatuses, [EventType.DATA])
+        try {
+            controlSource.connect();
+        }  catch (err) {
+            console.error("Error connecting webid source:", err);
+        }
+    }, [props.event]);
 
     useEffect(() => {
         let filteredLog = adjLog.filter((adjData) => adjData?.occupancyObsId ==  props.event.occupancyObsId);
         setFilteredLog(filteredLog);
     }, [adjLog]);
 
-    useEffect(() => {
-        if (props.shouldFetch) {
-            setTimeout(() => {
-                fetchObservations(laneAdjControlStream);
-            }, 10000);
-        }
-    }, [props.shouldFetch]);
 
 
     return (
         <>
-            <Stack spacing={2}>
+            <Stack spacing={2} sx={{ width: '100%' }}>
                 <Stack direction={"column"} spacing={1}>
-                    <Typography variant="h5">{t('loggedAdjudications')}</Typography>
+                    <Typography variant="h5">Logged Adjudications</Typography>
                 </Stack>
-                <Box sx={{ height: 400, width: '100%' }}>
+                <Box sx={{ width: '100%' }}>
                     <DataGrid
                         rows={filteredLog}
                         columns={logColumns}
@@ -223,7 +302,7 @@ export default function AdjudicationLog(props: {
                     maxWidth="sm"
                     fullWidth
                 >
-                    <DialogTitle>{t('feedback')}</DialogTitle>
+                    <DialogTitle>Feedback</DialogTitle>
                     <DialogContent>
                         <Typography whiteSpace="pre-wrap">
                             {feedbackDialog.text}
