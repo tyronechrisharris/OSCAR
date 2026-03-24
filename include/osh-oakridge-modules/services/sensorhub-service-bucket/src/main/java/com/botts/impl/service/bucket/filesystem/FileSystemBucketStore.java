@@ -197,7 +197,7 @@ public class FileSystemBucketStore implements IBucketStore {
         if (!Files.exists(file))
             throw new DataStoreException(OBJECT_NOT_FOUND + bucketName, new IllegalArgumentException());
         if (!file.toFile().isFile())
-            throw new DataStoreException("Object is not readable");
+            throw new DataStoreException(org.sensorhub.ui.I18N.get("error.bucket.not_readable"));
         return file.toFile().length();
     }
 
@@ -222,7 +222,7 @@ public class FileSystemBucketStore implements IBucketStore {
 
             return "application/octet-stream";
         } catch (IOException e) {
-            throw new DataStoreException("Unable to resolve mime type", e);
+            throw new DataStoreException(org.sensorhub.ui.I18N.get("error.bucket.resolve_mime"), e);
         }
     }
 
