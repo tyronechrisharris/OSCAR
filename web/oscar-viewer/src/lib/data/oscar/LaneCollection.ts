@@ -291,6 +291,10 @@ export class LaneMapEntry {
         return this.systems.find((sys) => sys.properties.id === dataStream.properties["system@id"]).properties.id;
     }
 
+    findDataStreamByPredicate(predicate: (ds: typeof DataStream) => boolean) {
+        return this.datastreams.find(predicate);
+    }
+
     findDataStreamByObsProperty(obsProperty: string) {
         let stream: typeof DataStream = this.datastreams.find((ds) => {
             let hasProp = ds.properties.observedProperties.some((prop: any) => prop.definition === obsProperty)
