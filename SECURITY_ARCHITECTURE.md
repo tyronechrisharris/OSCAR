@@ -19,6 +19,9 @@ Whenever generating or modifying Dockerfiles for this project, you MUST ensure t
 ### SCRAM-SHA-256 Authentication
 PostgreSQL is configured to enforce `scram-sha-256` authentication for all database users. This is initialized during the PostGIS container setup via `POSTGRES_INITDB_ARGS`.
 
+### Prepared Statements and Input Sanitization
+The OSH backend utilizes JDBC `PreparedStatements` for all observation insertions and queries. This migration from string interpolation prevents SQL injection attacks, particularly when handling JSONB telemetry payloads containing special characters or malicious XSS payloads.
+
 ### Docker Secrets for Database Credentials
 The system uses Docker Secrets (via bind mounts) to manage database passwords.
 - **Injected Secret Path**: `/run/secrets/db_password` within the container.
@@ -28,6 +31,7 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 ### Configurable Networking and TLS
 - **DB Host**: The database host is configurable via the `DB_HOST` environment variable (default: `localhost`), enabling secure deployment on separate LAN machines.
 - **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by using `sslmode=require` in the JDBC connection string in the `ConnectionManager`.
+- **High-Precision Timestamps**: The database schema uses `timestamptz` with nanosecond precision. The backend and drivers are configured to handle high-precision time strings without truncation to maintain data integrity across the analytics pipeline.
 
 ## Application-Level Security Hardening
 

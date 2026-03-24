@@ -20,7 +20,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy on port `8282`)
 
 ### Network Flows:
-- **Client to OSH**: Clients interact with OSH through its REST API and Web UI on port `8282`.
+- **Client to OSH**: Clients interact with OSH through its REST API and Web UI on port `8282`. The frontend includes a Service Worker for PWA support and handles Push Notifications via WebSockets.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
 - **Certificate Management**: OSH manages its own internal PKI. On first boot, a 20-year Root CA and a 1-year Leaf certificate are generated and stored in `osh-keystore.p12`. The system automatically renews the Leaf certificate if it is within 30 days of expiration during the boot sequence.
 
