@@ -68,6 +68,7 @@ public class WebSocketProxyServlet extends HttpServlet
         {
             WebSocketPolicy wsPolicy = new WebSocketPolicy(WebSocketBehavior.SERVER);
             wsPolicy.setMaxBinaryMessageSize(1024*1024);
+            wsPolicy.setIdleTimeout(0); // Disable idle timeout
             wsFactory = new WebSocketServerFactory(getServletContext(), wsPolicy);
             wsFactory.start();
         }
