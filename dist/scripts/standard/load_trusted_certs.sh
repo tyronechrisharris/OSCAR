@@ -12,7 +12,7 @@ STOREPASS="$TRUSTSTORE_PASSWORD"
 SCRIPTDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Get the path where we'll build the new trust store.
-NEWTRUSTSTORE="$SCRIPTDIR/trustStore.jks"
+NEWTRUSTSTORE="$SCRIPTDIR/truststore.jks"
 
 # To find the location of the system trust store, we have to look for a few
 # different possibilities, depending on our system type (MacOS vs. Linux).
@@ -53,5 +53,8 @@ for file in "$CERTDIR"/*.cer "$CERTDIR"/*.pem "$CERTDIR"/*.crt ; do
         keytool -importcert -keystore "$NEWTRUSTSTORE" -noprompt -storepass "$STOREPASS" -alias "$ALIAS" -file "$file"
     fi
 done
+
+# Ensure the trust store is readable by the owner only
+chmod 600 "$NEWTRUSTSTORE"
 
 echo Done.

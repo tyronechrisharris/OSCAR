@@ -34,7 +34,7 @@ public class SOSTClientConfig extends ClientConfig
 {
     @DisplayInfo(desc="Filtered view to select systems/datastreams to register with remote SOS")
     @Required
-    public ObsSystemDatabaseViewConfig dataSourceSelector;
+    public ObsSystemDatabaseViewConfig dataSourceSelector = new ObsSystemDatabaseViewConfig();
     
     
     @DisplayInfo(label="SOS Endpoint", desc="SOS endpoint where the requests are sent")

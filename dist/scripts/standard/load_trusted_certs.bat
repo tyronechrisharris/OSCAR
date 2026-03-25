@@ -13,7 +13,7 @@ REM Get the path of this script.
 set "SCRIPTDIR=%~dp0"
 
 REM Get the path where we'll build the new trust store.
-set "NEWTRUSTSTORE=%SCRIPTDIR%trustStore.jks"
+set "NEWTRUSTSTORE=%SCRIPTDIR%truststore.jks"
 
 REM To find the location of the system trust store, we start by finding the
 REM path to "java.exe".
