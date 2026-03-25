@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
             laneDSMap.set(laneid, new LaneDSColl());
 
-            lane.datastreams.forEach((ds, idx) => {
+            lane.datastreams?.forEach((ds, idx) => {
 
                 let rtDS = lane.datasourcesRealtime?.[idx];
 

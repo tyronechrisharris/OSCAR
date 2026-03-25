@@ -25,9 +25,11 @@ export default function MiscTable({currentTime}: {currentTime: string}) {
 
   const checkForSpeed = useCallback(async () => {
     if (eventData) {
-      let lme = laneMapRef.current.get(eventData.laneId);
+      let lme = laneMapRef.current?.get(eventData.laneId);
+      if (!lme) return;
 
-      let speedDS = lme.datastreams.find(ds => isSpeedDataStream(ds));
+      let speedDS = lme.datastreams?.find((ds: any) => isSpeedDataStream(ds));
+      if (!speedDS) return;
 
       let initialRes = await speedDS.searchObservations(new ObservationFilter({ resultTime: `${eventData?.startTime}/${eventData?.endTime}`}), 10000);
 

@@ -145,9 +145,9 @@ export default function StatusTable({currentLane, entry}: StatusTableProps){
         if (entry.parentNode.id !== node.id)
             return datastreamIds;
 
-        const datastreams: typeof DataStream[] = entry.datastreams.filter(
+        const datastreams: typeof DataStream[] = entry.datastreams?.filter(
             (ds: any) => isGammaDataStream(ds) || isNeutronDataStream(ds) || isTamperDataStream(ds)
-        );
+        ) || [];
 
         for (const ds of datastreams) {
             datastreamIds.push(ds.properties.id);
