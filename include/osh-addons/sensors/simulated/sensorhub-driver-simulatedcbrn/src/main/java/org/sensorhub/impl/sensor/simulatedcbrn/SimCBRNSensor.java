@@ -45,9 +45,9 @@ public class SimCBRNSensor extends AbstractSensorModule<SimCBRNConfig>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
 
         // generate ID
         generateUniqueID("urn:osh:sensor:simcbrn:", config.serialNumber);
@@ -78,7 +78,7 @@ public class SimCBRNSensor extends AbstractSensorModule<SimCBRNConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         idDataInterface.start();
         alertsDataInterface.start();
@@ -89,7 +89,7 @@ public class SimCBRNSensor extends AbstractSensorModule<SimCBRNConfig>
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         idDataInterface.stop();
         alertsDataInterface.stop();

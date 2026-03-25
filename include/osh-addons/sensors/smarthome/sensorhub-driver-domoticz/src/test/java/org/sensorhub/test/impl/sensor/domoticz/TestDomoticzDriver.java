@@ -13,11 +13,12 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.command.IStreamingControlInterface;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.sensor.ISensorControlInterface;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.security.ClientAuth;
 import org.sensorhub.impl.sensor.domoticz.DomoticzConfig;
 import org.sensorhub.impl.sensor.domoticz.DomoticzDriver;
@@ -37,7 +38,7 @@ import static org.junit.Assert.*;
  * protocol
  * </p>
  * 
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  */
 public class TestDomoticzDriver implements IEventListener
 {
@@ -59,7 +60,7 @@ public class TestDomoticzDriver implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -82,7 +83,7 @@ public class TestDomoticzDriver implements IEventListener
     {
         System.out.println();
         
-        IStreamingDataInterface dataOutput = driver.getObservationOutputs().get("DomoticzTempData");
+        ISensorDataInterface dataOutput = driver.getObservationOutputs().get("DomoticzTempData");
 
         writer = new AsciiDataWriter();
         writer.setDataEncoding(new TextEncodingImpl(",", "\n"));
@@ -106,7 +107,7 @@ public class TestDomoticzDriver implements IEventListener
 //    public void testSwitchOrSelectorCommand() throws Exception
 //    {  
 //        // get control interface
-//        IStreamingControlInterface ci = driver.getCommandInputs().get("selectorControl");
+//        ISensorControlInterface ci = driver.getCommandInputs().get("selectorControl");
 //        DataComponent commandDesc = ci.getCommandDescription().copy();
 //    	DataBlock commandData;
 //    	
@@ -154,10 +155,10 @@ public class TestDomoticzDriver implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         double timeStamp = newDataEvent.getRecords()[0].getDoubleValue(0);
         System.out.println("Frame received on " + new DateTimeFormat().formatIso(timeStamp, 0));
@@ -167,7 +168,7 @@ public class TestDomoticzDriver implements IEventListener
     }
     
     @After
-    public void cleanup() throws Exception
+    public void cleanup() throws SensorHubException
     {
         driver.stop();
     }

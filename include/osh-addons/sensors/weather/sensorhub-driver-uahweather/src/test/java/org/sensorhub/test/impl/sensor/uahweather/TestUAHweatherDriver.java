@@ -24,11 +24,11 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.comm.rxtx.RxtxSerialCommProviderConfig;
 import org.sensorhub.impl.sensor.uahweather.UAHweatherConfig;
 import org.sensorhub.impl.sensor.uahweather.UAHweatherSensor;
@@ -69,7 +69,7 @@ public class TestUAHweatherDriver implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: sensor.getObservationOutputs().values())
+        for (ISensorDataInterface di: sensor.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -91,7 +91,7 @@ public class TestUAHweatherDriver implements IEventListener
     public void testSendMeasurements() throws Exception
     {
         System.out.println();
-        IStreamingDataInterface weatherOutput = sensor.getObservationOutputs().get("UAH Weather");
+        ISensorDataInterface weatherOutput = sensor.getObservationOutputs().get("UAH Weather");
         writer = new AsciiDataWriter();
         writer.setDataEncoding(new TextEncodingImpl(",", "\n"));
         writer.setDataComponents(weatherOutput.getRecordDescription());
@@ -109,15 +109,15 @@ public class TestUAHweatherDriver implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent dataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         try
         {
-            System.out.print("\nNew data received from sensor " + dataEvent.getSystemUID());
-            writer.write(dataEvent.getRecords()[0]);
+            System.out.print("\nNew data received from sensor " + newDataEvent.getSensorID());
+            writer.write(newDataEvent.getRecords()[0]);
             writer.flush();
             
             sampleCount++;

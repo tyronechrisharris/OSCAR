@@ -71,7 +71,7 @@ public class ModuleInstanceSelectionPopup extends Window
         layout.addComponent(table);
         
         // add OK button
-        Button okButton = new Button(I18N.get("ok1"));
+        Button okButton = new Button("OK");
         okButton.addClickListener(new Button.ClickListener() {
             private static final long serialVersionUID = 1L;
 
