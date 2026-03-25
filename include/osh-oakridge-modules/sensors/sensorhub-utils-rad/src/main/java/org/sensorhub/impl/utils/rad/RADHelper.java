@@ -18,7 +18,7 @@ public class RADHelper extends GeoPosHelper {
 
     public static final String DEF_GAMMA = getRadUri("GammaGrossCount");
     public static final String DEF_NEUTRON = getRadUri("NeutronGrossCount");
-    public static final String DEF_OCCUPANCY = getRadUri("Occupancy");
+    public static final String DEF_OCCUPANCY = getRadUri("PillarOccupancyCount");
     public static final String DEF_ALARM = getRadUri("Alarm");
     public static final String DEF_TAMPER = getRadUri("TamperStatus");
     public static final String DEF_THRESHOLD = getRadUri("Threshold");
@@ -380,6 +380,32 @@ public class RADHelper extends GeoPosHelper {
                 .label("Video Paths")
                 .description("Comma separated video file paths")
                 .definition(getRadUri("VideoPaths"))
+                .build();
+    }
+
+    public Count createWebIdObsIdsCount() {
+        return createCount()
+                .label("Web ID Obs IDs Count")
+                .name("webIdObsIdsCount")
+                .description("Count of the number of web ID observations associated with this occupancy")
+                .definition(getRadUri("WebIdObsIdsCount"))
+                .id("webIdObsIdsCount")
+                .build();
+    }
+
+    public DataArray createWebIdObsIdsArray(){
+        return createArray()
+                .name("webIdObsIds")
+                .label("Web ID Obs IDs")
+                .description("List of web ID observation IDs associated with this occupancy")
+                .definition(getRadUri("WebIdObsIdsArray"))
+                .withVariableSize("webIdObsIdsCount")
+                .withElement("webIdObsId", createText()
+                        .name("webIdObsId")
+                        .label("Web ID Obs ID")
+                        .description("ID of the Web ID Observation")
+                        .definition(getRadUri("WebIdObsId"))
+                        .build())
                 .build();
     }
 
