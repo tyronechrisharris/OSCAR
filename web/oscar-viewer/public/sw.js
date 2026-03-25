@@ -9,7 +9,9 @@ const OFFLINE_URL = '/offline.html';
 const DENY_LIST = [
     '/sensorhub/sos',
     '/sensorhub/sps',
+    '/sensorhub/api',
     '/api/auth',
+    '/manifest.json',
     '/setup'
 ];
 
