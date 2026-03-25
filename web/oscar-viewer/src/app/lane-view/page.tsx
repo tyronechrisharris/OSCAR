@@ -58,7 +58,7 @@ export default function LaneViewPage() {
 
         let laneDsCollection = new LaneDSColl();
 
-        const lane = laneMapRef.current.get(currentLane);
+        const lane = laneMapRef.current?.get(currentLane);
 
         if (!lane) {
             console.warn("Lane not found for currentLane:", currentLane);
@@ -67,8 +67,9 @@ export default function LaneViewPage() {
 
         setEntry(lane);
 
-        for(let i = 0; i < lane.datastreams.length; i++) {
-            const ds = lane.datastreams[i]
+        const datastreams = lane.datastreams || [];
+        for(let i = 0; i < datastreams.length; i++) {
+            const ds = datastreams[i]
 
             const rtDS = lane.datasourcesRealtime[i];
 

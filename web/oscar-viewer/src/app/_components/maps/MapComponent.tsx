@@ -79,9 +79,10 @@ export default function MapComponent() {
 
         for (let [laneid, lane] of laneMapRef.current.entries()) {
             laneDSMap.set(laneid, new LaneDSColl());
-            for (let ds of lane.datastreams) {
+            const datastreams = lane.datastreams || [];
+            for (let ds of datastreams) {
 
-                let idx: number = lane.datastreams.indexOf(ds);
+                let idx: number = datastreams.indexOf(ds);
                 let rtDS = lane.datasourcesRealtime[idx];
                 let batchDS = lane.datasourcesBatch[idx];
                 let laneDSColl = laneDSMap.get(laneid);

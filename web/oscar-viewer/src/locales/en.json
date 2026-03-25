@@ -140,5 +140,17 @@
   "adjudicationReport": "Adjudication Report",
   "eventReport": "Event Report",
   "generatingReport": "Generating Report...",
-  "generateReportBtn": "Generate Report"
+  "generateReportBtn": "Generate Report",
+  "notificationNewAlarm": "New OSCAR Notification",
+  "notificationViewAlarm": "View Alarm",
+  "pwaInstallPrompt": "Install OSCAR App",
+  "permissionDenied": "Permission Denied",
+  "qrScanningStatus": "Scanning QR Code...",
+  "qrDoneScanning": "Done Scanning",
+  "qrScanError": "Scan Error",
+  "spectroscopicDataInvalid": "Invalid Spectroscopic Data",
+  "settingsTitle": "Settings",
+  "browserNotificationPermission": "Browser Notification Permission",
+  "webIdQrAnalysis": "WebID QR Analysis",
+  "qrStartScan": "Start QR Scan"
 }

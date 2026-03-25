@@ -11,7 +11,7 @@ import {
     ALARM_DEF, CONFIG_DEF,
     CONNECTION_DEF, END_DEF, GAMMA_COUNT_DEF, HLS_VIDEO_DEF, LOCATION_VECTOR_DEF, NATIONAL_DEF,
     NEUTRON_COUNT_DEF,
-    OCCUPANCY_PILLAR_DEF, RASTER_IMAGE_DEF, REPORT_DEF, SENSOR_LOCATION_DEF,
+    OCCUPANCY_DEF, OCCUPANCY_PILLAR_DEF, RASTER_IMAGE_DEF, REPORT_DEF, SENSOR_LOCATION_DEF,
     SITE_DIAGRAM_DEF, SPEED_DEF, START_DEF,
     TAMPER_STATUS_DEF,
     THRESHOLD_DEF, VIDEO_FRAME_DEF
@@ -65,7 +65,7 @@ export function isOccupancyDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties.some((p: any) => p?.definition?.includes(OCCUPANCY_PILLAR_DEF));
+    return datastream.properties.observedProperties.some((p: any) => p?.definition?.includes(OCCUPANCY_PILLAR_DEF) || p?.definition?.includes(OCCUPANCY_DEF));
 }
 
 export function isConnectionDataStream(datastream: typeof DataStream): boolean {
