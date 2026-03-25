@@ -18,7 +18,7 @@ public class RADHelper extends GeoPosHelper {
 
     public static final String DEF_GAMMA = getRadUri("GammaGrossCount");
     public static final String DEF_NEUTRON = getRadUri("NeutronGrossCount");
-    public static final String DEF_OCCUPANCY = getRadUri("PillarOccupancyCount");
+    public static final String DEF_OCCUPANCY = getRadUri("Occupancy");
     public static final String DEF_ALARM = getRadUri("Alarm");
     public static final String DEF_TAMPER = getRadUri("TamperStatus");
     public static final String DEF_THRESHOLD = getRadUri("Threshold");
