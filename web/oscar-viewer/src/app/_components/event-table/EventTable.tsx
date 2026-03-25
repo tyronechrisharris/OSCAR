@@ -30,7 +30,6 @@ import { useRouter } from "next/dist/client/components/navigation";
 import { getObservations } from "@/app/utils/ChartUtils";
 import { isOccupancyDataStream, isThresholdDataStream } from "@/lib/data/oscar/Utilities";
 import { convertToMap, hashString } from "@/app/utils/Utils";
-import { OCCUPANCY_PILLAR_DEF } from "@/lib/data/Constants";
 import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasource";
 import { selectNodes } from "@/lib/state/OSHSlice";
 import { EventType } from "osh-js/source/core/event/EventType";
@@ -453,7 +452,7 @@ export default function EventTable({
         const connectedSources: typeof ConSysApi[] = [];
 
         for (const entry of stableLaneMap.values()) {
-            const occStream: typeof DataStream = entry.findDataStreamByObsProperty(OCCUPANCY_PILLAR_DEF);
+            const occStream: typeof DataStream = entry.findDataStreamByPredicate(isOccupancyDataStream);
 
             if (!occStream) {
                 continue;
