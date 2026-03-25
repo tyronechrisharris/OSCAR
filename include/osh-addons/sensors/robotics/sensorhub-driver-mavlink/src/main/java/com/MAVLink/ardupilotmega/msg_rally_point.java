@@ -9,220 +9,158 @@ package com.MAVLink.ardupilotmega;
 import com.MAVLink.MAVLinkPacket;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.Messages.MAVLinkPayload;
-import com.MAVLink.Messages.Units;
-import com.MAVLink.Messages.Description;
-
+        
 /**
- * A rally point. Used to set a point when from GCS -> MAV. Also used to return a point from MAV -> GCS.
- */
-public class msg_rally_point extends MAVLinkMessage {
+* A rally point. Used to set a point when from GCS -> MAV. Also used to return a point from MAV -> GCS
+*/
+public class msg_rally_point extends MAVLinkMessage{
 
     public static final int MAVLINK_MSG_ID_RALLY_POINT = 175;
     public static final int MAVLINK_MSG_LENGTH = 19;
     private static final long serialVersionUID = MAVLINK_MSG_ID_RALLY_POINT;
 
-    
+
+      
     /**
-     * Latitude of point.
-     */
-    @Description("Latitude of point.")
-    @Units("degE7")
+    * Latitude of point in degrees * 1E7
+    */
     public int lat;
-    
+      
     /**
-     * Longitude of point.
-     */
-    @Description("Longitude of point.")
-    @Units("degE7")
+    * Longitude of point in degrees * 1E7
+    */
     public int lng;
-    
+      
     /**
-     * Transit / loiter altitude relative to home.
-     */
-    @Description("Transit / loiter altitude relative to home.")
-    @Units("m")
+    * Transit / loiter altitude in meters relative to home
+    */
     public short alt;
-    
+      
     /**
-     * Break altitude relative to home.
-     */
-    @Description("Break altitude relative to home.")
-    @Units("m")
+    * Break altitude in meters relative to home
+    */
     public short break_alt;
-    
+      
     /**
-     * Heading to aim for when landing.
-     */
-    @Description("Heading to aim for when landing.")
-    @Units("cdeg")
+    * Heading to aim for when landing. In centi-degrees.
+    */
     public int land_dir;
-    
+      
     /**
-     * System ID.
-     */
-    @Description("System ID.")
-    @Units("")
+    * System ID
+    */
     public short target_system;
-    
+      
     /**
-     * Component ID.
-     */
-    @Description("Component ID.")
-    @Units("")
+    * Component ID
+    */
     public short target_component;
-    
+      
     /**
-     * Point index (first point is 0).
-     */
-    @Description("Point index (first point is 0).")
-    @Units("")
+    * point index (first point is 0)
+    */
     public short idx;
-    
+      
     /**
-     * Total number of points (for sanity checking).
-     */
-    @Description("Total number of points (for sanity checking).")
-    @Units("")
+    * total number of points (for sanity checking)
+    */
     public short count;
-    
+      
     /**
-     * Configuration flags.
-     */
-    @Description("Configuration flags.")
-    @Units("")
+    * See RALLY_FLAGS enum for definition of the bitmask.
+    */
     public short flags;
     
 
     /**
-     * Generates the payload for a mavlink message for a message of this type
-     * @return
-     */
-    @Override
-    public MAVLinkPacket pack() {
-        MAVLinkPacket packet = new MAVLinkPacket(MAVLINK_MSG_LENGTH,isMavlink2);
-        packet.sysid = sysid;
-        packet.compid = compid;
+    * Generates the payload for a mavlink message for a message of this type
+    * @return
+    */
+    public MAVLinkPacket pack(){
+        MAVLinkPacket packet = new MAVLinkPacket();
+        packet.len = MAVLINK_MSG_LENGTH;
+        packet.sysid = 255;
+        packet.compid = 190;
         packet.msgid = MAVLINK_MSG_ID_RALLY_POINT;
-
+              
         packet.payload.putInt(lat);
+              
         packet.payload.putInt(lng);
+              
         packet.payload.putShort(alt);
+              
         packet.payload.putShort(break_alt);
+              
         packet.payload.putUnsignedShort(land_dir);
+              
         packet.payload.putUnsignedByte(target_system);
+              
         packet.payload.putUnsignedByte(target_component);
+              
         packet.payload.putUnsignedByte(idx);
+              
         packet.payload.putUnsignedByte(count);
+              
         packet.payload.putUnsignedByte(flags);
         
-        if (isMavlink2) {
-            
-        }
         return packet;
     }
 
     /**
-     * Decode a rally_point message into this class fields
-     *
-     * @param payload The message to decode
-     */
-    @Override
+    * Decode a rally_point message into this class fields
+    *
+    * @param payload The message to decode
+    */
     public void unpack(MAVLinkPayload payload) {
         payload.resetIndex();
-
+              
         this.lat = payload.getInt();
+              
         this.lng = payload.getInt();
+              
         this.alt = payload.getShort();
+              
         this.break_alt = payload.getShort();
+              
         this.land_dir = payload.getUnsignedShort();
+              
         this.target_system = payload.getUnsignedByte();
+              
         this.target_component = payload.getUnsignedByte();
+              
         this.idx = payload.getUnsignedByte();
+              
         this.count = payload.getUnsignedByte();
+              
         this.flags = payload.getUnsignedByte();
         
-        if (isMavlink2) {
-            
-        }
     }
 
     /**
-     * Constructor for a new message, just initializes the msgid
-     */
-    public msg_rally_point() {
-        this.msgid = MAVLINK_MSG_ID_RALLY_POINT;
+    * Constructor for a new message, just initializes the msgid
+    */
+    public msg_rally_point(){
+        msgid = MAVLINK_MSG_ID_RALLY_POINT;
     }
 
     /**
-     * Constructor for a new message, initializes msgid and all payload variables
-     */
-    public msg_rally_point( int lat, int lng, short alt, short break_alt, int land_dir, short target_system, short target_component, short idx, short count, short flags) {
-        this.msgid = MAVLINK_MSG_ID_RALLY_POINT;
-
-        this.lat = lat;
-        this.lng = lng;
-        this.alt = alt;
-        this.break_alt = break_alt;
-        this.land_dir = land_dir;
-        this.target_system = target_system;
-        this.target_component = target_component;
-        this.idx = idx;
-        this.count = count;
-        this.flags = flags;
-        
-    }
-
-    /**
-     * Constructor for a new message, initializes everything
-     */
-    public msg_rally_point( int lat, int lng, short alt, short break_alt, int land_dir, short target_system, short target_component, short idx, short count, short flags, int sysid, int compid, boolean isMavlink2) {
-        this.msgid = MAVLINK_MSG_ID_RALLY_POINT;
-        this.sysid = sysid;
-        this.compid = compid;
-        this.isMavlink2 = isMavlink2;
-
-        this.lat = lat;
-        this.lng = lng;
-        this.alt = alt;
-        this.break_alt = break_alt;
-        this.land_dir = land_dir;
-        this.target_system = target_system;
-        this.target_component = target_component;
-        this.idx = idx;
-        this.count = count;
-        this.flags = flags;
-        
-    }
-
-    /**
-     * Constructor for a new message, initializes the message with the payload
-     * from a mavlink packet
-     *
-     */
-    public msg_rally_point(MAVLinkPacket mavLinkPacket) {
-        this.msgid = MAVLINK_MSG_ID_RALLY_POINT;
-
+    * Constructor for a new message, initializes the message with the payload
+    * from a mavlink packet
+    *
+    */
+    public msg_rally_point(MAVLinkPacket mavLinkPacket){
         this.sysid = mavLinkPacket.sysid;
         this.compid = mavLinkPacket.compid;
-        this.isMavlink2 = mavLinkPacket.isMavlink2;
-        unpack(mavLinkPacket.payload);
+        this.msgid = MAVLINK_MSG_ID_RALLY_POINT;
+        unpack(mavLinkPacket.payload);        
     }
 
                         
     /**
-     * Returns a string with the MSG name and data
-     */
-    @Override
-    public String toString() {
-        return "MAVLINK_MSG_ID_RALLY_POINT - sysid:"+sysid+" compid:"+compid+" lat:"+lat+" lng:"+lng+" alt:"+alt+" break_alt:"+break_alt+" land_dir:"+land_dir+" target_system:"+target_system+" target_component:"+target_component+" idx:"+idx+" count:"+count+" flags:"+flags+"";
-    }
-
-    /**
-     * Returns a human-readable string of the name of the message
-     */
-    @Override
-    public String name() {
-        return "MAVLINK_MSG_ID_RALLY_POINT";
+    * Returns a string with the MSG name and data
+    */
+    public String toString(){
+        return "MAVLINK_MSG_ID_RALLY_POINT -"+" lat:"+lat+" lng:"+lng+" alt:"+alt+" break_alt:"+break_alt+" land_dir:"+land_dir+" target_system:"+target_system+" target_component:"+target_component+" idx:"+idx+" count:"+count+" flags:"+flags+"";
     }
 }
         

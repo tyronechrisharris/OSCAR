@@ -17,8 +17,8 @@ package org.sensorhub.impl.sensor.fakeweather;
 
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
+import org.sensorhub.impl.sensor.fakeweather.FakeWeatherOutput;
 import org.vast.sensorML.SMLHelper;
-import net.opengis.sensorml.v20.PhysicalSystem;
 
 
 /**
@@ -29,7 +29,7 @@ import net.opengis.sensorml.v20.PhysicalSystem;
  * a simple example of a sensor driver.
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since Dec 24, 2014
  */
 public class FakeWeatherSensor extends AbstractSensorModule<FakeWeatherConfig>
@@ -38,9 +38,9 @@ public class FakeWeatherSensor extends AbstractSensorModule<FakeWeatherConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate identifiers
         generateUniqueID("urn:osh:sensor:simweather:", config.serialNumber);
@@ -63,19 +63,14 @@ public class FakeWeatherSensor extends AbstractSensorModule<FakeWeatherConfig>
             if (!sensorDescription.isSetDescription())
                 sensorDescription.setDescription("Simulated weather station generating realistic pseudo-random measurements");
             
-            var sml = new SMLHelper();
-            sml.edit((PhysicalSystem)sensorDescription)
-                .addIdentifier(sml.identifiers.serialNumber(config.serialNumber))
-                .addCharacteristicList("operating_specs", sml.characteristics.operatingCharacteristics()
-                    .add("voltage", sml.characteristics.operatingVoltageRange(110., 250., "V"))
-                    .add("temperature", sml.conditions.temperatureRange(-20., 90., "Cel"))
-                    .build());
+            SMLHelper helper = new SMLHelper(sensorDescription);
+            helper.addSerialNumber(config.serialNumber);
         }
     }
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         if (dataInterface != null)
             dataInterface.start();        
@@ -83,7 +78,7 @@ public class FakeWeatherSensor extends AbstractSensorModule<FakeWeatherConfig>
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (dataInterface != null)
             dataInterface.stop();
