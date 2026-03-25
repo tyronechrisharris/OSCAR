@@ -40,11 +40,12 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
             return;
 
         const startStream = async () => {
-            const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+            const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
+            if (!currLaneEntry) return;
 
             const response = await sendCommand(currLaneEntry.parentNode, currentStream.properties.id, generateHLSVideoCommandJSON(true));
 
-            if (!response.ok) {
+            if (!response?.ok) {
                 console.error("Failed to start stream");
                 return;
             }
@@ -58,7 +59,7 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         }
 
         const stopPreviousStream = async () => {
-            const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+            const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
             if (!currLaneEntry) return;
 
             const prevStream = videoStreams[currentPage - 1];
@@ -71,7 +72,7 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         stopPreviousStream().then(startStream);
 
         return () => {
-            const currLaneEntry = laneMapRef.current.get(currentLane);
+            const currLaneEntry = laneMapRef.current?.get(currentLane);
             if (currLaneEntry) {
                 sendCommand(currLaneEntry.parentNode, currentStream.properties.id, generateHLSVideoCommandJSON(false));
             }
@@ -79,7 +80,7 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
     }, [currentPage, videoStreams]);
 
     const fetchVideoControlStreams = async () => {
-        const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+        const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
 
         if (!currLaneEntry) {
             console.error("no current lane entry found");
@@ -89,7 +90,7 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         let streams = currLaneEntry.controlStreams;
         if (!streams || streams.length === 0) {
             try {
-                streams = await currLaneEntry.parentNode.fetchNodeControlStreams();
+                streams = await currLaneEntry.parentNode?.fetchNodeControlStreams();
             } catch (error) {
                 console.error("Failed to fetch control streams", error);
                 streams = [];
@@ -195,7 +196,7 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
                                 {videoSource && laneMapRef.current?.get(currentLane)?.parentNode && (
                                         <HLSVideoComponent
                                             videoSource={videoSource}
-                                            selectedNode={laneMapRef.current.get(currentLane).parentNode}
+                                            selectedNode={laneMapRef.current?.get(currentLane)?.parentNode}
                                         />
                                     )}
                             </Stack>

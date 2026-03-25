@@ -230,7 +230,7 @@ export default function EventTable({
                 return;
 
 
-            const occStreams = entry.datastreams.filter((ds: typeof DataStream) => isOccupancyDataStream(ds));
+            const occStreams = entry.datastreams?.filter((ds: typeof DataStream) => isOccupancyDataStream(ds)) || [];
             for (const ds of occStreams) {
                 datastreamIds.push(ds.properties.id);
             }
@@ -240,7 +240,7 @@ export default function EventTable({
                 if (entry.parentNode.id !== node.id)
                     return;
 
-                const occStreams = entry.datastreams.filter((ds: typeof DataStream) => isOccupancyDataStream(ds));
+                const occStreams = entry.datastreams?.filter((ds: typeof DataStream) => isOccupancyDataStream(ds)) || [];
                 for (const ds of occStreams) {
                     datastreamIds.push(ds.properties.id);
                 }
@@ -368,7 +368,7 @@ export default function EventTable({
 
     function findLaneByDataStreamId(laneMap: Map<string, LaneMapEntry>, datastreamId: string): LaneMapEntry | null {
         for (const entry of laneMap.values()) {
-            if (entry.datastreams.some(ds => ds.properties.id === datastreamId)) {
+            if (entry.datastreams?.some(ds => ds.properties.id === datastreamId)) {
                 return entry;
             }
         }
@@ -452,7 +452,7 @@ export default function EventTable({
         const connectedSources: typeof ConSysApi[] = [];
 
         for (const entry of stableLaneMap.values()) {
-            const occStream: typeof DataStream = entry.datastreams.find((ds: typeof DataStream) => isOccupancyDataStream(ds));
+            const occStream: typeof DataStream = entry.datastreams?.find((ds: typeof DataStream) => isOccupancyDataStream(ds));
 
             if (!occStream) {
                 continue;
@@ -560,7 +560,7 @@ export default function EventTable({
 
     async function getLatestGB(eventData: any) {
         for (const lane of laneMap.values()) {
-            let datastreams = lane.datastreams.filter((ds: any) => isThresholdDataStream(ds));
+            let datastreams = lane.datastreams?.filter((ds: any) => isThresholdDataStream(ds)) || [];
             let gammaThreshDs = datastreams.find((ds: typeof DataStream) =>
                 ds.properties["system@id"] === eventData.rpmSystemId
             );
