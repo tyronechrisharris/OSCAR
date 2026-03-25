@@ -76,14 +76,14 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
             if (!props.event.occupancyObsId) {
                 try {
                     const currentLane = props.event.laneId;
-                    const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+                    const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
 
                     if (!currLaneEntry) {
                         console.error("Lane entry not found:", currentLane);
                         return;
                     }
 
-                    const ds = currLaneEntry.datastreams.find(
+                    const ds = currLaneEntry.datastreams?.find(
                         (ds: any) => ds.properties.id === props.event.dataStreamId
                     );
 
@@ -221,17 +221,22 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
 
         // send to server
         const currentLane = props.event.laneId;
-        const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+        const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
         await submitAdjudication(currLaneEntry, tempAdjData)
     }
 
     const submitAdjudication = async(currLaneEntry: any, tempAdjData: any) => {
 
         try{
+            if (!currLaneEntry) {
+                console.error("Lane entry not found");
+                return;
+            }
 
-            let ds = currLaneEntry.datastreams.find((ds: any) => ds.properties.id == props.event.dataStreamId);
+            let ds = currLaneEntry.datastreams?.find((ds: any) => ds.properties.id == props.event.dataStreamId);
 
-            let streams = currLaneEntry.controlStreams.length > 0 ? currLaneEntry.controlStreams : await currLaneEntry.parentNode.fetchNodeControlStreams();
+            let streams = currLaneEntry.controlStreams?.length > 0 ? currLaneEntry.controlStreams : await currLaneEntry.parentNode?.fetchNodeControlStreams();
+            if (!streams) return;
             let adjControlStream = streams.find((stream: typeof ControlStream) => isAdjudicationControlStream(stream));
 
             if (!adjControlStream){

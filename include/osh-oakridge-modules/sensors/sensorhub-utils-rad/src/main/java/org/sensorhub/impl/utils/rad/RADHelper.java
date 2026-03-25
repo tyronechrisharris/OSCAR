@@ -383,6 +383,32 @@ public class RADHelper extends GeoPosHelper {
                 .build();
     }
 
+    public Count createWebIdObsIdsCount() {
+        return createCount()
+                .label("Web ID Obs IDs Count")
+                .name("webIdObsIdsCount")
+                .description("Count of the number of web ID observations associated with this occupancy")
+                .definition(getRadUri("WebIdObsIdsCount"))
+                .id("webIdObsIdsCount")
+                .build();
+    }
+
+    public DataArray createWebIdObsIdsArray(){
+        return createArray()
+                .name("webIdObsIds")
+                .label("Web ID Obs IDs")
+                .description("List of web ID observation IDs associated with this occupancy")
+                .definition(getRadUri("WebIdObsIdsArray"))
+                .withVariableSize("webIdObsIdsCount")
+                .withElement("webIdObsId", createText()
+                        .name("webIdObsId")
+                        .label("Web ID Obs ID")
+                        .description("ID of the Web ID Observation")
+                        .definition(getRadUri("WebIdObsId"))
+                        .build())
+                .build();
+    }
+
     public Quantity createBackgroundSigma(){
         return createQuantity()
                 .name("backgroundSigma")

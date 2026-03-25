@@ -129,9 +129,10 @@ export default function AdjudicationLog(props: {
     ];
     async function getControlStream(){
         const currentLane = props.event.laneId;
-        const currLaneEntry: LaneMapEntry = laneMapRef.current.get(currentLane);
+        const currLaneEntry: LaneMapEntry = laneMapRef.current?.get(currentLane);
+        if (!currLaneEntry) return;
 
-        let streams = currLaneEntry.controlStreams.length > 0 ? currLaneEntry.controlStreams : await currLaneEntry.parentNode.fetchNodeControlStreams();
+        let streams = currLaneEntry.controlStreams?.length > 0 ? currLaneEntry.controlStreams : await currLaneEntry.parentNode?.fetchNodeControlStreams();
         if(!streams)
             return;
 
