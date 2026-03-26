@@ -59,6 +59,8 @@ services:
       - ./osh-node-oscar/truststore.jks:/app/truststore.jks
       - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates
       - ./osh-node-oscar/rules:/app/rules
+      - ./osh-node-oscar/osh-leaf.crt:/app/osh-leaf.crt
+      - ./osh-node-oscar/osh-leaf.key:/app/osh-leaf.key
     secrets:
       - db_password
     networks:
