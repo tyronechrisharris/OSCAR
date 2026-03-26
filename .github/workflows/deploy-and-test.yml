@@ -48,7 +48,7 @@ jobs:
           # Wait for the program to fully start up.
           echo "Waiting for OSH node to start (up to 3 minutes)..."
           for i in {1..36}; do
-            if curl -s -f -L http://localhost:8282/sensorhub/admin > /dev/null; then
+            if curl -s -f -k -L https://localhost/ > /dev/null && curl -s -f -L http://localhost:8282/sensorhub/admin > /dev/null; then
               echo "OSH Node is up!"
               break
             fi
@@ -63,19 +63,32 @@ jobs:
         run: |
           echo "Running basic test to ensure main UI is reachable..."
           curl -s -f -L http://localhost:8282/sensorhub/admin > /dev/null
-          echo "Main UI reachable."
+          echo "Main UI reachable on port 8282."
+          echo "Running basic test to ensure proxy is reachable..."
+          curl -s -f -k -L https://localhost/ > /dev/null
+          echo "Proxy reachable on port 443."
 
-      - name: Dump Docker Logs
+      - name: Export Container Logs
         if: always()
         run: |
           echo "Collecting Docker container logs..."
           docker ps -a
-          for container in $(docker ps -aq); do
-            echo "============================================="
-            echo "Logs for container $container:"
-            echo "============================================="
-            docker logs $container
-          done
+          APP_DIR=$(ls -d deployment/*/ 2>/dev/null || true)
+          if [ -n "$APP_DIR" ]; then
+            mkdir -p "${APP_DIR}/container_logs"
+            for container in $(docker ps -aq); do
+              container_name=$(docker inspect --format '{{.Name}}' $container | sed 's/\///')
+              echo "Exporting logs for container $container_name..."
+              docker logs $container > "${APP_DIR}/container_logs/${container_name}.log" 2>&1
+            done
+          else
+            echo "Deployment directory not found. Skipping log export to artifact."
+            # Fallback to stdout if directory doesn't exist so we still see them in GH Actions UI
+            for container in $(docker ps -aq); do
+              echo "Logs for $container:"
+              docker logs $container
+            done
+          fi
 
       - name: Dump OSH Node Logs
         if: always()
@@ -108,3 +121,4 @@ jobs:
           path: |
             deployment/*/launch_output.log
             deployment/*/logs/
+            deployment/*/container_logs/
