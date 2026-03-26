@@ -20,6 +20,12 @@ export DEPLOYMENT_PROFILE="${DEPLOYMENT_PROFILE:-federated}"
 export DOMAIN="${DOMAIN:-localhost}"
 export POSTGIS_DOCKERFILE="Dockerfile-arm64"
 
+# Initialize .env from template if missing
+if [ ! -f .env ] && [ -f .env.template ]; then
+    echo "Initializing .env from .env.template..."
+    cp .env.template .env
+fi
+
 # Ensure .db_password secret is initialized (check for non-zero size)
 if [ ! -s .db_password ]; then
     echo "Initializing database password..."

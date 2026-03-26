@@ -24,6 +24,14 @@ REM Default environment variables for Docker Compose
 if "%DEPLOYMENT_PROFILE%"=="" set "DEPLOYMENT_PROFILE=federated"
 if "%DOMAIN%"=="" set "DOMAIN=localhost"
 
+REM Initialize .env from template if missing
+if not exist .env (
+    if exist .env.template (
+        echo Initializing .env from .env.template...
+        copy .env.template .env
+    )
+)
+
 REM Ensure .db_password secret is initialized (check for existence and size > 0)
 set "NEED_PWD=0"
 if not exist .db_password (
