@@ -1,143 +1,42 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM ==== CONFIG ====
-if "%DB_HOST%"=="" (set HOST=localhost) else (set HOST=%DB_HOST%)
-set PORT=5432
-set DB_NAME=gis
-set USER=postgres
-set RETRY_MAX=20
-set RETRY_INTERVAL=5
-set PROJECT_DIR=%cd%
-set CONTAINER_NAME=oscar-postgis-container
-set IMAGE_NAME=oscar-postgis
+REM Get the directory where the batch file is located
+set "SCRIPT_DIR=%~dp0"
+REM Remove trailing backslash
+set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
 
-echo PROJECT_DIR is: %PROJECT_DIR%
+REM Navigate to the project root (where docker-compose.yml is)
+cd "%SCRIPT_DIR%\..\.."
+set "PROJECT_ROOT=%cd%"
 
-REM Set up DB password secret
-if "%POSTGRES_PASSWORD_FILE%"=="" (set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password")
+REM Default environment variables for Docker Compose
+if "%DEPLOYMENT_PROFILE%"=="" set "DEPLOYMENT_PROFILE=federated"
+if "%DOMAIN%"=="" set "DOMAIN=localhost"
 
-if not exist "%POSTGRES_PASSWORD_FILE%" (
-    echo Generating new database password...
-    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); $pwd = [Convert]::ToBase64String($p); [System.IO.File]::WriteAllText(\"%POSTGRES_PASSWORD_FILE:\=\\%\", $pwd)"
+REM Ensure .db_password secret is initialized
+if not exist .db_password (
+    echo Initializing database password...
+    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); $pwd = [Convert]::ToBase64String($p); [System.IO.File]::WriteAllText('.db_password', $pwd)"
 )
 
-set /p DB_PASSWORD=<"%POSTGRES_PASSWORD_FILE%"
+REM Create required directories
+if not exist "osh-node-oscar\config" mkdir "osh-node-oscar\config"
+if not exist "osh-node-oscar\db" mkdir "osh-node-oscar\db"
+if not exist "osh-node-oscar\files" mkdir "osh-node-oscar\files"
+if not exist "osh-node-oscar\trusted_certificates" mkdir "osh-node-oscar\trusted_certificates"
+if not exist "osh-node-oscar\rules" mkdir "osh-node-oscar\rules"
 
-where docker >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Docker is not installed or not in PATH.
-    exit /b 1
-)
+REM Touch required secret/cert files to prevent Docker from creating them as directories
+if not exist "osh-node-oscar\osh-keystore.p12" type nul > "osh-node-oscar\osh-keystore.p12"
+if not exist "osh-node-oscar\.app_secrets" type nul > "osh-node-oscar\.app_secrets"
+if not exist "osh-node-oscar\truststore.jks" type nul > "osh-node-oscar\truststore.jks"
+if not exist "osh-node-oscar\osh-leaf.crt" type nul > "osh-node-oscar\osh-leaf.crt"
+if not exist "osh-node-oscar\osh-leaf.key" type nul > "osh-node-oscar\osh-leaf.key"
 
-if not exist "%PROJECT_DIR%\pgdata" (
-    echo Creating pgdata directory...
-    mkdir "%PROJECT_DIR%\pgdata"
-)
+echo Starting OSCAR Stack via Docker Compose...
+docker compose up -d
 
-echo Building PostGIS Docker image...
-pushd postgis
-docker build . -f Dockerfile -t %IMAGE_NAME%
-if %errorlevel% neq 0 (
-    echo ERROR: Docker build failed.
-    exit /b 1
-)
-popd
-
-echo Starting PostGIS container...
-
-for /f "tokens=*" %%i in ('docker ps -a --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_EXISTS=1
-    )
-)
-
-for /f "tokens=*" %%i in ('docker ps --format "{{.Names}}"') do (
-    if "%%i"=="%CONTAINER_NAME%" (
-        set CONTAINER_RUNNING=1
-    )
-)
-
-if defined CONTAINER_EXISTS (
-    if defined CONTAINER_RUNNING (
-        echo Container already running: %CONTAINER_NAME%
-    ) else (
-        echo Starting existing container: %CONTAINER_NAME%
-        docker start %CONTAINER_NAME%
-    )
-) else (
-    echo Creating new container: %CONTAINER_NAME%
-    docker run ^
-        --name %CONTAINER_NAME% ^
-        -e POSTGRES_DB=%DB_NAME% ^
-        -e POSTGRES_USER=%USER% ^
-        -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
-        -p %PORT%:5432 ^
-        -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
-        -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
-        -d ^
-        %IMAGE_NAME%
-
-    if %errorlevel% neq 0 (
-        echo ERROR: Failed to start PostGIS container.
-        exit /b 1
-    )
-)
-
-echo Waiting for PostGIS database to become ready...
-
-set RETRY_COUNT=0
-
-:wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    echo Received OK from PostGIS. Please wait for initialization...
-    goto after_wait
-)
-
-echo PostGIS not ready yet, retrying...
-set /a RETRY_COUNT+=1
-
-if %RETRY_COUNT% geq %RETRY_MAX% (
-    echo ERROR: PostGIS did not become ready in time.
-    exit /b 1
-)
-
-timeout /t %RETRY_INTERVAL% >nul
-goto wait_loop
-
-:after_wait
-
-timeout /t 30 >nul
-
-:final_wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    goto after_final_wait
-)
-echo PostGIS still restarting, waiting...
-timeout /t 5 >nul
-goto final_wait_loop
-
-:after_final_wait
-
-echo PostGIS database is ready!
-
-REM Export for OSH backend
-set DB_HOST=%HOST%
-set POSTGRES_PASSWORD_FILE=%POSTGRES_PASSWORD_FILE%
-
-cd "%PROJECT_DIR%\osh-node-oscar"
-if %errorlevel% neq 0 (
-    echo ERROR: osh-node-oscar directory not found.
-    exit /b 1
-)
-
-if exist launch.bat (
-    call launch.bat
-) else (
-    echo WARNING: launch.bat not found. Trying launch.sh through Git Bash...
-    bash launch.sh
-)
-
+echo OSCAR Stack is starting. Use 'docker compose logs -f' to monitor.
+pause
 endlocal

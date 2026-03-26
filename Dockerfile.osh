@@ -1,0 +1,22 @@
+# Dockerfile.osh
+FROM eclipse-temurin:21-jre-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to font-freefont
+# GLOBAL BUILD CONSTRAINT: Bypass HTTPS for corporate SSL inspection during build
+RUN sed -i 's/https/http/g' /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache font-freefont openssl bash && \
+    rm -rf /var/cache/apk/*
+
+# Copy build artifacts
+COPY ./osh-node-oscar/lib /app/lib
+COPY ./osh-node-oscar/config /app/config
+COPY ./osh-node-oscar/web /app/web
+COPY ./osh-node-oscar/logback.xml /app/logback.xml
+
+# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts
+# JAVA_OPTS is used to pass memory limits from the .env file
+ENTRYPOINT ["/bin/bash", "-c", "java -cp 'lib/*' com.botts.impl.security.LocalCAUtility && if [ ! -f .app_secrets ]; then echo 'CRITICAL ERROR: .app_secrets not found. Halting startup.'; exit 1; fi && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && java $JAVA_OPTS -Djavax.net.ssl.keyStorePassword=$KEYSTORE_PASSWORD -Djavax.net.ssl.trustStorePassword=$KEYSTORE_PASSWORD -cp 'lib/*' com.botts.impl.security.SensorHubWrapper ./config/config.json ./db"]

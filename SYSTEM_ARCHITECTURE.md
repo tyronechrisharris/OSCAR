@@ -1,54 +1,58 @@
 # OSCAR System Architecture
 
 ## Overview
-OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation portal monitors based on the OpenSensorHub (OSH) framework.
+OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation portal monitors based on the OpenSensorHub (OSH) framework. The system is deployed as a fully containerized stack using Docker Compose.
 
 ## Data Flow Diagram
 ![OSCAR System Data Flow](docs/system_data_flow.svg)
 
+## Unified Container Orchestration
+
+The OSCAR stack consists of three core services managed via `docker-compose.yml`:
+
+| Service | Container Name | Role | Ports |
+| :--- | :--- | :--- | :--- |
+| **osh-postgis** | `oscar-postgis-container` | Persistent storage with PostGIS extensions. | 5432 (Internal only) |
+| **osh-backend** | `oscar-backend-container` | OSH Java application core and API. | 8282 (Restricted to 127.0.0.1) |
+| **osh-proxy** | `oscar-proxy-container` | Caddy reverse proxy for TLS termination. | 80/443 (Public/LAN) |
+
+### Network Isolation and Security
+- **Internal Network**: All services communicate over the `osh-internal` bridge network.
+- **Port Masking**: The OSH Backend (port 8282) is bound specifically to `127.0.0.1` on the host, ensuring it is only reachable via the Caddy proxy or local debug tools. The PostGIS port (5432) is not exposed externally.
+- **Secret Management**: Database passwords are managed as Docker secrets (`.db_password`). Application secrets are persisted in `.app_secrets`.
+
 ## Component Network Flow and Ports
 
-### Components:
-- **OSH Backend**: Java-based core application.
-- **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
-- **Client Web UI**: React/Frontend viewer.
-
-### Default Port Configuration:
-- **OSH Backend API (HTTP)**: `8282`
-- **OSH Backend Admin UI**: `8282`
-- **PostGIS Database**: `5432`
-- **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy on port `8282`)
-
 ### Network Flows:
-- **Client to OSH**: Clients interact with OSH through its REST API and Web UI on port `8282`. The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
-- **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
-- **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
-- **Certificate Management**: OSH manages its own internal PKI. On first boot, a 20-year Root CA and a 1-year Leaf certificate are generated and stored in `osh-keystore.p12`. The system automatically renews the Leaf certificate if it is within 30 days of expiration during the boot sequence.
+- **Client to Proxy**: Clients interact with OSCAR via HTTPS (port 443) through the Caddy reverse proxy. The proxy handles TLS termination and forwards traffic to the OSH backend.
+- **Proxy to OSH**: Caddy forwards traffic to `osh-backend:8282` over the internal Docker network.
+- **OSH to PostGIS**: The OSH backend connects to the `osh-postgis` service over the internal network on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
+- **Certificate Management**: OSH manages its own internal PKI for signing leaf certificates used for local LAN encryption. Caddy is configured to use these local certificates for the LAN/Localhost listener and Tailscale certificates for federated access.
 
 ## Deployment and Lifecycle Commands
 
 ### Main Launch Scripts:
 Located in `dist/release/`:
-- `launch-all.sh`: Starts the PostGIS container and the OSH backend (Linux/macOS).
-- `launch-all-arm.sh`: Starts the PostGIS container and the OSH backend (ARM64, e.g., Mac M1/M2/M3).
-- `launch-all.bat`: Starts the PostGIS container and the OSH backend (Windows).
+- `launch-all.sh`: Orchestrates `docker compose up -d` (Linux/macOS).
+- `launch-all-arm.sh`: Orchestrates `docker compose up -d` for ARM64 platforms (Apple Silicon/Raspberry Pi).
+- `launch-all.bat`: Orchestrates `docker compose up -d` for Windows environments.
 
-### Automated Provisioning Utilities:
+### Scaling Profiles
+Scaling for different hardware scenarios is managed via environment variables in the `.env` file. Three standard profiles are provided in `.env.template`:
+- **Edge Node**: Optimized for Raspberry Pi (4GB-8GB RAM).
+- **Tactical Hub**: Optimized for powerful laptops (16GB RAM).
+- **Enterprise Central Hub**: Optimized for distributed server environments.
+
+## Automated Provisioning Utilities:
 Located in the repository root:
-- `provision-node.sh`: Securely pushes an API key to a remote node via Tailscale (Unix/Linux/macOS).
-- `provision-node.bat`: Securely pushes an API key to a remote node via Tailscale (Windows).
+- `provision-node.sh`: Securely pushes an API key to a remote node via Tailscale.
+- `provision-node.bat`: Securely pushes an API key to a remote node via Tailscale.
 
 See [Federation Provisioning](docs/FEDERATION_PROVISIONING.md) and [Tailscale Configuration](docs/TAILSCALE_CONFIGURATION.md) for detailed setup and usage instructions.
 
-### Standalone Database Scripts:
-Located in `dist/release/postgis/`:
-- `run-postgis.sh`: Starts the PostGIS container independently (Linux/macOS).
-- `run-postgis-arm.sh`: Starts the PostGIS container independently (ARM64).
-- `run-postgis.bat`: Starts the PostGIS container independently (Windows).
-
 ## Database Utilities
 Cross-platform scripts are provided in the repository root for maintenance:
-- `backup.sh/bat`: Safely creates a database dump.
-- `restore.sh/bat`: Restores the database from a dump.
+- `backup.sh/bat`: Safely creates a database dump via `docker exec`.
+- `restore.sh/bat`: Restores the database from a dump via `docker exec`.
 
-These utilities respect the `DB_HOST` and `POSTGRES_PASSWORD_FILE` environment variables.
+These utilities respect the `POSTGRES_PASSWORD_FILE` and unified container naming conventions.
