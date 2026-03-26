@@ -16,7 +16,7 @@ package org.sensorhub.impl.sensor.mti;
 
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.api.comm.ICommProvider;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,8 +24,9 @@ import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataType;
-import org.vast.swe.SWEHelper;
+import net.opengis.swe.v20.Vector;
 import org.vast.swe.helper.GeoPosHelper;
+import org.vast.swe.helper.GeoPosHelper.ImuFields;
 
 
 public class MtiOutput extends AbstractSensorOutput<MtiSensor>
@@ -54,34 +55,33 @@ public class MtiOutput extends AbstractSensorOutput<MtiSensor>
     
     public MtiOutput(MtiSensor parentSensor)
     {
-        super("imuData", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "imuData";
     }
 
 
     protected void init()
     {
         // build SWE Common record structure
-        GeoPosHelper swe = new GeoPosHelper();
+        GeoPosHelper fac = new GeoPosHelper();
         String localFrame = parentSensor.getUniqueIdentifier() + "#" + MtiSensor.CRS_ID;
         
         // generic IMU data
-        imuData = swe.createRecord()
-            .name(name)
-            .definition(SWEHelper.getPropertyUri("ImuData"))
-            .addSamplingTimeIsoUTC("time")
-            .addField("angRate", swe.createAngularVelocityVector("deg/s")
-                .localFrame(localFrame)
-                .dataType(DataType.FLOAT))
-            .addField("accel", swe.createAccelerationVector("m/s2")
-                .localFrame(localFrame)
-                .dataType(DataType.FLOAT))
-            .addField("attitude", swe.createQuatOrientationENU()
-                .localFrame(localFrame)
-                .dataType(DataType.FLOAT))
-            .build();
+        imuData = fac.newImuOutput(getName(), localFrame, ImuFields.GYRO, ImuFields.ACCEL);
+        
+        // integrated measurements
+        Vector quat = fac.newQuatOrientationENU(null);
+        quat.setDataType(DataType.FLOAT);
+        imuData.addComponent("attitude", quat);
      
         // also generate encoding definition as text block
-        dataEncoding = swe.newTextEncoding(",", "\n");        
+        dataEncoding = fac.newTextEncoding(",", "\n");        
     }
     
 
@@ -112,7 +112,7 @@ public class MtiOutput extends AbstractSensorOutput<MtiSensor>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(latestRecordTime, MtiOutput.this, dataBlock));        
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, MtiOutput.this, dataBlock));        
     }
     
     

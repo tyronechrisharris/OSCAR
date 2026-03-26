@@ -1,40 +1,73 @@
-/*
- * Copyright (c) 2024. Botts Innovative Research, Inc.
- * All Rights Reserved
- */
-
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from '@mui/material';
+import {useEffect, useState} from 'react';
 
-export interface DetectorInfo {
-    api_version: string;
-    endpoint: string;
-    allowed_detectors: string[];
-}
+export default function DetectorResponseFunction(props: {
+    onSelect: (value: string) => void, // Return selected value
+    selectVal: string
+}) {
 
-export function DetectorResponseFunction() {
-    const { t } = useLanguage();
-    const [detectorInfo, setDetectorInfo] = useState<DetectorInfo | null>(null);
+    const [drfChoices, setDrfChoices] = useState<string[]>([]);
+
+    const handleChange = (event: SelectChangeEvent) => {
+        const val = event.target.value;
+        props.onSelect(val)
+    };
 
     useEffect(() => {
-        // Secure Egress Mitigation: Use local config instead of external Sandia API
-        fetch('/config/spectroscopy-info.json')
-            .then(res => res.json())
-            .then(data => setDetectorInfo(data))
-            .catch(err => console.error(t('spectroscopicDataInvalid'), err));
-    }, [t]);
+        fetchDrfValues();
+    }, []);
+
+    async function fetchDrfValues(){
+        const url = "https://full-spectrum.sandia.gov/api/v1/info";
+
+        try {
+            const response = await fetch(url, { method: 'GET' });
+
+            if (!response.ok) {
+                console.error('Could not reach Sandia spectrum values.');
+                return;
+            }
+
+            const results = await response.json();
+            setDrfChoices(results?.Options[0].possibleValues ?? []);
+        } catch (error) {
+            console.error('Failed to fetch DRF values:', error);
+        }
+    }
 
     return (
-        <div>
-            {detectorInfo ? (
-                <div>
-                    Endpoint: {detectorInfo.endpoint}
-                </div>
-            ) : (
-                <div>{t('loading')}</div>
-            )}
-        </div>
+        <FormControl size="small" fullWidth>
+            <InputLabel id="label">Detector Response Function</InputLabel>
+            <Select
+                variant="outlined"
+                id="label"
+                label="Detector Response Function"
+                value={props.selectVal}
+                onChange={handleChange}
+                MenuProps={{
+                    MenuListProps: {
+                        style: {
+                            maxHeight: 300
+                        }
+                    }
+                }}
+                autoWidth
+                style={{minWidth: "12em"}}
+            >
+                { drfChoices.length > 0 ? (
+                    drfChoices.map((item) =>(
+                        <MenuItem key={item} value={item}>
+                            {item}
+                        </MenuItem>
+                    ))
+                    ) :
+                    (
+                        <span>No choices</span>
+                    )
+                }
+            </Select>
+        </FormControl>
     );
 }

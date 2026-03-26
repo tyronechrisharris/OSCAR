@@ -38,11 +38,11 @@ import org.vast.swe.SWEHelper;
 
 /**
  * <p>
- * Driver for BNO55 IMU
+ * Driver for XSens MTi Inertial Motion Unit
  * </p>
  *
- * @author Alex Robin
- * @since Apr 7, 2016
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
+ * @since July 1, 2015
  */
 public class Bno055Sensor extends AbstractSensorModule<Bno055Config>
 {
@@ -81,9 +81,9 @@ public class Bno055Sensor extends AbstractSensorModule<Bno055Config>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate identifiers: use serial number from config or first characters of local ID
         generateUniqueID("urn:bosch:bno055:", config.serialNumber);
@@ -135,7 +135,7 @@ public class Bno055Sensor extends AbstractSensorModule<Bno055Config>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         // init comm provider
         if (commProvider == null)
@@ -143,9 +143,7 @@ public class Bno055Sensor extends AbstractSensorModule<Bno055Config>
             // we need to recreate comm provider here because it can be changed by UI
             if (config.commSettings == null)
                 throw new SensorHubException("No communication settings specified");
-            
-            var moduleReg = getParentHub().getModuleRegistry();
-            commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+            commProvider = config.commSettings.getProvider();
             commProvider.start();
 
             // connect to comm data streams
@@ -440,7 +438,7 @@ public class Bno055Sensor extends AbstractSensorModule<Bno055Config>
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (calibTimer != null)
             calibTimer.cancel();

@@ -94,3 +94,4 @@ public final class DetectorType {
   private final int swigValue;
   private final String swigName;
 }
+

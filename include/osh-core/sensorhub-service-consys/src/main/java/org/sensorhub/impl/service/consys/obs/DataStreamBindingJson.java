@@ -394,10 +394,7 @@ public class DataStreamBindingJson extends ResourceBindingJson<DataStreamKey, ID
     @Override
     public void startCollection() throws IOException
     {
-        if (reader != null)
-            startJsonCollection(reader);
-        else
-            startJsonCollection(writer);
+        startJsonCollection(writer);
     }
 
 

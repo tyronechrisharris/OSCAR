@@ -34,7 +34,7 @@ import org.sensorhub.api.comm.ble.IGattService;
  * Implementation of GATT service wrapping DBus GattCharacteristic1
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 14, 2016
  */
 public class GattCharacteristicImpl implements IGattCharacteristic

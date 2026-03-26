@@ -276,36 +276,30 @@ public abstract class BaseHandler implements IResourceHandler
     
     protected TemporalFilter parseTimeStampArg(String paramName, final Map<String, String[]> queryParams) throws InvalidRequestException
     {
-        var builder = parseTimeStampArgToBuilder(paramName, queryParams);
-        if (builder == null)
-            return null;
-        return builder.build();
-    }
-
-
-    protected TemporalFilter.Builder parseTimeStampArgToBuilder(String paramName, final Map<String, String[]> queryParams) throws InvalidRequestException
-    {
         var timeVal = getSingleParam(paramName, queryParams);
         if (timeVal == null)
             return null;
-
+        
         try
         {
             if (timeVal.equals("latest"))
             {
                 return new TemporalFilter.Builder()
-                        .withLatestTime();
+                    .withLatestTime()
+                    .build();
             }
             else if (timeVal.startsWith("latest/"))
             {
                 return new TemporalFilter.Builder()
-                        .withLatestTime()
-                        .withRangeBeginningNow(Instant.MAX);
+                    .withLatestTime()
+                    .withRangeBeginningNow(Instant.MAX)
+                    .build();
             }
             else
             {
                 return new TemporalFilter.Builder()
-                        .fromTimeExtent(TimeExtent.parse(timeVal));
+                    .fromTimeExtent(TimeExtent.parse(timeVal))
+                    .build();
             }
         }
         catch (Exception e)

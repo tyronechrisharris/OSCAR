@@ -22,7 +22,7 @@ import org.vast.data.TextEncodingImpl;
 import org.vast.swe.SWEConstants;
 import org.vast.swe.helper.GeoPosHelper;
 import com.MAVLink.Messages.MAVLinkMessage;
-import com.MAVLink.ardupilotmega.msg_mount_status;
+import com.MAVLink.ardupilotmega.msg_gimbal_report;
 
 
 /**
@@ -30,7 +30,7 @@ import com.MAVLink.ardupilotmega.msg_mount_status;
  * Output for MAVLink GIMBAL_REPORT messages
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 12, 2015
  */
 public class GimbalEulerOutput extends MavlinkOutput
@@ -38,8 +38,15 @@ public class GimbalEulerOutput extends MavlinkOutput
     
     public GimbalEulerOutput(MavlinkDriver parentSensor)
     {
-        super("gimbalAtt", parentSensor);
+        super(parentSensor);
         this.samplingPeriod = 0.1; // default to 10Hz on startup        
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "gimbalAtt";
     }
     
     
@@ -71,16 +78,16 @@ public class GimbalEulerOutput extends MavlinkOutput
         DataBlock dataBlock = null;
                 
         // process different message types
-        if (m instanceof msg_mount_status)// msg_gimbal_report)
+        if (m instanceof msg_gimbal_report)
         {
-            msg_mount_status msg = (msg_mount_status)m;
+            msg_gimbal_report msg = (msg_gimbal_report)m;
             
             // populate datablock
             dataBlock = getNewDataBlock();
             dataBlock.setDoubleValue(0, msgTime / 1000.0);
-            dataBlock.setFloatValue(1, (float)(msg.pointing_b/100.0));
-            dataBlock.setFloatValue(2, (float)(msg.pointing_a/100.0));
-            dataBlock.setFloatValue(3, (float)(msg.pointing_c/100.0));
+            dataBlock.setFloatValue(1, (float)Math.toDegrees(msg.joint_az));
+            dataBlock.setFloatValue(2, (float)Math.toDegrees(msg.joint_el));
+            dataBlock.setFloatValue(3, (float)Math.toDegrees(msg.joint_roll));
             
             updateSamplingPeriod(msgTime);
         }        
