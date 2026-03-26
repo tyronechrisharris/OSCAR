@@ -27,6 +27,8 @@ services:
       - POSTGRES_MAX_WAL_SIZE=${DB_MAX_WAL_SIZE:-1GB}
       - POSTGRES_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-50}
       - POSTGRES_MAINTENANCE_WORK_MEM=${DB_MAINTENANCE_WORK_MEM:-64MB}
+    ports:
+      - "5432:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     secrets:
@@ -90,11 +92,12 @@ services:
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-}
       - DOMAIN=${DOMAIN:-localhost}
+      - TLS_MODE=${TLS_MODE:-offline}
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
       - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
@@ -129,39 +132,47 @@ The Caddy reverse proxy will handle TLS termination and dynamic routing based on
 
 ### 2.1 Caddyfile Structure
 
+The Caddyfile will use dynamic imports to switch between TLS modes based on the environment.
+
+**Main Caddyfile (`/etc/caddy/Caddyfile`):**
 ```caddy
 {
     # Global options
 }
 
-# (Replaced by Tailscale or Offline block)
 {$DOMAIN:localhost} {
-    # Forward headers
-    reverse_proxy osh-backend:8282 {
+    # Forward headers to the backend (using HTTPS and skipping verification for local certs)
+    reverse_proxy https://osh-backend:8282 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
-    }
-
-    # Dynamic TLS Switching logic
-    @tailscale expression "{env.TAILSCALE_DOMAIN} != ''"
-    handle @tailscale {
-        tls {
-            get_certificate tailscale
+        transport http {
+            tls_insecure_skip_verify
         }
     }
 
-    @offline expression "{env.TAILSCALE_DOMAIN} == ''"
-    handle @offline {
-        tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
-    }
+    # Dynamic TLS Switching logic via import
+    import /etc/caddy/tls_{$TLS_MODE:offline}.conf
+}
+```
+
+**Offline TLS Config (`/etc/caddy/tls_offline.conf`):**
+```caddy
+tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
+```
+
+**Federated TLS Config (`/etc/caddy/tls_federated.conf`):**
+```caddy
+tls {
+    get_certificate tailscale
 }
 ```
 
 ### 2.2 Operational Details
-- **Offline Mode (Default)**: If `TAILSCALE_DOMAIN` is blank, Caddy uses the locally generated Java Leaf certificates.
-- **Federated Mode (Tailscale)**: If `TAILSCALE_DOMAIN` is set, Caddy automatically intercepts that domain and uses the `get_certificate tailscale` directive.
+- **Dynamic Mode Selection**: The `osh-proxy` service in `docker-compose.yml` will set the `TLS_MODE` environment variable to `federated` if `TAILSCALE_DOMAIN` is present, or default to `offline`.
+- **Offline Mode (Default)**: Uses the locally generated Java Leaf certificates (`osh-leaf.crt` and `osh-leaf.key`).
+- **Federated Mode (Tailscale)**: Uses the `get_certificate tailscale` directive for automatic Tailscale TLS.
 - **Header Forwarding**: Standard headers (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) are forwarded to ensure the OSH backend correctly identifies the client's origin.
 
 ## 3. Proposed Backend Dockerfile
@@ -190,9 +201,9 @@ COPY ./osh-node-oscar/config /app/config
 COPY ./osh-node-oscar/web /app/web
 COPY ./osh-node-oscar/logback.xml /app/logback.xml
 
-# The ENTRYPOINT ensures pre-launch checks (Local CA generation) run before the JVM starts
+# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts
 # JAVA_OPTS is used to pass memory limits from the .env file
-ENTRYPOINT ["/bin/bash", "-c", "java -cp 'lib/*' com.botts.impl.security.LocalCAUtility && java $JAVA_OPTS -cp 'lib/*' com.botts.impl.security.SensorHubWrapper ./config/config.json ./db"]
+ENTRYPOINT ["/bin/bash", "-c", "java -cp 'lib/*' com.botts.impl.security.LocalCAUtility && if [ ! -f .app_secrets ]; then echo 'CRITICAL ERROR: .app_secrets not found. Halting startup.'; exit 1; fi && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && java $JAVA_OPTS -Djavax.net.ssl.keyStorePassword=$KEYSTORE_PASSWORD -Djavax.net.ssl.trustStorePassword=$KEYSTORE_PASSWORD -cp 'lib/*' com.botts.impl.security.SensorHubWrapper ./config/config.json ./db"]
 ```
 
 ## 4. Scaled Deployment Profiles (.env Templates)
