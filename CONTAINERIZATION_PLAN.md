@@ -91,8 +91,7 @@ services:
     container_name: oscar-proxy-container
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-}
-      - DOMAIN=${DOMAIN:-localhost}
-      - TLS_MODE=${TLS_MODE:-offline}
+      - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
     ports:
       - "80:80"
       - "443:443"
@@ -132,7 +131,7 @@ The Caddy reverse proxy will handle TLS termination and dynamic routing based on
 
 ### 2.1 Caddyfile Structure
 
-The Caddyfile will use dynamic imports to switch between TLS modes based on the environment.
+The Caddyfile will implement a "Dual-Listener" setup, ensuring the local LAN fallback is always active even if Tailscale is enabled.
 
 **Main Caddyfile (`/etc/caddy/Caddyfile`):**
 ```caddy
@@ -140,8 +139,9 @@ The Caddyfile will use dynamic imports to switch between TLS modes based on the 
     # Global options
 }
 
-{$DOMAIN:localhost} {
-    # Forward headers to the backend (using HTTPS and skipping verification for local certs)
+# 1. Local LAN Block (Always Active Fallback)
+{$LOCAL_DOMAIN:localhost}, 127.0.0.1 {
+    # Forward headers to the backend
     reverse_proxy https://osh-backend:8282 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
@@ -152,27 +152,37 @@ The Caddyfile will use dynamic imports to switch between TLS modes based on the 
         }
     }
 
-    # Dynamic TLS Switching logic via import
-    import /etc/caddy/tls_{$TLS_MODE:offline}.conf
+    # Use local Java certificates for LAN encryption
+    tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
 }
-```
 
-**Offline TLS Config (`/etc/caddy/tls_offline.conf`):**
-```caddy
-tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
-```
+# 2. Tailscale Block (Conditional Federated Access)
+{$TAILSCALE_DOMAIN} {
+    @has_tailscale expression "{env.TAILSCALE_DOMAIN} != ''"
+    handle @has_tailscale {
+        # Forward headers to the backend
+        reverse_proxy https://osh-backend:8282 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            transport http {
+                tls_insecure_skip_verify
+            }
+        }
 
-**Federated TLS Config (`/etc/caddy/tls_federated.conf`):**
-```caddy
-tls {
-    get_certificate tailscale
+        # Use Tailscale's automatic TLS
+        tls {
+            get_certificate tailscale
+        }
+    }
 }
 ```
 
 ### 2.2 Operational Details
-- **Dynamic Mode Selection**: The `osh-proxy` service in `docker-compose.yml` will set the `TLS_MODE` environment variable to `federated` if `TAILSCALE_DOMAIN` is present, or default to `offline`.
-- **Offline Mode (Default)**: Uses the locally generated Java Leaf certificates (`osh-leaf.crt` and `osh-leaf.key`).
-- **Federated Mode (Tailscale)**: Uses the `get_certificate tailscale` directive for automatic Tailscale TLS.
+- **Dual-Listener Reliability**: Caddy simultaneously serves the local LAN/localhost IP and the Tailscale domain. If Tailscale fails or loses internet connectivity, operators can immediately fall back to the LAN address without restarting services.
+- **Local Mode**: Uses the locally generated Java Leaf certificates (`osh-leaf.crt` and `osh-leaf.key`).
+- **Federated Mode (Tailscale)**: Uses the `get_certificate tailscale` directive. This block is only active when `TAILSCALE_DOMAIN` is populated.
 - **Header Forwarding**: Standard headers (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) are forwarded to ensure the OSH backend correctly identifies the client's origin.
 
 ## 3. Proposed Backend Dockerfile
