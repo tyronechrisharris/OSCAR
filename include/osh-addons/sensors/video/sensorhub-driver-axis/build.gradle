@@ -5,7 +5,7 @@ version = '1.0.0'
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
   implementation project(':sensorhub-driver-rtpcam')
-  embeddedImpl('net.sf.jipcam:jipcam:0.9.1') {
+  implementation('net.sf.jipcam:jipcam:0.9.1') {
     exclude group: 'javax.servlet', module: 'servlet-api'
     exclude group: 'commons-cli', module: 'commons-cli'
     exclude group: 'commons-httpclient', module: 'commons-httpclient'
@@ -20,10 +20,10 @@ test {
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research, Inc.')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.sensor.axis.Activator')
+    attributes 'Bundle-Vendor': 'Botts Innovative Research, Inc.'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.sensor.axis.Activator'
   }
 }
 

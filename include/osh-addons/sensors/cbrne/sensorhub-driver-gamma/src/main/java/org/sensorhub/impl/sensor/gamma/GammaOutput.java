@@ -14,7 +14,14 @@ public class GammaOutput extends AbstractSensorOutput<GammaSensor>
     
     public GammaOutput(GammaSensor parentSensor)
     {
-        super("gammaExposure", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "gammaExposure";
     }
 
 

@@ -75,10 +75,8 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
     {
         DataComponent commandStruct = null;
         DataComponent resultStruct = null;
-        DataComponent feasibilityResultStruct = null;
         DataEncoding commandEncoding = new TextEncodingImpl();
         DataEncoding resultEncoding = new TextEncodingImpl();
-        DataEncoding feasibilityResultEncoding = new TextEncodingImpl();
         
         try
         {
@@ -91,7 +89,7 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
             {
                 var prop = reader.nextName();
                 
-                if ("parametersSchema".equals(prop))
+                if ("paramsSchema".equals(prop))
                 {
                     commandStruct = sweBindings.readDataComponent(reader);
                     commandStruct.setName(SWECommonUtils.NO_NAME);
@@ -108,16 +106,6 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
                 else if ("resultEncoding".equals(prop))
                 {
                     resultEncoding = sweBindings.readEncoding(reader);
-                }
-                else if("feasibilityResultSchema".equals(prop))
-                {
-                    // TODO: feasibility results are dropped currently
-                    feasibilityResultStruct = sweBindings.readDataComponent(reader);
-                    feasibilityResultStruct.setName(SWECommonUtils.NO_NAME);
-                }
-                else if("feasibilityResultEncoding".equals(prop))
-                {
-                    feasibilityResultEncoding = sweBindings.readEncoding(reader);
                 }
                 else
                     reader.skipValue();
@@ -140,8 +128,6 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
             .withRecordEncoding(commandEncoding)
             .withResultDescription(resultStruct)
             .withResultEncoding(resultEncoding)
-            .withFeasibilityResultDescription(feasibilityResultStruct)
-            .withFeasibilityResultEncoding(feasibilityResultEncoding)
             .build();
     }
 
@@ -155,7 +141,7 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
         // param structure & encoding
         try
         {
-            writer.name("parametersSchema");
+            writer.name("paramsSchema");
             sweBindings.writeDataComponent(writer, dsInfo.getRecordStructure(), false);
         }
         catch (Exception e)
@@ -174,20 +160,6 @@ public class CommandStreamSchemaBindingJson extends ResourceBindingJson<CommandS
             catch (Exception e)
             {
                 throw new IOException("Error writing command structure", e);
-            }
-        }
-
-        // feasibility result schema
-        if (dsInfo.hasFeasibilityResult())
-        {
-            try
-            {
-                writer.name("feasibilityResultSchema");
-                sweBindings.writeDataComponent(writer, dsInfo.getFeasibilityResultStructure(), false);
-            }
-            catch (Exception e)
-            {
-                throw new IOException("Error writing feasibility result structure", e);
             }
         }
         

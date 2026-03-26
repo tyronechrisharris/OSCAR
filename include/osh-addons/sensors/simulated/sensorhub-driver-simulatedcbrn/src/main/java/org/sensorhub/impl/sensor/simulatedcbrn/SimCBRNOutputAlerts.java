@@ -21,7 +21,7 @@ import datasimulation.ChemAgent;
 import datasimulation.PointSource;
 import net.opengis.swe.v20.*;
 import net.opengis.swe.v20.Vector;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEConstants;
 import org.vast.swe.SWEHelper;
@@ -76,7 +76,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
 
     public SimCBRNOutputAlerts(SimCBRNSensor parentSensor)
     {
-        super("alerts", parentSensor);
+        super(parentSensor);
         // Point Sources
         this.source1 = new PointSource(parentSensor.getConfiguration().src1_lat,
                 parentSensor.getConfiguration().src1_lon,
@@ -99,6 +99,13 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
                 parentSensor.getConfiguration().src3_intensity,
                 parentSensor.getConfiguration().src3_type,
                 parentSensor.getConfiguration().src1_radius);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "ALERTS";
     }
 
 
@@ -255,7 +262,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
         //this method call is required to push data
         latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, SimCBRNOutputAlerts.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, SimCBRNOutputAlerts.this, dataBlock));
     }
 
 
@@ -283,6 +290,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
     }
 
 
+    @Override
     protected void stop()
     {
         if (timer != null)
@@ -317,7 +325,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
     @SuppressWarnings("Duplicates")
     private void simulate()
     {
-        SimCBRNConfig config = getParentProducer().getConfiguration();
+        SimCBRNConfig config = getParentModule().getConfiguration();
         // Update the sensor's location
         if (trajPoints.isEmpty() || currentTrackPos >= trajPoints.size()-2)
         {
@@ -361,7 +369,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
     @SuppressWarnings("Duplicates")
     private boolean generateRandomTrajectory()
     {
-        SimCBRNConfig config = getParentProducer().getConfiguration();
+        SimCBRNConfig config = getParentModule().getConfiguration();
         // used fixed start/end coordinates or generate random ones
         double startLat;
         double startLong;
@@ -478,7 +486,7 @@ public class SimCBRNOutputAlerts extends AbstractSensorOutput<SimCBRNSensor>
 
     private double getObservedIntensity()
     {
-        SimCBRNConfig config = getParentProducer().getConfiguration();
+        SimCBRNConfig config = getParentModule().getConfiguration();
         int numSources = config.numSources;
         double avgIntensity = 0;
         for (int i = 0; i < numSources; i++)

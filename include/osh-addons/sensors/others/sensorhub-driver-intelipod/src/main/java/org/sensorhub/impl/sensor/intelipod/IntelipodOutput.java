@@ -17,7 +17,7 @@ package org.sensorhub.impl.sensor.intelipod;
 
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.api.comm.ICommProvider;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,7 +51,14 @@ public class IntelipodOutput extends AbstractSensorOutput<IntelipodSensor>
     
     public IntelipodOutput(IntelipodSensor parentSensor)
     {
-        super("intelipodData", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "intelipodData";
     }
 
 
@@ -114,7 +121,7 @@ public class IntelipodOutput extends AbstractSensorOutput<IntelipodSensor>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, IntelipodOutput.this, dataBlock));    
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, IntelipodOutput.this, dataBlock));    
     }
 
 

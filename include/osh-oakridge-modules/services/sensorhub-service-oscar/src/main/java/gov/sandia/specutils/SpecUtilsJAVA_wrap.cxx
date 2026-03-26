@@ -138,7 +138,7 @@
 # define SWIG_NOEXCEPT noexcept
 #else
 # define SWIG_NOEXCEPT throw()
-#endif
+#endif 
 
 /* -----------------------------------------------------------------------------
  * swigcompat.swg
@@ -254,11 +254,11 @@ public:
 
 /*
  * SwigValueInit() is a generic initialisation solution as the following approach:
- *
+ * 
  *       T c_result = T();
- *
+ * 
  * doesn't compile for all types for example:
- *
+ * 
  *       unsigned int c_result = unsigned int();
  */
 template <typename T> T SwigValueInit() {
@@ -502,19 +502,19 @@ SWIGINTERN void std_vector_Sl_float_Sg__doRemoveRange(std::vector< float > *self
           throw std::out_of_range("vector index out of range");
         }
       }
-
-#include <iostream>
-#include <sstream>
+ 
+#include <iostream> 
+#include <sstream> 
 #include <fstream>
 #include <memory>
-using namespace std;
+using namespace std; 
 
-
-std::ostream* openFile(const char* filename) {
+ 
+std::ostream* openFile(const char* filename) { 
   ofstream *filePtr = new ofstream(filename);
   return(filePtr);
-}
-void closeFile(std::ostream *stream) {
+} 
+void closeFile(std::ostream *stream) { 
   stream->flush();
   delete(stream);
 }
@@ -545,11 +545,11 @@ extern "C" {
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1StringVector_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (std::vector< std::string > *)new std::vector< std::string >();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -558,7 +558,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1StringV
   jlong jresult = 0 ;
   std::vector< std::string > *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
@@ -566,9 +566,9 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1StringV
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return 0;
-  }
+  } 
   result = (std::vector< std::string > *)new std::vector< std::string >((std::vector< std::string > const &)*arg1);
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -577,24 +577,24 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVec
   jboolean jresult = 0 ;
   std::vector< std::string > *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   result = (bool)((std::vector< std::string > const *)arg1)->empty();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_1clear(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   std::vector< std::string > *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   (arg1)->clear();
 }
 
@@ -604,26 +604,26 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1StringV
   jint arg1 ;
   std::string *arg2 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = jarg1;
+  arg1 = jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   try {
     result = (std::vector< std::string > *)new_std_vector_Sl_std_string_Sg___SWIG_2(SWIG_STD_MOVE(arg1),(std::string const &)*arg2);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -632,18 +632,18 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
   jint jresult = 0 ;
   std::vector< std::string > *arg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   try {
     result = std_vector_Sl_std_string_Sg__doCapacity(arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -651,12 +651,12 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_1doReserve(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   std::vector< std::string > *arg1 = 0 ;
   jint arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     std_vector_Sl_std_string_Sg__doReserve(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::length_error &_e) {
@@ -673,18 +673,18 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
   jint jresult = 0 ;
   std::vector< std::string > *arg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   try {
     result = std_vector_Sl_std_string_Sg__doSize((std::vector< std::string > const *)arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -692,20 +692,20 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_1doAdd_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   std::vector< std::string > *arg1 = 0 ;
   std::vector< std::string >::value_type *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::vector< std::string >::value_type arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   std_vector_Sl_std_string_Sg__doAdd__SWIG_0(arg1,(std::string const &)*arg2);
 }
 
@@ -714,21 +714,21 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
   std::vector< std::string > *arg1 = 0 ;
   jint arg2 ;
   std::vector< std::string >::value_type *arg3 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return ;
   std::vector< std::string >::value_type arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   try {
     std_vector_Sl_std_string_Sg__doAdd__SWIG_1(arg1,SWIG_STD_MOVE(arg2),(std::string const &)*arg3);
   } catch(std::out_of_range &_e) {
@@ -743,19 +743,19 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVect
   std::vector< std::string > *arg1 = 0 ;
   jint arg2 ;
   std::vector< std::string >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     result = std_vector_Sl_std_string_Sg__doRemove(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = jenv->NewStringUTF((&result)->c_str());
+  jresult = jenv->NewStringUTF((&result)->c_str()); 
   return jresult;
 }
 
@@ -765,19 +765,19 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVect
   std::vector< std::string > *arg1 = 0 ;
   jint arg2 ;
   std::vector< std::string >::value_type *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     result = (std::vector< std::string >::value_type *) &std_vector_Sl_std_string_Sg__doGet(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -788,28 +788,28 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVect
   jint arg2 ;
   std::vector< std::string >::value_type *arg3 = 0 ;
   std::vector< std::string >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return 0;
   std::vector< std::string >::value_type arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   try {
     result = std_vector_Sl_std_string_Sg__doSet(arg1,SWIG_STD_MOVE(arg2),(std::string const &)*arg3);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = jenv->NewStringUTF((&result)->c_str());
+  jresult = jenv->NewStringUTF((&result)->c_str()); 
   return jresult;
 }
 
@@ -818,13 +818,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
   std::vector< std::string > *arg1 = 0 ;
   jint arg2 ;
   jint arg3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< std::string > **)&jarg1;
-  arg2 = jarg2;
-  arg3 = jarg3;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
+  arg2 = jarg2; 
+  arg3 = jarg3; 
   try {
     std_vector_Sl_std_string_Sg__doRemoveRange(arg1,SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3));
   } catch(std::out_of_range &_e) {
@@ -836,10 +836,10 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_StringVector_
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1StringVector(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   std::vector< std::string > *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(std::vector< std::string > **)&jarg1;
+  arg1 = *(std::vector< std::string > **)&jarg1; 
   delete arg1;
 }
 
@@ -847,11 +847,11 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1Strin
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1IntVector_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   std::vector< int > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (std::vector< int > *)new std::vector< int >();
-  *(std::vector< int > **)&jresult = result;
+  *(std::vector< int > **)&jresult = result; 
   return jresult;
 }
 
@@ -860,7 +860,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1IntVect
   jlong jresult = 0 ;
   std::vector< int > *arg1 = 0 ;
   std::vector< int > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
@@ -868,9 +868,9 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1IntVect
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< int > const & is null");
     return 0;
-  }
+  } 
   result = (std::vector< int > *)new std::vector< int >((std::vector< int > const &)*arg1);
-  *(std::vector< int > **)&jresult = result;
+  *(std::vector< int > **)&jresult = result; 
   return jresult;
 }
 
@@ -879,24 +879,24 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector
   jboolean jresult = 0 ;
   std::vector< int > *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
+  arg1 = *(std::vector< int > **)&jarg1; 
   result = (bool)((std::vector< int > const *)arg1)->empty();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1clear(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   std::vector< int > *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
+  arg1 = *(std::vector< int > **)&jarg1; 
   (arg1)->clear();
 }
 
@@ -907,19 +907,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1IntVect
   int *arg2 = 0 ;
   int temp2 ;
   std::vector< int > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = jarg1;
-  temp2 = (int)jarg2;
-  arg2 = &temp2;
+  arg1 = jarg1; 
+  temp2 = (int)jarg2; 
+  arg2 = &temp2; 
   try {
     result = (std::vector< int > *)new_std_vector_Sl_int_Sg___SWIG_2(SWIG_STD_MOVE(arg1),(int const &)*arg2);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  *(std::vector< int > **)&jresult = result;
+  *(std::vector< int > **)&jresult = result; 
   return jresult;
 }
 
@@ -928,18 +928,18 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   jint jresult = 0 ;
   std::vector< int > *arg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
+  arg1 = *(std::vector< int > **)&jarg1; 
   try {
     result = std_vector_Sl_int_Sg__doCapacity(arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -947,12 +947,12 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1doReserve(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   std::vector< int > *arg1 = 0 ;
   jint arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     std_vector_Sl_int_Sg__doReserve(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::length_error &_e) {
@@ -969,18 +969,18 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   jint jresult = 0 ;
   std::vector< int > *arg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
+  arg1 = *(std::vector< int > **)&jarg1; 
   try {
     result = std_vector_Sl_int_Sg__doSize((std::vector< int > const *)arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -989,13 +989,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   std::vector< int > *arg1 = 0 ;
   std::vector< int >::value_type *arg2 = 0 ;
   std::vector< int >::value_type temp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  temp2 = (std::vector< int >::value_type)jarg2;
-  arg2 = &temp2;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  temp2 = (std::vector< int >::value_type)jarg2; 
+  arg2 = &temp2; 
   std_vector_Sl_int_Sg__doAdd__SWIG_0(arg1,(int const &)*arg2);
 }
 
@@ -1005,14 +1005,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   jint arg2 ;
   std::vector< int >::value_type *arg3 = 0 ;
   std::vector< int >::value_type temp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
-  temp3 = (std::vector< int >::value_type)jarg3;
-  arg3 = &temp3;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
+  temp3 = (std::vector< int >::value_type)jarg3; 
+  arg3 = &temp3; 
   try {
     std_vector_Sl_int_Sg__doAdd__SWIG_1(arg1,SWIG_STD_MOVE(arg2),(int const &)*arg3);
   } catch(std::out_of_range &_e) {
@@ -1027,19 +1027,19 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   std::vector< int > *arg1 = 0 ;
   jint arg2 ;
   std::vector< int >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     result = (std::vector< int >::value_type)std_vector_Sl_int_Sg__doRemove(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1049,19 +1049,19 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   std::vector< int > *arg1 = 0 ;
   jint arg2 ;
   std::vector< int >::value_type *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
   try {
     result = (std::vector< int >::value_type *) &std_vector_Sl_int_Sg__doGet(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jint)*result;
+  jresult = (jint)*result; 
   return jresult;
 }
 
@@ -1073,21 +1073,21 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   std::vector< int >::value_type *arg3 = 0 ;
   std::vector< int >::value_type temp3 ;
   std::vector< int >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
-  temp3 = (std::vector< int >::value_type)jarg3;
-  arg3 = &temp3;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
+  temp3 = (std::vector< int >::value_type)jarg3; 
+  arg3 = &temp3; 
   try {
     result = (std::vector< int >::value_type)std_vector_Sl_int_Sg__doSet(arg1,SWIG_STD_MOVE(arg2),(int const &)*arg3);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1096,13 +1096,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
   std::vector< int > *arg1 = 0 ;
   jint arg2 ;
   jint arg3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(std::vector< int > **)&jarg1;
-  arg2 = jarg2;
-  arg3 = jarg3;
+  arg1 = *(std::vector< int > **)&jarg1; 
+  arg2 = jarg2; 
+  arg3 = jarg3; 
   try {
     std_vector_Sl_int_Sg__doRemoveRange(arg1,SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3));
   } catch(std::out_of_range &_e) {
@@ -1114,10 +1114,10 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_IntVector_1do
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1IntVector(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   std::vector< int > *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(std::vector< int > **)&jarg1;
+  arg1 = *(std::vector< int > **)&jarg1; 
   delete arg1;
 }
 
@@ -1125,13 +1125,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1IntVe
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1FloatVector_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (std::vector< float > *)new std::vector< float >();
-
+  
   *(std::shared_ptr<  std::vector<float> > **)&jresult = result ? new std::shared_ptr<  std::vector<float> >(result SWIG_NO_NULL_DELETER_1) : 0;
-
+  
   return jresult;
 }
 
@@ -1140,20 +1140,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1FloatVe
   jlong jresult = 0 ;
   std::vector< float > *arg1 = 0 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
+  } 
   result = (std::vector< float > *)new std::vector< float >((std::vector< float > const &)*arg1);
-
+  
   *(std::shared_ptr<  std::vector<float> > **)&jresult = result ? new std::shared_ptr<  std::vector<float> >(result SWIG_NO_NULL_DELETER_1) : 0;
-
+  
   return jresult;
 }
 
@@ -1163,15 +1163,15 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVect
   std::vector< float > *arg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
   result = (bool)((std::vector< float > const *)arg1)->empty();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -1179,13 +1179,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVect
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1clear(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   std::vector< float > *arg1 = 0 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
   (arg1)->clear();
 }
 
@@ -1196,21 +1196,21 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1FloatVe
   float *arg2 = 0 ;
   float temp2 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = jarg1;
-  temp2 = (float)jarg2;
-  arg2 = &temp2;
+  arg1 = jarg1; 
+  temp2 = (float)jarg2; 
+  arg2 = &temp2; 
   try {
     result = (std::vector< float > *)new_std_vector_Sl_float_Sg___SWIG_2(SWIG_STD_MOVE(arg1),(float const &)*arg2);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-
+  
   *(std::shared_ptr<  std::vector<float> > **)&jresult = result ? new std::shared_ptr<  std::vector<float> >(result SWIG_NO_NULL_DELETER_1) : 0;
-
+  
   return jresult;
 }
 
@@ -1220,20 +1220,20 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   std::vector< float > *arg1 = 0 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
   try {
     result = std_vector_Sl_float_Sg__doCapacity(arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -1242,14 +1242,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   std::vector< float > *arg1 = 0 ;
   jint arg2 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
   try {
     std_vector_Sl_float_Sg__doReserve(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::length_error &_e) {
@@ -1267,20 +1267,20 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   std::vector< float > *arg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *smartarg1 = 0 ;
   jint result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
   try {
     result = std_vector_Sl_float_Sg__doSize((std::vector< float > const *)arg1);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = result;
+  jresult = result; 
   return jresult;
 }
 
@@ -1290,15 +1290,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   std::vector< float >::value_type *arg2 = 0 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   std::vector< float >::value_type temp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  temp2 = (std::vector< float >::value_type)jarg2;
-  arg2 = &temp2;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  temp2 = (std::vector< float >::value_type)jarg2; 
+  arg2 = &temp2; 
   std_vector_Sl_float_Sg__doAdd__SWIG_0(arg1,(float const &)*arg2);
 }
 
@@ -1309,16 +1309,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   std::vector< float >::value_type *arg3 = 0 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   std::vector< float >::value_type temp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
-  temp3 = (std::vector< float >::value_type)jarg3;
-  arg3 = &temp3;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
+  temp3 = (std::vector< float >::value_type)jarg3; 
+  arg3 = &temp3; 
   try {
     std_vector_Sl_float_Sg__doAdd__SWIG_1(arg1,SWIG_STD_MOVE(arg2),(float const &)*arg3);
   } catch(std::out_of_range &_e) {
@@ -1334,21 +1334,21 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector
   jint arg2 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   std::vector< float >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
   try {
     result = (std::vector< float >::value_type)std_vector_Sl_float_Sg__doRemove(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -1359,21 +1359,21 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector
   jint arg2 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   std::vector< float >::value_type *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
   try {
     result = (std::vector< float >::value_type *) &std_vector_Sl_float_Sg__doGet(arg1,SWIG_STD_MOVE(arg2));
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jfloat)*result;
+  jresult = (jfloat)*result; 
   return jresult;
 }
 
@@ -1386,23 +1386,23 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
   std::vector< float >::value_type temp3 ;
   std::vector< float >::value_type result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
-  temp3 = (std::vector< float >::value_type)jarg3;
-  arg3 = &temp3;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
+  temp3 = (std::vector< float >::value_type)jarg3; 
+  arg3 = &temp3; 
   try {
     result = (std::vector< float >::value_type)std_vector_Sl_float_Sg__doSet(arg1,SWIG_STD_MOVE(arg2),(float const &)*arg3);
   } catch(std::out_of_range &_e) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, (&_e)->what());
     return 0;
   }
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -1412,15 +1412,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
   jint arg2 ;
   jint arg3 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = jarg2;
-  arg3 = jarg3;
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = jarg2; 
+  arg3 = jarg3; 
   try {
     std_vector_Sl_float_Sg__doRemoveRange(arg1,SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3));
   } catch(std::out_of_range &_e) {
@@ -1433,12 +1433,12 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_FloatVector_1
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1FloatVector(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   std::vector< float > *arg1 = 0 ;
   std::shared_ptr< std::vector< float > > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-
+  
   smartarg1 = *(std::shared_ptr<  std::vector<float> > **)&jarg1;
-  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (std::vector<float> *)(smartarg1 ? smartarg1->get() : 0); 
   (void)arg1; delete smartarg1;
 }
 
@@ -1447,7 +1447,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_openFile(JNI
   jlong jresult = 0 ;
   char *arg1 = 0 ;
   std::ostream *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = 0;
@@ -1456,7 +1456,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_openFile(JNI
     if (!arg1) return 0;
   }
   result = (std::ostream *)openFile((char const *)arg1);
-  *(std::ostream **)&jresult = result;
+  *(std::ostream **)&jresult = result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   return jresult;
 }
@@ -1464,10 +1464,10 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_openFile(JNI
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_closeFile(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   std::ostream *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(std::ostream **)&jarg1;
+  arg1 = *(std::ostream **)&jarg1; 
   closeFile(arg1);
 }
 
@@ -1475,11 +1475,11 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_closeFile(JNI
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_PERFORM_1DEVELOPER_1CHECKS_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1487,11 +1487,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_PERFORM_1DEVE
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1ENABLE_1D3_1CHART_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(1);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1499,11 +1499,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1EN
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1ENABLE_1URI_1SPECTRA_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1511,11 +1511,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1EN
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1USE_1WT_1THREADPOOL_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1523,11 +1523,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1US
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1USING_1NO_1THREADING_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1535,11 +1535,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1US
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1D3_1SUPPORT_1FILE_1STATIC_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(1);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1547,11 +1547,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1D3
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1INJA_1TEMPLATES_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1559,11 +1559,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1IN
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1BUILD_1FUZZING_1TESTS_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1571,11 +1571,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1BU
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1PYTHON_1BINDINGS_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1583,11 +1583,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1PY
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1JAVA_1SWIG_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(1);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1595,11 +1595,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1JA
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1USE_1SIMD_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1607,11 +1607,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1US
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1ENABLE_1EQUALITY_1CHECKS_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1619,11 +1619,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1EN
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecUtils_1USE_1FROM_1CHARS_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(0);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1632,10 +1632,10 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_descriptio
   jstring jresult = 0 ;
   SpecUtils::SpectrumType arg1 ;
   char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (SpecUtils::SpectrumType)jarg1;
+  arg1 = (SpecUtils::SpectrumType)jarg1; 
   result = (char *)SpecUtils::descriptionText(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
@@ -1646,7 +1646,7 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrumTypeF
   jint jresult = 0 ;
   char *arg1 = 0 ;
   SpecUtils::SpectrumType result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = 0;
@@ -1655,7 +1655,7 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrumTypeF
     if (!arg1) return 0;
   }
   result = (SpecUtils::SpectrumType)SpecUtils::spectrumTypeFromDescription((char const *)arg1);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   return jresult;
 }
@@ -1665,10 +1665,10 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_suggestedN
   jstring jresult = 0 ;
   SpecUtils::SaveSpectrumAsType arg1 ;
   char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (SpecUtils::SaveSpectrumAsType)jarg1;
+  arg1 = (SpecUtils::SaveSpectrumAsType)jarg1; 
   result = (char *)SpecUtils::suggestedNameEnding(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
@@ -1679,10 +1679,10 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_descriptio
   jstring jresult = 0 ;
   SpecUtils::SaveSpectrumAsType arg1 ;
   char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (SpecUtils::SaveSpectrumAsType)jarg1;
+  arg1 = (SpecUtils::SaveSpectrumAsType)jarg1; 
   result = (char *)SpecUtils::descriptionText(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
@@ -1693,7 +1693,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_is_1candi
   jboolean jresult = 0 ;
   char *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = 0;
@@ -1702,7 +1702,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_is_1candi
     if (!arg1) return 0;
   }
   result = (bool)SpecUtils::is_candidate_n42_file((char const *)arg1);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   return jresult;
 }
@@ -1713,7 +1713,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_is_1candi
   char *arg1 = (char *)0 ;
   char *arg2 = (char *)0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = 0;
@@ -1727,7 +1727,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_is_1candi
     if (!arg2) return 0;
   }
   result = (bool)SpecUtils::is_candidate_n42_file((char const *)arg1,(char const *)arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
@@ -1739,7 +1739,7 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_convert_1n
   char *arg1 = 0 ;
   char *arg2 = (char *)0 ;
   char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = 0;
@@ -1764,7 +1764,7 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_add_1analysis
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   ::rapidxml::xml_node< char > *arg2 = 0 ;
   std::mutex *arg3 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
@@ -1772,13 +1772,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_add_1analysis
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::DetectorAnalysis const & is null");
     return ;
-  }
-  arg2 = *(::rapidxml::xml_node< char > **)&jarg2;
+  } 
+  arg2 = *(::rapidxml::xml_node< char > **)&jarg2; 
   arg3 = *(std::mutex **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::mutex & is null");
     return ;
-  }
+  } 
   SpecUtils::add_analysis_results_to_2012_N42((SpecUtils::DetectorAnalysis const &)*arg1,arg2,*arg3);
 }
 
@@ -1786,16 +1786,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_add_1analysis
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_set_1analysis_1info_1from_1n42(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jobject jarg2_) {
   rapidxml::xml_node< char > *arg1 = 0 ;
   SpecUtils::DetectorAnalysis *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = *(rapidxml::xml_node< char > **)&jarg1;
+  arg1 = *(rapidxml::xml_node< char > **)&jarg1; 
   arg2 = *(SpecUtils::DetectorAnalysis **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::DetectorAnalysis & is null");
     return ;
-  }
+  } 
   SpecUtils::set_analysis_info_from_n42((rapidxml::xml_node< char > const *)arg1,*arg2);
 }
 
@@ -1807,15 +1807,15 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_gamma_1int
   float arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > tempnull1 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = jarg1 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg1 : &tempnull1;
-  arg2 = (float)jarg2;
-  arg3 = (float)jarg3;
+  arg1 = jarg1 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg1 : &tempnull1; 
+  arg2 = (float)jarg2; 
+  arg3 = (float)jarg3; 
   result = (double)SpecUtils::gamma_integral((std::shared_ptr< SpecUtils::Measurement const > const &)*arg1,arg2,arg3);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -1824,12 +1824,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_detectorTy
   jstring jresult = 0 ;
   SpecUtils::DetectorType arg1 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (SpecUtils::DetectorType)jarg1;
+  arg1 = (SpecUtils::DetectorType)jarg1; 
   result = (std::string *) &SpecUtils::detectorTypeToString(arg1);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -1837,13 +1837,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_detectorTy
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1Measurement(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::Measurement *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement *)new SpecUtils::Measurement();
-
+  
   *(std::shared_ptr<  SpecUtils::Measurement > **)&jresult = result ? new std::shared_ptr<  SpecUtils::Measurement >(result SWIG_NO_NULL_DELETER_1) : 0;
-
+  
   return jresult;
 }
 
@@ -1854,22 +1854,22 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
   SpecUtils::Measurement *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  
   arg2 = (SpecUtils::Measurement *)((*(std::shared_ptr< const SpecUtils::Measurement > **)&jarg2) ? (*(std::shared_ptr< const SpecUtils::Measurement > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::Measurement const & reference is null");
     return 0;
-  }
+  } 
   result = (SpecUtils::Measurement *) &(arg1)->operator =((SpecUtils::Measurement const &)*arg2);
-  *(std::shared_ptr< const SpecUtils::Measurement > **)&jresult = new std::shared_ptr< const SpecUtils::Measurement >(result SWIG_NO_NULL_DELETER_0);
+  *(std::shared_ptr< const SpecUtils::Measurement > **)&jresult = new std::shared_ptr< const SpecUtils::Measurement >(result SWIG_NO_NULL_DELETER_0); 
   return jresult;
 }
 
@@ -1879,15 +1879,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->memmorysize();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -1897,15 +1897,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->live_time();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -1915,15 +1915,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->real_time();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -1933,15 +1933,15 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (bool)((SpecUtils::Measurement const *)arg1)->contained_neutron();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -1951,15 +1951,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (int)((SpecUtils::Measurement const *)arg1)->sample_number();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -1969,15 +1969,15 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::string *) &((SpecUtils::Measurement const *)arg1)->title();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -1987,15 +1987,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::OccupancyStatus result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (SpecUtils::OccupancyStatus)((SpecUtils::Measurement const *)arg1)->occupied();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -2005,15 +2005,15 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (double)((SpecUtils::Measurement const *)arg1)->gamma_count_sum();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2023,15 +2023,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->neutron_live_time();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2041,15 +2041,15 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (double)((SpecUtils::Measurement const *)arg1)->neutron_counts_sum();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2059,15 +2059,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->speed();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2077,15 +2077,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->dx();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2095,15 +2095,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->dy();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2113,15 +2113,15 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (double)((SpecUtils::Measurement const *)arg1)->latitude();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2131,15 +2131,15 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (double)((SpecUtils::Measurement const *)arg1)->longitude();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2149,15 +2149,15 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (bool)((SpecUtils::Measurement const *)arg1)->has_gps_info();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -2167,15 +2167,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->dose_rate();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2185,15 +2185,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->exposure_rate();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2203,15 +2203,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::time_point_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->position_time();
-  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result);
+  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result); 
   return jresult;
 }
 
@@ -2221,15 +2221,15 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::string *) &((SpecUtils::Measurement const *)arg1)->detector_name();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -2239,15 +2239,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (int)((SpecUtils::Measurement const *)arg1)->detector_number();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -2257,15 +2257,15 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::string *) &((SpecUtils::Measurement const *)arg1)->detector_type();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -2275,15 +2275,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::QualityStatus result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (SpecUtils::QualityStatus)((SpecUtils::Measurement const *)arg1)->quality_status();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -2293,15 +2293,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::SourceType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (SpecUtils::SourceType)((SpecUtils::Measurement const *)arg1)->source_type();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -2311,15 +2311,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::vector< std::string > *) &((SpecUtils::Measurement const *)arg1)->remarks();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -2329,15 +2329,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::vector< std::string > *) &((SpecUtils::Measurement const *)arg1)->parse_warnings();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -2347,15 +2347,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::time_point_t *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (SpecUtils::time_point_t *) &((SpecUtils::Measurement const *)arg1)->start_time();
-  *(SpecUtils::time_point_t **)&jresult = result;
+  *(SpecUtils::time_point_t **)&jresult = result; 
   return jresult;
 }
 
@@ -2365,15 +2365,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::time_point_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->start_time_copy();
-  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result);
+  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result); 
   return jresult;
 }
 
@@ -2383,15 +2383,15 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SpecUtils::EnergyCalType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (SpecUtils::EnergyCalType)((SpecUtils::Measurement const *)arg1)->energy_calibration_model();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -2401,15 +2401,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::vector< float > *) &((SpecUtils::Measurement const *)arg1)->calibration_coeffs();
-  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0);
+  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0); 
   return jresult;
 }
 
@@ -2419,15 +2419,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::vector< std::pair< float,float > > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::vector< std::pair< float,float > > *) &((SpecUtils::Measurement const *)arg1)->deviation_pairs();
-  *(std::vector< std::pair< float,float > > **)&jresult = result;
+  *(std::vector< std::pair< float,float > > **)&jresult = result; 
   return jresult;
 }
 
@@ -2437,15 +2437,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   SwigValueWrapper< std::shared_ptr< SpecUtils::EnergyCalibration const > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->energy_calibration();
-  *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration const >(result);
+  *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration const >(result); 
   return jresult;
 }
 
@@ -2455,15 +2455,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::shared_ptr< std::vector< float > const > *) &((SpecUtils::Measurement const *)arg1)->channel_energies();
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0; 
   return jresult;
 }
 
@@ -2473,15 +2473,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::shared_ptr< std::vector< float > const > *) &((SpecUtils::Measurement const *)arg1)->gamma_counts();
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0; 
   return jresult;
 }
 
@@ -2491,15 +2491,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::vector< float > *) &((SpecUtils::Measurement const *)arg1)->neutron_counts();
-  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0);
+  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0); 
   return jresult;
 }
 
@@ -2509,15 +2509,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::shared_ptr< SpecUtils::LocationState const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::shared_ptr< SpecUtils::LocationState const > *) &((SpecUtils::Measurement const *)arg1)->location_state();
-  *(std::shared_ptr< SpecUtils::LocationState const > **)&jresult = result;
+  *(std::shared_ptr< SpecUtils::LocationState const > **)&jresult = result; 
   return jresult;
 }
 
@@ -2526,22 +2526,22 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::string *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_title((std::string const &)*arg2);
 }
 
@@ -2550,18 +2550,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   SpecUtils::time_point_t *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(SpecUtils::time_point_t **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::time_point_t const & is null");
     return ;
-  }
+  } 
   (arg1)->set_start_time((SpecUtils::time_point_t const &)*arg2);
 }
 
@@ -2570,19 +2570,19 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_remarks((std::vector< std::string > const &)*arg2);
 }
 
@@ -2591,19 +2591,19 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_parse_warnings((std::vector< std::string > const &)*arg2);
 }
 
@@ -2612,14 +2612,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   SpecUtils::SourceType arg2 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (SpecUtils::SourceType)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (SpecUtils::SourceType)jarg2; 
   (arg1)->set_source_type(arg2);
 }
 
@@ -2631,21 +2631,21 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::time_point_t arg4 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
   SpecUtils::time_point_t *argp4 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (double)jarg2;
-  arg3 = (double)jarg3;
-  argp4 = *(SpecUtils::time_point_t **)&jarg4;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (double)jarg2; 
+  arg3 = (double)jarg3; 
+  argp4 = *(SpecUtils::time_point_t **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null SpecUtils::time_point_t");
     return ;
   }
-  arg4 = *argp4;
+  arg4 = *argp4; 
   (arg1)->set_position(arg2,arg3,SWIG_STD_MOVE(arg4));
 }
 
@@ -2654,14 +2654,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   int arg2 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (int)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (int)jarg2; 
   (arg1)->set_sample_number(arg2);
 }
 
@@ -2670,14 +2670,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   SpecUtils::OccupancyStatus arg2 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (SpecUtils::OccupancyStatus)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (SpecUtils::OccupancyStatus)jarg2; 
   (arg1)->set_occupancy_status(arg2);
 }
 
@@ -2686,22 +2686,22 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::string *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_detector_name((std::string const &)*arg2);
 }
 
@@ -2710,14 +2710,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   int arg2 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (int)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (int)jarg2; 
   (arg1)->set_detector_number(arg2);
 }
 
@@ -2729,18 +2729,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   float arg4 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *argp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   argp2 = *(std::shared_ptr< std::vector< float > const > **)&jarg2;
-  if (argp2) arg2 = *argp2;
-  arg3 = (float)jarg3;
-  arg4 = (float)jarg4;
+  if (argp2) arg2 = *argp2; 
+  arg3 = (float)jarg3; 
+  arg4 = (float)jarg4; 
   (arg1)->set_gamma_counts(SWIG_STD_MOVE(arg2),arg3,arg4);
 }
 
@@ -2750,21 +2750,21 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   std::vector< float > *arg2 = 0 ;
   float arg3 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
-  arg3 = (float)jarg3;
+  } 
+  arg3 = (float)jarg3; 
   (arg1)->set_neutron_counts((std::vector< float > const &)*arg2,arg3);
 }
 
@@ -2774,15 +2774,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->num_gamma_channels();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -2793,16 +2793,16 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   float arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (float)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (float)jarg2; 
   result = ((SpecUtils::Measurement const *)arg1)->find_gamma_channel(arg2);
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -2813,16 +2813,16 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_channel_content(SWIG_STD_MOVE(arg2));
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2833,16 +2833,16 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_channel_lower(SWIG_STD_MOVE(arg2));
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2853,16 +2853,16 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_channel_center(SWIG_STD_MOVE(arg2));
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2873,16 +2873,16 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_channel_upper(SWIG_STD_MOVE(arg2));
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2893,16 +2893,16 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_channel_width(SWIG_STD_MOVE(arg2));
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -2914,17 +2914,17 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   float arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (float)jarg2;
-  arg3 = (float)jarg3;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (float)jarg2; 
+  arg3 = (float)jarg3; 
   result = (double)((SpecUtils::Measurement const *)arg1)->gamma_integral(arg2,arg3);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2936,17 +2936,17 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measuremen
   size_t arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
-  arg3 = (size_t)jarg3;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
+  arg3 = (size_t)jarg3; 
   result = (double)((SpecUtils::Measurement const *)arg1)->gamma_channels_sum(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3));
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -2956,15 +2956,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::shared_ptr< std::vector< float > const > *) &((SpecUtils::Measurement const *)arg1)->gamma_channel_energies();
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0; 
   return jresult;
 }
 
@@ -2974,15 +2974,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (std::shared_ptr< std::vector< float > const > *) &((SpecUtils::Measurement const *)arg1)->gamma_channel_contents();
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0; 
   return jresult;
 }
 
@@ -2992,15 +2992,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_energy_min();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -3010,15 +3010,15 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = (float)((SpecUtils::Measurement const *)arg1)->gamma_energy_max();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -3026,11 +3026,11 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1IsDerived_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::IsDerived;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3038,11 +3038,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1ItemOfInterestSum_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::ItemOfInterestSum;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3050,11 +3050,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1UsedForAnalysis_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::UsedForAnalysis;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3062,11 +3062,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1ProcessedFurther_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::ProcessedFurther;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3074,11 +3074,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1BackgroundSubtracted_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::BackgroundSubtracted;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3086,11 +3086,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1DerivedDataProperties_1IsBackground_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::Measurement::DerivedDataProperties result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::Measurement::DerivedDataProperties)SpecUtils::Measurement::DerivedDataProperties::IsBackground;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3100,15 +3100,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   uint32_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   result = ((SpecUtils::Measurement const *)arg1)->derived_data_properties();
-  *(uint32_t **)&jresult = new uint32_t(result);
+  *(uint32_t **)&jresult = new uint32_t(result); 
   return jresult;
 }
 
@@ -3119,20 +3119,20 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
   std::ostream *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::Measurement const *)arg1)->write_2006_N42_xml(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3143,20 +3143,20 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
   std::ostream *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::Measurement const *)arg1)->write_csv(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3167,20 +3167,20 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
   std::ostream *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *smartarg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr< const SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::Measurement const *)arg1)->write_txt(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3188,13 +3188,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measureme
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1reset(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   (arg1)->reset();
 }
 
@@ -3203,14 +3203,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
   (arg1)->combine_gamma_channels(SWIG_STD_MOVE(arg2));
 }
 
@@ -3221,16 +3221,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   size_t arg3 ;
   bool arg4 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = (size_t)jarg2;
-  arg3 = (size_t)jarg3;
-  arg4 = jarg4 ? true : false;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = (size_t)jarg2; 
+  arg3 = (size_t)jarg3; 
+  arg4 = jarg4 ? true : false; 
   (arg1)->truncate_gamma_channels(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),arg4);
 }
 
@@ -3239,18 +3239,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return ;
-  }
+  } 
   (arg1)->rebin((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2);
 }
 
@@ -3259,18 +3259,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_energy_calibration((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2);
 }
 
@@ -3279,14 +3279,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
   SpecUtils::Measurement *arg1 = 0 ;
   rapidxml::xml_node< char > *arg2 = (rapidxml::xml_node< char > *)0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
-  arg2 = *(rapidxml::xml_node< char > **)&jarg2;
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
+  arg2 = *(rapidxml::xml_node< char > **)&jarg2; 
   (arg1)->set_info_from_2006_N42_spectrum_node((rapidxml::xml_node< char > const *)arg2);
 }
 
@@ -3294,12 +3294,12 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Measurement_1
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1Measurement(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::Measurement *arg1 = 0 ;
   std::shared_ptr< SpecUtils::Measurement > *smartarg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-
+  
   smartarg1 = *(std::shared_ptr<  SpecUtils::Measurement > **)&jarg1;
-  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0);
+  arg1 = (SpecUtils::Measurement *)(smartarg1 ? smartarg1->get() : 0); 
   (void)arg1; delete smartarg1;
 }
 
@@ -3307,11 +3307,11 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1Measu
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1SpecFile_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::SpecFile *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::SpecFile *)new SpecUtils::SpecFile();
-  *(SpecUtils::SpecFile **)&jresult = result;
+  *(SpecUtils::SpecFile **)&jresult = result; 
   return jresult;
 }
 
@@ -3320,7 +3320,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1SpecFil
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::SpecFile *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
@@ -3328,19 +3328,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1SpecFil
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::SpecFile const & is null");
     return 0;
-  }
+  } 
   result = (SpecUtils::SpecFile *)new SpecUtils::SpecFile((SpecUtils::SpecFile const &)*arg1);
-  *(SpecUtils::SpecFile **)&jresult = result;
+  *(SpecUtils::SpecFile **)&jresult = result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1SpecFile(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   delete arg1;
 }
 
@@ -3350,19 +3350,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1op
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::SpecFile *arg2 = 0 ;
   SpecUtils::SpecFile *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(SpecUtils::SpecFile **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::SpecFile const & is null");
     return 0;
-  }
+  } 
   result = (SpecUtils::SpecFile *) &(arg1)->operator =((SpecUtils::SpecFile const &)*arg2);
-  *(SpecUtils::SpecFile **)&jresult = result;
+  *(SpecUtils::SpecFile **)&jresult = result; 
   return jresult;
 }
 
@@ -3374,31 +3374,31 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::ParserType arg3 ;
   std::string arg4 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
-  arg3 = (SpecUtils::ParserType)jarg3;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  arg3 = (SpecUtils::ParserType)jarg3; 
   if(!jarg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  }
-  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0);
+  } 
+  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0); 
   if (!arg4_pstr) return 0;
   (&arg4)->assign(arg4_pstr);
-  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr);
+  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr); 
   result = (bool)(arg1)->load_file((std::string const &)*arg2,arg3,SWIG_STD_MOVE(arg4));
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3407,13 +3407,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1pa
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::string > *) &((SpecUtils::SpecFile const *)arg1)->parse_warnings();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -3422,24 +3422,24 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->modified();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1reset_1modified(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->reset_modified();
 }
 
@@ -3448,24 +3448,24 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->modified_since_decode();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1reset_1modified_1since_1decode(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->reset_modified_since_decode();
 }
 
@@ -3474,13 +3474,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1g
   jfloat jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (float)((SpecUtils::SpecFile const *)arg1)->gamma_live_time();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -3489,13 +3489,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1g
   jfloat jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (float)((SpecUtils::SpecFile const *)arg1)->gamma_real_time();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -3504,13 +3504,13 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jdouble jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (double)((SpecUtils::SpecFile const *)arg1)->gamma_count_sum();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -3519,13 +3519,13 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jdouble jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (double)((SpecUtils::SpecFile const *)arg1)->neutron_counts_sum();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -3534,13 +3534,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->filename();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3549,13 +3549,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1de
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::string > *) &((SpecUtils::SpecFile const *)arg1)->detector_names();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -3564,13 +3564,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1de
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< int > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< int > *) &((SpecUtils::SpecFile const *)arg1)->detector_numbers();
-  *(std::vector< int > **)&jresult = result;
+  *(std::vector< int > **)&jresult = result; 
   return jresult;
 }
 
@@ -3579,13 +3579,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ga
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::string > *) &((SpecUtils::SpecFile const *)arg1)->gamma_detector_names();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -3594,13 +3594,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ne
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::string > *) &((SpecUtils::SpecFile const *)arg1)->neutron_detector_names();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -3609,13 +3609,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->uuid();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3624,13 +3624,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1re
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::string > *) &((SpecUtils::SpecFile const *)arg1)->remarks();
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -3639,13 +3639,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1lan
   jint jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (int)((SpecUtils::SpecFile const *)arg1)->lane_number();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3654,13 +3654,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->measurement_location_name();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3669,13 +3669,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->inspection();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3684,13 +3684,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->measurement_operator();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3699,13 +3699,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1sa
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::set< int > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::set< int > *) &((SpecUtils::SpecFile const *)arg1)->sample_numbers();
-  *(std::set< int > **)&jresult = result;
+  *(std::set< int > **)&jresult = result; 
   return jresult;
 }
 
@@ -3714,13 +3714,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1nu
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->num_measurements();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -3729,13 +3729,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1det
   jint jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::DetectorType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (SpecUtils::DetectorType)((SpecUtils::SpecFile const *)arg1)->detector_type();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -3744,13 +3744,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->instrument_type();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3759,13 +3759,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->manufacturer();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3774,13 +3774,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->instrument_model();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3789,13 +3789,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::string *) &((SpecUtils::SpecFile const *)arg1)->instrument_id();
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -3804,13 +3804,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1me
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SwigValueWrapper< std::vector< std::shared_ptr< SpecUtils::Measurement const > > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->measurements();
-  *(std::vector< std::shared_ptr< SpecUtils::Measurement const > > **)&jresult = new std::vector< std::shared_ptr< SpecUtils::Measurement const > >(result);
+  *(std::vector< std::shared_ptr< SpecUtils::Measurement const > > **)&jresult = new std::vector< std::shared_ptr< SpecUtils::Measurement const > >(result); 
   return jresult;
 }
 
@@ -3820,14 +3820,14 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1me
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
   result = ((SpecUtils::SpecFile const *)arg1)->measurement(SWIG_STD_MOVE(arg2));
-  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0;
+  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0; 
   return jresult;
 }
 
@@ -3836,13 +3836,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1de
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SwigValueWrapper< std::shared_ptr< SpecUtils::DetectorAnalysis const > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->detectors_analysis();
-  *(std::shared_ptr< SpecUtils::DetectorAnalysis const > **)&jresult = new std::shared_ptr< SpecUtils::DetectorAnalysis const >(result);
+  *(std::shared_ptr< SpecUtils::DetectorAnalysis const > **)&jresult = new std::shared_ptr< SpecUtils::DetectorAnalysis const >(result); 
   return jresult;
 }
 
@@ -3851,13 +3851,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1mu
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > *) &((SpecUtils::SpecFile const *)arg1)->multimedia_data();
-  *(std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > **)&jresult = result;
+  *(std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > **)&jresult = result; 
   return jresult;
 }
 
@@ -3866,13 +3866,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->has_gps_info();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3881,13 +3881,13 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jdouble jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (double)((SpecUtils::SpecFile const *)arg1)->mean_latitude();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -3896,13 +3896,13 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jdouble jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (double)((SpecUtils::SpecFile const *)arg1)->mean_longitude();
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -3911,13 +3911,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->passthrough();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3926,13 +3926,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->contains_derived_data();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3941,13 +3941,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->contains_non_derived_data();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -3955,20 +3955,20 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1filename(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_filename((std::string const &)*arg2);
 }
 
@@ -3976,17 +3976,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1remarks_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_remarks((std::vector< std::string > const &)*arg2);
 }
 
@@ -3994,20 +3994,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1add_1remark(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->add_remark((std::string const &)*arg2);
 }
 
@@ -4015,17 +4015,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1add
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1parse_1warnings(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_parse_warnings((std::vector< std::string > const &)*arg2);
 }
 
@@ -4033,20 +4033,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1uuid(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_uuid((std::string const &)*arg2);
 }
 
@@ -4054,12 +4054,12 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1lane_1number(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   int arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (int)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (int)jarg2; 
   (arg1)->set_lane_number(arg2);
 }
 
@@ -4067,20 +4067,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1measurement_1location_1name(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_measurement_location_name((std::string const &)*arg2);
 }
 
@@ -4088,20 +4088,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1inspection(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_inspection((std::string const &)*arg2);
 }
 
@@ -4109,20 +4109,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1instrument_1type(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_instrument_type((std::string const &)*arg2);
 }
 
@@ -4130,12 +4130,12 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1detector_1type(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::DetectorType arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (SpecUtils::DetectorType)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (SpecUtils::DetectorType)jarg2; 
   (arg1)->set_detector_type(arg2);
 }
 
@@ -4143,20 +4143,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1manufacturer(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_manufacturer((std::string const &)*arg2);
 }
 
@@ -4164,20 +4164,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1instrument_1model(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_instrument_model((std::string const &)*arg2);
 }
 
@@ -4185,20 +4185,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1instrument_1id(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   (arg1)->set_instrument_id((std::string const &)*arg2);
 }
 
@@ -4208,15 +4208,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   float arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (float)jarg2; 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_live_time(arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4226,15 +4226,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   float arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (float)jarg2; 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_real_time(arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4244,19 +4244,19 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   SpecUtils::time_point_t *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(SpecUtils::time_point_t **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::time_point_t const & is null");
     return ;
-  }
+  } 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_start_time((SpecUtils::time_point_t const &)*arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4266,20 +4266,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   std::vector< std::string > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
+  } 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_remarks((std::vector< std::string > const &)*arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4289,15 +4289,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   SpecUtils::SourceType arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (SpecUtils::SourceType)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (SpecUtils::SourceType)jarg2; 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_source_type(arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4310,22 +4310,22 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   std::shared_ptr< SpecUtils::Measurement const > arg5 ;
   SpecUtils::time_point_t *argp4 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp5 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg5_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (double)jarg2;
-  arg3 = (double)jarg3;
-  argp4 = *(SpecUtils::time_point_t **)&jarg4;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (double)jarg2; 
+  arg3 = (double)jarg3; 
+  argp4 = *(SpecUtils::time_point_t **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null SpecUtils::time_point_t");
     return ;
   }
-  arg4 = *argp4;
+  arg4 = *argp4; 
   argp5 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg5;
-  if (argp5) arg5 = *argp5;
+  if (argp5) arg5 = *argp5; 
   (arg1)->set_position(arg2,arg3,SWIG_STD_MOVE(arg4),SWIG_STD_MOVE(arg5));
 }
 
@@ -4335,23 +4335,23 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   std::string *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   argp3 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3;
-  if (argp3) arg3 = *argp3;
+  if (argp3) arg3 = *argp3; 
   (arg1)->set_title((std::string const &)*arg2,SWIG_STD_MOVE(arg3));
 }
 
@@ -4363,17 +4363,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   std::shared_ptr< SpecUtils::Measurement const > arg4 ;
   float arg5 ;
   std::shared_ptr< SpecUtils::Measurement const > const *argp4 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = jarg2 ? true : false;
-  arg3 = (float)jarg3;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
+  arg3 = (float)jarg3; 
   argp4 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg4;
-  if (argp4) arg4 = *argp4;
-  arg5 = (float)jarg5;
+  if (argp4) arg4 = *argp4; 
+  arg5 = (float)jarg5; 
   (arg1)->set_contained_neutrons(arg2,arg3,SWIG_STD_MOVE(arg4),arg5);
 }
 
@@ -4381,17 +4381,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1detectors_1analysis(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_) {
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::DetectorAnalysis *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(SpecUtils::DetectorAnalysis **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::DetectorAnalysis const & is null");
     return ;
-  }
+  } 
   (arg1)->set_detectors_analysis((SpecUtils::DetectorAnalysis const &)*arg2);
 }
 
@@ -4400,29 +4400,29 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cha
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   std::string *arg3 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return ;
   std::string arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   (arg1)->change_detector_name((std::string const &)*arg2,(std::string const &)*arg3);
 }
 
@@ -4430,16 +4430,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cha
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1change_1sample_1numbers(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::pair< int,int > > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::pair< int,int > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< int,int > > const & is null");
     return ;
-  }
+  } 
   (arg1)->change_sample_numbers((std::vector< std::pair< int,int > > const &)*arg2);
 }
 
@@ -4449,15 +4449,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1add
   std::shared_ptr< SpecUtils::Measurement > arg2 ;
   bool arg3 ;
   std::shared_ptr< SpecUtils::Measurement > *argp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   argp2 = *(std::shared_ptr< SpecUtils::Measurement > **)&jarg2;
-  if (argp2) arg2 = *argp2;
-  arg3 = jarg3 ? true : false;
+  if (argp2) arg2 = *argp2; 
+  arg3 = jarg3 ? true : false; 
   (arg1)->add_measurement(SWIG_STD_MOVE(arg2),arg3);
 }
 
@@ -4467,15 +4467,15 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1rem
   std::shared_ptr< SpecUtils::Measurement const > arg2 ;
   bool arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > *argp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   argp2 = *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg2;
-  if (argp2) arg2 = *argp2;
-  arg3 = jarg3 ? true : false;
+  if (argp2) arg2 = *argp2; 
+  arg3 = jarg3 ? true : false; 
   (arg1)->remove_measurement(SWIG_STD_MOVE(arg2),arg3);
 }
 
@@ -4483,27 +4483,27 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1rem
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1remove_1measurements(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::shared_ptr< SpecUtils::Measurement const > > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::shared_ptr< SpecUtils::Measurement const > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::shared_ptr< SpecUtils::Measurement const > > const & is null");
     return ;
-  }
+  } 
   (arg1)->remove_measurements((std::vector< std::shared_ptr< SpecUtils::Measurement const > > const &)*arg2);
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1clear_1multimedia_1data(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->clear_multimedia_data();
 }
 
@@ -4511,17 +4511,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cle
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1add_1multimedia_1data(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_) {
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::MultimediaData *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(SpecUtils::MultimediaData **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::MultimediaData const & is null");
     return ;
-  }
+  } 
   (arg1)->add_multimedia_data((SpecUtils::MultimediaData const &)*arg2);
 }
 
@@ -4529,16 +4529,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1add
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1multimedia_1data(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::shared_ptr< SpecUtils::MultimediaData const > > & is null");
     return ;
-  }
+  } 
   (arg1)->set_multimedia_data(*arg2);
 }
 
@@ -4549,15 +4549,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1co
   size_t arg2 ;
   size_t arg3 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
-  arg3 = (size_t)jarg3;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  arg3 = (size_t)jarg3; 
   result = (arg1)->combine_gamma_channels(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3));
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4567,14 +4567,14 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1com
   size_t arg2 ;
   std::shared_ptr< SpecUtils::Measurement const > *arg3 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > tempnull3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
-  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3; 
   (arg1)->combine_gamma_channels(SWIG_STD_MOVE(arg2),(std::shared_ptr< SpecUtils::Measurement const > const &)*arg3);
 }
 
@@ -4587,17 +4587,17 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1tr
   size_t arg4 ;
   bool arg5 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
-  arg3 = (size_t)jarg3;
-  arg4 = (size_t)jarg4;
-  arg5 = jarg5 ? true : false;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  arg3 = (size_t)jarg3; 
+  arg4 = (size_t)jarg4; 
+  arg5 = jarg5 ? true : false; 
   result = (arg1)->truncate_gamma_channels(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4),arg5);
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4609,16 +4609,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1tru
   bool arg4 ;
   std::shared_ptr< SpecUtils::Measurement const > *arg5 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > tempnull5 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg5_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
-  arg3 = (size_t)jarg3;
-  arg4 = jarg4 ? true : false;
-  arg5 = jarg5 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg5 : &tempnull5;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  arg3 = (size_t)jarg3; 
+  arg4 = jarg4 ? true : false; 
+  arg5 = jarg5 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg5 : &tempnull5; 
   (arg1)->truncate_gamma_channels(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),arg4,(std::shared_ptr< SpecUtils::Measurement const > const &)*arg5);
 }
 
@@ -4627,13 +4627,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1occ
   jint jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (int)((SpecUtils::SpecFile const *)arg1)->occupancy_number_from_remarks();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -4643,14 +4643,14 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1sa
   SpecUtils::SpecFile *arg1 = 0 ;
   int arg2 ;
   SwigValueWrapper< std::vector< std::shared_ptr< SpecUtils::Measurement const > > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (int)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (int)jarg2; 
   result = ((SpecUtils::SpecFile const *)arg1)->sample_measurements(arg2);
-  *(std::vector< std::shared_ptr< SpecUtils::Measurement const > > **)&jresult = new std::vector< std::shared_ptr< SpecUtils::Measurement const > >(result);
+  *(std::vector< std::shared_ptr< SpecUtils::Measurement const > > **)&jresult = new std::vector< std::shared_ptr< SpecUtils::Measurement const > >(result); 
   return jresult;
 }
 
@@ -4661,23 +4661,23 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1me
   int arg2 ;
   std::string *arg3 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (int)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (int)jarg2; 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return 0;
   std::string arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   result = ((SpecUtils::SpecFile const *)arg1)->measurement(arg2,(std::string const &)*arg3);
-  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0;
+  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0; 
   return jresult;
 }
 
@@ -4688,15 +4688,15 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1me
   int arg2 ;
   int arg3 ;
   std::shared_ptr< SpecUtils::Measurement const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (int)jarg2;
-  arg3 = (int)jarg3;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
   result = ((SpecUtils::SpecFile const *)arg1)->measurement(arg2,arg3);
-  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0;
+  *(std::shared_ptr< SpecUtils::Measurement const > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement const >(result) : 0; 
   return jresult;
 }
 
@@ -4707,24 +4707,24 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1su
   std::set< int > *arg2 = 0 ;
   std::vector< std::string > *arg3 = 0 ;
   SwigValueWrapper< std::shared_ptr< SpecUtils::EnergyCalibration const > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::set< int > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   arg3 = *(std::vector< std::string > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return 0;
-  }
+  } 
   result = ((SpecUtils::SpecFile const *)arg1)->suggested_sum_energy_calibration((std::set< int > const &)*arg2,(std::vector< std::string > const &)*arg3);
-  *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration const >(result);
+  *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration const >(result); 
   return jresult;
 }
 
@@ -4737,30 +4737,30 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1su
   SwigValueWrapper< std::shared_ptr< SpecUtils::EnergyCalibration const > > arg4 ;
   std::shared_ptr< SpecUtils::EnergyCalibration const > *argp4 ;
   std::shared_ptr< SpecUtils::Measurement > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::set< int > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   arg3 = *(std::vector< std::string > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return 0;
-  }
-  argp4 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg4;
+  } 
+  argp4 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::shared_ptr< SpecUtils::EnergyCalibration const >");
     return 0;
   }
-  arg4 = *argp4;
+  arg4 = *argp4; 
   result = ((SpecUtils::SpecFile const *)arg1)->sum_measurements((std::set< int > const &)*arg2,(std::vector< std::string > const &)*arg3,SWIG_STD_MOVE(arg4));
-  *(std::shared_ptr< SpecUtils::Measurement > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement >(result) : 0;
+  *(std::shared_ptr< SpecUtils::Measurement > **)&jresult = result ? new std::shared_ptr< SpecUtils::Measurement >(result) : 0; 
   return jresult;
 }
 
@@ -4769,13 +4769,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1me
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->memmorysize();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4784,13 +4784,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ga
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::set< size_t > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->gamma_channel_counts();
-  *(std::set< size_t > **)&jresult = new std::set< size_t >(result);
+  *(std::set< size_t > **)&jresult = new std::set< size_t >(result); 
   return jresult;
 }
 
@@ -4799,13 +4799,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1nu
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->num_gamma_channels();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4815,14 +4815,14 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ke
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t arg2 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (size_t)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (size_t)jarg2; 
   result = (arg1)->keep_n_bin_spectra_only(SWIG_STD_MOVE(arg2));
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4831,13 +4831,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   jboolean jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->contained_neutron();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -4846,13 +4846,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1en
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SwigValueWrapper< std::set< std::string > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->energy_cal_variants();
-  *(std::set< std::string > **)&jresult = new std::set< std::string >(result);
+  *(std::set< std::string > **)&jresult = new std::set< std::string >(result); 
   return jresult;
 }
 
@@ -4862,18 +4862,18 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ke
   SpecUtils::SpecFile *arg1 = 0 ;
   std::set< std::string > *arg2 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::set< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< std::string > const & is null");
     return 0;
-  }
+  } 
   result = (arg1)->keep_energy_cal_variants((std::set< std::string > const &)*arg2);
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4883,14 +4883,14 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ke
   SpecUtils::SpecFile *arg1 = 0 ;
   SpecUtils::SpecFile::DerivedVariantToKeep arg2 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (SpecUtils::SpecFile::DerivedVariantToKeep)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (SpecUtils::SpecFile::DerivedVariantToKeep)jarg2; 
   result = (arg1)->keep_derived_data_variant(arg2);
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4900,18 +4900,18 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1re
   SpecUtils::SpecFile *arg1 = 0 ;
   std::set< std::string > *arg2 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::set< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< std::string > const & is null");
     return 0;
-  }
+  } 
   result = (arg1)->remove_detectors_data((std::set< std::string > const &)*arg2);
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4920,13 +4920,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1re
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (arg1)->remove_neutron_measurements();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -4935,13 +4935,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1bac
   jint jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (int)((SpecUtils::SpecFile const *)arg1)->background_sample_number();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -4950,24 +4950,24 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1
   jstring jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->generate_psuedo_uuid();
-  jresult = jenv->NewStringUTF((&result)->c_str());
+  jresult = jenv->NewStringUTF((&result)->c_str()); 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1reset(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->reset();
 }
 
@@ -4977,22 +4977,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_N42_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5002,22 +5002,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_pcf_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5027,22 +5027,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_spc_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5052,22 +5052,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_chn_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5077,22 +5077,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_iaea_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5102,22 +5102,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_binary_exploranium_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5127,22 +5127,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_micro_raider_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5152,22 +5152,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_txt_or_csv_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5177,22 +5177,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_cnf_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5202,22 +5202,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_tracs_mps_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5227,22 +5227,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_aram_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5252,22 +5252,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_spectroscopic_daily_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5277,22 +5277,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_amptek_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5302,22 +5302,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_ortec_listmode_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5327,22 +5327,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_lsrm_spe_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5352,22 +5352,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_tka_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5377,22 +5377,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_multiact_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5402,22 +5402,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_phd_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5427,22 +5427,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_lzs_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5452,22 +5452,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_radiacode_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5477,22 +5477,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_xml_scan_data_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5502,22 +5502,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_json_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5527,22 +5527,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)(arg1)->load_caen_gxml_file((std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5552,18 +5552,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_N42(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5573,18 +5573,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   char *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return 0;
   }
   result = (bool)(arg1)->load_N42_from_data(arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
 }
@@ -5596,11 +5596,11 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   char *arg2 = 0 ;
   char *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
@@ -5612,7 +5612,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
     if (!arg3) return 0;
   }
   result = (bool)(arg1)->load_N42_from_data(arg2,arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   if (arg3) jenv->ReleaseStringUTFChars(jarg3, (const char *)arg3);
   return jresult;
@@ -5624,18 +5624,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_iaea_spc(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5645,18 +5645,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_binary_spc(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5666,14 +5666,14 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   rapidxml::xml_node< char > *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = *(rapidxml::xml_node< char > **)&jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = *(rapidxml::xml_node< char > **)&jarg2; 
   result = (bool)(arg1)->load_from_N42_document((rapidxml::xml_node< char > const *)arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5683,18 +5683,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   char *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return 0;
   }
   result = (bool)(arg1)->load_from_micro_raider_from_data((char const *)arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
 }
@@ -5705,18 +5705,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_binary_exploranium(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5726,18 +5726,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_pcf(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5747,18 +5747,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_txt_or_csv(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5768,18 +5768,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_Gr135_txt(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5789,18 +5789,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_spectroscopic_daily_file(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5810,18 +5810,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_srpm210_csv(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5831,18 +5831,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_D3S_raw(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5852,18 +5852,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_amptek_mca(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5873,18 +5873,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_ortec_listmode(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5894,18 +5894,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_lsrm_spe(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5915,18 +5915,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_tka(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5936,18 +5936,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_multiact(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5957,18 +5957,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_phd(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5978,18 +5978,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_lzs(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -5999,18 +5999,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_radiacode(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6020,18 +6020,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_radiacode_spectrogram(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6041,18 +6041,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_xml_scan_data(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6062,18 +6062,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_iaea(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6083,18 +6083,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_chn(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6104,18 +6104,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_cnf(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6125,18 +6125,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_tracs_mps(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6146,18 +6146,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_aram(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6167,18 +6167,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_json(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6188,18 +6188,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
+  } 
   result = (bool)(arg1)->load_from_caen_gxml(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6207,11 +6207,11 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1RebinToCommonBinning_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::SpecFile::CleanupAfterLoadFlags result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::SpecFile::CleanupAfterLoadFlags)SpecUtils::SpecFile::RebinToCommonBinning;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -6219,11 +6219,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1Reb
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1DontChangeOrReorderSamples_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::SpecFile::CleanupAfterLoadFlags result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::SpecFile::CleanupAfterLoadFlags)SpecUtils::SpecFile::DontChangeOrReorderSamples;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -6231,11 +6231,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1Don
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1ReorderSamplesByTime_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::SpecFile::CleanupAfterLoadFlags result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::SpecFile::CleanupAfterLoadFlags)SpecUtils::SpecFile::ReorderSamplesByTime;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -6243,11 +6243,11 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1Reo
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1StandardCleanup_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   SpecUtils::SpecFile::CleanupAfterLoadFlags result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::SpecFile::CleanupAfterLoadFlags)SpecUtils::SpecFile::StandardCleanup;
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -6255,45 +6255,45 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1Sta
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cleanup_1after_1load_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   unsigned int arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
-  arg2 = (unsigned int)jarg2;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
+  arg2 = (unsigned int)jarg2; 
   (arg1)->cleanup_after_load(arg2);
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cleanup_1after_1load_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->cleanup_after_load();
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1recalc_1total_1counts(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->recalc_total_counts();
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1merge_1neutron_1meas_1into_1gamma_1meas(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::SpecFile *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   (arg1)->merge_neutron_meas_into_gamma_meas();
 }
 
@@ -6303,18 +6303,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1reb
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *arg3 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > tempnull3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return ;
-  }
-  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3;
+  } 
+  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3; 
   (arg1)->rebin_measurement((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2,(std::shared_ptr< SpecUtils::Measurement const > const &)*arg3);
 }
 
@@ -6322,16 +6322,16 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1reb
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1rebin_1all_1measurements(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return ;
-  }
+  } 
   (arg1)->rebin_all_measurements((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2);
 }
 
@@ -6341,18 +6341,18 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > *arg3 = 0 ;
   std::shared_ptr< SpecUtils::Measurement const > tempnull3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return ;
-  }
-  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3;
+  } 
+  arg3 = jarg3 ? *(std::shared_ptr< SpecUtils::Measurement const > **)&jarg3 : &tempnull3; 
   (arg1)->set_energy_calibration((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2,(std::shared_ptr< SpecUtils::Measurement const > const &)*arg3);
 }
 
@@ -6366,31 +6366,31 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1se
   std::set< int > *argp3 ;
   std::vector< std::string > *argp4 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
-  argp4 = *(std::vector< std::string > **)&jarg4;
+  arg3 = *argp3; 
+  argp4 = *(std::vector< std::string > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::vector< std::string >");
     return 0;
   }
-  arg4 = *argp4;
+  arg4 = *argp4; 
   result = (arg1)->set_energy_calibration((std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2,SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4));
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -6398,16 +6398,16 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1se
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1set_1energy_1calibration_1from_1CALp_1file(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::SpecFile *arg1 = 0 ;
   std::istream *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::istream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return ;
-  }
+  } 
   (arg1)->set_energy_calibration_from_CALp_file(*arg2);
 }
 
@@ -6417,19 +6417,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1de
   SpecUtils::SpecFile *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
   std::set< int > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::vector< std::string > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return 0;
-  }
+  } 
   result = ((SpecUtils::SpecFile const *)arg1)->detector_names_to_numbers((std::vector< std::string > const &)*arg2);
-  *(std::set< int > **)&jresult = new std::set< int >(result);
+  *(std::set< int > **)&jresult = new std::set< int >(result); 
   return jresult;
 }
 
@@ -6438,20 +6438,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   SpecUtils::SpecFile *arg1 = 0 ;
   std::string arg2 ;
   SpecUtils::SaveSpectrumAsType arg3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
-  }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  } 
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   (&arg2)->assign(arg2_pstr);
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
-  arg3 = (SpecUtils::SaveSpectrumAsType)jarg3;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  arg3 = (SpecUtils::SaveSpectrumAsType)jarg3; 
   ((SpecUtils::SpecFile const *)arg1)->write_to_file(SWIG_STD_MOVE(arg2),arg3);
 }
 
@@ -6464,32 +6464,32 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   SpecUtils::SaveSpectrumAsType arg5 ;
   std::set< int > const *argp3 ;
   std::set< int > const *argp4 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
-  }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  } 
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   (&arg2)->assign(arg2_pstr);
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
-  argp3 = *(std::set< int > **)&jarg3;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int > const");
     return ;
   }
-  arg3 = *argp3;
-  argp4 = *(std::set< int > **)&jarg4;
+  arg3 = *argp3; 
+  argp4 = *(std::set< int > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int > const");
     return ;
   }
-  arg4 = *argp4;
-  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5;
+  arg4 = *argp4; 
+  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5; 
   ((SpecUtils::SpecFile const *)arg1)->write_to_file(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4),arg5);
 }
 
@@ -6502,34 +6502,34 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   SpecUtils::SaveSpectrumAsType arg5 ;
   std::vector< int > const *argp3 ;
   std::vector< int > const *argp4 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
-  }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  } 
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   (&arg2)->assign(arg2_pstr);
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
-  argp3 = *(std::vector< int > **)&jarg3;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  argp3 = *(std::vector< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::vector< int > const");
     return ;
   }
-  arg3 = *argp3;
-  argp4 = *(std::vector< int > **)&jarg4;
+  arg3 = *argp3; 
+  argp4 = *(std::vector< int > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::vector< int > const");
     return ;
   }
-  arg4 = *argp4;
-  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5;
+  arg4 = *argp4; 
+  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5; 
   ((SpecUtils::SpecFile const *)arg1)->write_to_file(SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4),arg5);
 }
 
@@ -6540,32 +6540,32 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   std::set< int > *arg3 = 0 ;
   std::vector< std::string > *arg4 = 0 ;
   SpecUtils::SaveSpectrumAsType arg5 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   arg3 = *(std::set< int > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return ;
-  }
+  } 
   arg4 = *(std::vector< std::string > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
-  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5;
+  } 
+  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5; 
   ((SpecUtils::SpecFile const *)arg1)->write_to_file((std::string const &)*arg2,(std::set< int > const &)*arg3,(std::vector< std::string > const &)*arg4,arg5);
 }
 
@@ -6578,29 +6578,29 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   SpecUtils::SaveSpectrumAsType arg5 ;
   std::set< int > *argp3 ;
   std::set< int > const *argp4 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return ;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return ;
   }
-  arg3 = *argp3;
-  argp4 = *(std::set< int > **)&jarg4;
+  arg3 = *argp3; 
+  argp4 = *(std::set< int > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int > const");
     return ;
   }
-  arg4 = *argp4;
-  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5;
+  arg4 = *argp4; 
+  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5; 
   ((SpecUtils::SpecFile const *)arg1)->write(*arg2,SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4),arg5);
 }
 
@@ -6612,29 +6612,29 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1wri
   std::vector< std::string > *arg4 = 0 ;
   SpecUtils::SaveSpectrumAsType arg5 ;
   std::set< int > *argp3 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return ;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return ;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::vector< std::string > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return ;
-  }
-  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5;
+  } 
+  arg5 = (SpecUtils::SaveSpectrumAsType)jarg5; 
   ((SpecUtils::SpecFile const *)arg1)->write(*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::string > const &)*arg4,arg5);
 }
 
@@ -6644,18 +6644,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_pcf(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6665,18 +6665,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_2006_N42(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6686,18 +6686,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_csv(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6707,18 +6707,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_txt(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6731,29 +6731,29 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::set< int > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_integer_chn(*arg2,SWIG_STD_MOVE(arg3),(std::set< int > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6766,30 +6766,30 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::vector< std::string > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg4_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::vector< std::string > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::string > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_integer_chn(*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::string > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6803,30 +6803,30 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg5 = 0 ;
   std::set< int > *argp4 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  arg3 = (SpecUtils::SpecFile::SpcBinaryType)jarg3;
-  argp4 = *(std::set< int > **)&jarg4;
+  } 
+  arg3 = (SpecUtils::SpecFile::SpcBinaryType)jarg3; 
+  argp4 = *(std::set< int > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg4 = *argp4;
+  arg4 = *argp4; 
   arg5 = *(std::set< int > **)&jarg5;
   if (!arg5) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_binary_spc(*arg2,arg3,SWIG_STD_MOVE(arg4),(std::set< int > const &)*arg5);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6839,29 +6839,29 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::set< int > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_ascii_spc(*arg2,SWIG_STD_MOVE(arg3),(std::set< int > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6871,18 +6871,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_binary_exploranium_gr130v0(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6892,18 +6892,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_binary_exploranium_gr135v2(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6916,29 +6916,29 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::set< int > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_iaea_spe(*arg2,SWIG_STD_MOVE(arg3),(std::set< int > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6951,29 +6951,29 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::set< int > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_cnf(*arg2,SWIG_STD_MOVE(arg3),(std::set< int > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -6986,29 +6986,29 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *arg4 = 0 ;
   std::set< int > *argp3 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-  argp3 = *(std::set< int > **)&jarg3;
+  } 
+  argp3 = *(std::set< int > **)&jarg3; 
   if (!argp3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg3 = *argp3;
+  arg3 = *argp3; 
   arg4 = *(std::set< int > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::set< int > const & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_tka(*arg2,SWIG_STD_MOVE(arg3),(std::set< int > const &)*arg4);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -7023,37 +7023,37 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   std::set< int > *argp4 ;
   std::vector< std::string > *argp5 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
   (void)jarg5_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   arg3 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "D3SpectrumExport::D3SpectrumChartOptions const & is null");
     return 0;
-  }
-  argp4 = *(std::set< int > **)&jarg4;
+  } 
+  argp4 = *(std::set< int > **)&jarg4; 
   if (!argp4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::set< int >");
     return 0;
   }
-  arg4 = *argp4;
-  argp5 = *(std::vector< std::string > **)&jarg5;
+  arg4 = *argp4; 
+  argp5 = *(std::vector< std::string > **)&jarg5; 
   if (!argp5) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::vector< std::string >");
     return 0;
   }
-  arg5 = *argp5;
+  arg5 = *argp5; 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_d3_html(*arg2,(D3SpectrumExport::D3SpectrumChartOptions const &)*arg3,SWIG_STD_MOVE(arg4),SWIG_STD_MOVE(arg5));
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -7061,11 +7061,11 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
 SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_12012N42_1VERSION_1get(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (int)(5);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -7074,13 +7074,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1cr
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   SwigValueWrapper< std::shared_ptr< ::rapidxml::xml_document< char > > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = ((SpecUtils::SpecFile const *)arg1)->create_2012_N42_xml();
-  *(std::shared_ptr< ::rapidxml::xml_document< char > > **)&jresult = new std::shared_ptr< ::rapidxml::xml_document< char > >(result);
+  *(std::shared_ptr< ::rapidxml::xml_document< char > > **)&jresult = new std::shared_ptr< ::rapidxml::xml_document< char > >(result); 
   return jresult;
 }
 
@@ -7090,18 +7090,18 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_
   SpecUtils::SpecFile *arg1 = 0 ;
   std::ostream *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   arg2 = *(std::ostream **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   result = (bool)((SpecUtils::SpecFile const *)arg1)->write_2012_N42(*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -7110,13 +7110,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1mu
   jlong jresult = 0 ;
   SpecUtils::SpecFile *arg1 = 0 ;
   std::recursive_mutex *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::SpecFile **)&jarg1;
+  arg1 = *(SpecUtils::SpecFile **)&jarg1; 
   result = (std::recursive_mutex *) &((SpecUtils::SpecFile const *)arg1)->mutex();
-  *(std::recursive_mutex **)&jresult = result;
+  *(std::recursive_mutex **)&jresult = result; 
   return jresult;
 }
 
@@ -7124,20 +7124,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SpecFile_1mu
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1remark_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->remark_ = *arg2;
 }
 
@@ -7146,13 +7146,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (std::string *) & ((arg1)->remark_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7160,20 +7160,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1nuclide_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->nuclide_ = *arg2;
 }
 
@@ -7182,13 +7182,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (std::string *) & ((arg1)->nuclide_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7196,12 +7196,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1activity_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->activity_ = arg2;
 }
 
@@ -7210,13 +7210,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
   jfloat jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (float) ((arg1)->activity_);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -7224,20 +7224,20 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1nuclide_1type_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->nuclide_type_ = *arg2;
 }
 
@@ -7246,13 +7246,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (std::string *) & ((arg1)->nuclide_type_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7260,20 +7260,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1id_1confidence_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->id_confidence_ = *arg2;
 }
 
@@ -7282,13 +7282,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (std::string *) & ((arg1)->id_confidence_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7296,12 +7296,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1distance_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->distance_ = arg2;
 }
 
@@ -7310,13 +7310,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
   jfloat jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (float) ((arg1)->distance_);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -7324,12 +7324,12 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1dose_1rate_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->dose_rate_ = arg2;
 }
 
@@ -7338,13 +7338,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
   jfloat jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (float) ((arg1)->dose_rate_);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -7352,12 +7352,12 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1real_1time_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->real_time_ = arg2;
 }
 
@@ -7366,13 +7366,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
   jfloat jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (float) ((arg1)->real_time_);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -7380,20 +7380,20 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1detector_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->detector_ = *arg2;
 }
 
@@ -7402,13 +7402,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (std::string *) & ((arg1)->detector_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7416,22 +7416,22 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1DetectorAnalysisResult(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::DetectorAnalysisResult *)new SpecUtils::DetectorAnalysisResult();
-  *(SpecUtils::DetectorAnalysisResult **)&jresult = result;
+  *(SpecUtils::DetectorAnalysisResult **)&jresult = result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysisResult_1reset(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   (arg1)->reset();
 }
 
@@ -7440,23 +7440,23 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorA
   jboolean jresult = 0 ;
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   result = (bool)((SpecUtils::DetectorAnalysisResult const *)arg1)->isEmpty();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1DetectorAnalysisResult(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::DetectorAnalysisResult *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysisResult **)&jarg1; 
   delete arg1;
 }
 
@@ -7464,13 +7464,13 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1Detec
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1remarks_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jobject jarg2_) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
-  arg2 = *(std::vector< std::string > **)&jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
+  arg2 = *(std::vector< std::string > **)&jarg2; 
   if (arg1) (arg1)->remarks_ = *arg2;
 }
 
@@ -7479,13 +7479,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::vector< std::string > *)& ((arg1)->remarks_);
-  *(std::vector< std::string > **)&jresult = result;
+  *(std::vector< std::string > **)&jresult = result; 
   return jresult;
 }
 
@@ -7493,20 +7493,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1algorithm_1name_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->algorithm_name_ = *arg2;
 }
 
@@ -7515,13 +7515,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::string *) & ((arg1)->algorithm_name_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7529,12 +7529,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1algorithm_1component_1versions_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< std::pair< std::string,std::string > > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
-  arg2 = *(std::vector< std::pair< std::string,std::string > > **)&jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
+  arg2 = *(std::vector< std::pair< std::string,std::string > > **)&jarg2; 
   if (arg1) (arg1)->algorithm_component_versions_ = *arg2;
 }
 
@@ -7543,13 +7543,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< std::pair< std::string,std::string > > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::vector< std::pair< std::string,std::string > > *)& ((arg1)->algorithm_component_versions_);
-  *(std::vector< std::pair< std::string,std::string > > **)&jresult = result;
+  *(std::vector< std::pair< std::string,std::string > > **)&jresult = result; 
   return jresult;
 }
 
@@ -7557,20 +7557,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1algorithm_1creator_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->algorithm_creator_ = *arg2;
 }
 
@@ -7579,13 +7579,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::string *) & ((arg1)->algorithm_creator_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7593,20 +7593,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1algorithm_1description_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->algorithm_description_ = *arg2;
 }
 
@@ -7615,13 +7615,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::string *) & ((arg1)->algorithm_description_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7630,17 +7630,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnaly
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   SpecUtils::time_point_t arg2 ;
   SpecUtils::time_point_t *argp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
-  argp2 = *(SpecUtils::time_point_t **)&jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
+  argp2 = *(SpecUtils::time_point_t **)&jarg2; 
   if (!argp2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null SpecUtils::time_point_t");
     return ;
   }
-  arg2 = *argp2;
+  arg2 = *argp2; 
   if (arg1) (arg1)->analysis_start_time_ = arg2;
 }
 
@@ -7649,13 +7649,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   SpecUtils::time_point_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result =  ((arg1)->analysis_start_time_);
-  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result);
+  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result); 
   return jresult;
 }
 
@@ -7663,12 +7663,12 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1analysis_1computation_1duration_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->analysis_computation_duration_ = arg2;
 }
 
@@ -7677,13 +7677,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
   jfloat jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (float) ((arg1)->analysis_computation_duration_);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -7691,20 +7691,20 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAna
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1algorithm_1result_1description_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->algorithm_result_description_ = *arg2;
 }
 
@@ -7713,13 +7713,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
   jstring jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::string *) & ((arg1)->algorithm_result_description_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7727,12 +7727,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAn
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1results_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< SpecUtils::DetectorAnalysisResult > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
-  arg2 = *(std::vector< SpecUtils::DetectorAnalysisResult > **)&jarg2;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
+  arg2 = *(std::vector< SpecUtils::DetectorAnalysisResult > **)&jarg2; 
   if (arg1) (arg1)->results_ = *arg2;
 }
 
@@ -7741,13 +7741,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   std::vector< SpecUtils::DetectorAnalysisResult > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (std::vector< SpecUtils::DetectorAnalysisResult > *)& ((arg1)->results_);
-  *(std::vector< SpecUtils::DetectorAnalysisResult > **)&jresult = result;
+  *(std::vector< SpecUtils::DetectorAnalysisResult > **)&jresult = result; 
   return jresult;
 }
 
@@ -7755,22 +7755,22 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnal
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1DetectorAnalysis(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::DetectorAnalysis *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::DetectorAnalysis *)new SpecUtils::DetectorAnalysis();
-  *(SpecUtils::DetectorAnalysis **)&jresult = result;
+  *(SpecUtils::DetectorAnalysis **)&jresult = result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorAnalysis_1reset(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   (arg1)->reset();
 }
 
@@ -7779,23 +7779,23 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_DetectorA
   jboolean jresult = 0 ;
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   result = (bool)((SpecUtils::DetectorAnalysis const *)arg1)->is_empty();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1DetectorAnalysis(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::DetectorAnalysis *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1;
+  arg1 = *(SpecUtils::DetectorAnalysis **)&jarg1; 
   delete arg1;
 }
 
@@ -7803,20 +7803,20 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1Detec
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1remark_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->remark_ = *arg2;
 }
 
@@ -7825,13 +7825,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
   jstring jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (std::string *) & ((arg1)->remark_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7839,20 +7839,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1descriptions_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->descriptions_ = *arg2;
 }
 
@@ -7861,13 +7861,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
   jstring jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (std::string *) & ((arg1)->descriptions_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -7875,12 +7875,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1data_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::vector< char > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
-  arg2 = *(std::vector< char > **)&jarg2;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
+  arg2 = *(std::vector< char > **)&jarg2; 
   if (arg1) (arg1)->data_ = *arg2;
 }
 
@@ -7889,13 +7889,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDa
   jlong jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::vector< char > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (std::vector< char > *)& ((arg1)->data_);
-  *(std::vector< char > **)&jresult = result;
+  *(std::vector< char > **)&jresult = result; 
   return jresult;
 }
 
@@ -7903,12 +7903,12 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDa
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1data_1encoding_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   SpecUtils::MultimediaData::EncodingType arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
-  arg2 = (SpecUtils::MultimediaData::EncodingType)jarg2;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
+  arg2 = (SpecUtils::MultimediaData::EncodingType)jarg2; 
   if (arg1) (arg1)->data_encoding_ = arg2;
 }
 
@@ -7917,13 +7917,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDat
   jint jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   SpecUtils::MultimediaData::EncodingType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (SpecUtils::MultimediaData::EncodingType) ((arg1)->data_encoding_);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -7932,17 +7932,17 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDat
   SpecUtils::MultimediaData *arg1 = 0 ;
   SpecUtils::time_point_t arg2 ;
   SpecUtils::time_point_t *argp2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
-  argp2 = *(SpecUtils::time_point_t **)&jarg2;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
+  argp2 = *(SpecUtils::time_point_t **)&jarg2; 
   if (!argp2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null SpecUtils::time_point_t");
     return ;
   }
-  arg2 = *argp2;
+  arg2 = *argp2; 
   if (arg1) (arg1)->capture_start_time_ = arg2;
 }
 
@@ -7951,13 +7951,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDa
   jlong jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   SpecUtils::time_point_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result =  ((arg1)->capture_start_time_);
-  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result);
+  *(SpecUtils::time_point_t **)&jresult = new SpecUtils::time_point_t(result); 
   return jresult;
 }
 
@@ -7965,20 +7965,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaDa
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1file_1uri_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->file_uri_ = *arg2;
 }
 
@@ -7987,13 +7987,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
   jstring jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (std::string *) & ((arg1)->file_uri_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -8001,20 +8001,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_MultimediaData_1mime_1type_1_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->mime_type_ = *arg2;
 }
 
@@ -8023,13 +8023,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
   jstring jresult = 0 ;
   SpecUtils::MultimediaData *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   result = (std::string *) & ((arg1)->mime_type_);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -8037,21 +8037,21 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_Multimedia
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1MultimediaData(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::MultimediaData *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::MultimediaData *)new SpecUtils::MultimediaData();
-  *(SpecUtils::MultimediaData **)&jresult = result;
+  *(SpecUtils::MultimediaData **)&jresult = result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1MultimediaData(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::MultimediaData *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(SpecUtils::MultimediaData **)&jarg1;
+  arg1 = *(SpecUtils::MultimediaData **)&jarg1; 
   delete arg1;
 }
 
@@ -8060,13 +8060,13 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibra
   jint jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   SpecUtils::EnergyCalType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (SpecUtils::EnergyCalType)((SpecUtils::EnergyCalibration const *)arg1)->type();
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -8075,13 +8075,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCal
   jboolean jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (bool)((SpecUtils::EnergyCalibration const *)arg1)->valid();
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -8090,13 +8090,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   std::vector< float > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (std::vector< float > *) &((SpecUtils::EnergyCalibration const *)arg1)->coefficients();
-  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0);
+  *(std::shared_ptr< const std::vector<float> > **)&jresult = new std::shared_ptr< const std::vector<float> >(result SWIG_NO_NULL_DELETER_0); 
   return jresult;
 }
 
@@ -8105,13 +8105,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   std::vector< std::pair< float,float > > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (std::vector< std::pair< float,float > > *) &((SpecUtils::EnergyCalibration const *)arg1)->deviation_pairs();
-  *(std::vector< std::pair< float,float > > **)&jresult = result;
+  *(std::vector< std::pair< float,float > > **)&jresult = result; 
   return jresult;
 }
 
@@ -8120,13 +8120,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   std::shared_ptr< std::vector< float > const > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (std::shared_ptr< std::vector< float > const > *) &((SpecUtils::EnergyCalibration const *)arg1)->channel_energies();
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = *result ? new std::shared_ptr< std::vector< float > const >(*result) : 0; 
   return jresult;
 }
 
@@ -8135,13 +8135,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = ((SpecUtils::EnergyCalibration const *)arg1)->num_channels();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -8149,11 +8149,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1EnergyCalibration(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (SpecUtils::EnergyCalibration *)new SpecUtils::EnergyCalibration();
-  *(SpecUtils::EnergyCalibration **)&jresult = result;
+  *(SpecUtils::EnergyCalibration **)&jresult = result; 
   return jresult;
 }
 
@@ -8163,24 +8163,24 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibra
   size_t arg2 ;
   std::vector< float > *arg3 = 0 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (size_t)jarg2;
-
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  
   arg3 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg3) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg3)->get() : 0);
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
+  } 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_polynomial(SWIG_STD_MOVE(arg2),(std::vector< float > const &)*arg3,(std::vector< std::pair< float,float > > const &)*arg4);
 }
 
@@ -8190,24 +8190,24 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibra
   size_t arg2 ;
   std::vector< float > *arg3 = 0 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (size_t)jarg2;
-
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  
   arg3 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg3) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg3)->get() : 0);
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
+  } 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_default_polynomial(SWIG_STD_MOVE(arg2),(std::vector< float > const &)*arg3,(std::vector< std::pair< float,float > > const &)*arg4);
 }
 
@@ -8217,24 +8217,24 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibra
   size_t arg2 ;
   std::vector< float > *arg3 = 0 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (size_t)jarg2;
-
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  
   arg3 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg3) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg3)->get() : 0);
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
+  } 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return ;
-  }
+  } 
   (arg1)->set_full_range_fraction(SWIG_STD_MOVE(arg2),(std::vector< float > const &)*arg3,(std::vector< std::pair< float,float > > const &)*arg4);
 }
 
@@ -8243,19 +8243,19 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibra
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   size_t arg2 ;
   std::vector< float > *arg3 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg3_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (size_t)jarg2;
-
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (size_t)jarg2; 
+  
   arg3 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg3) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg3)->get() : 0);
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
+  } 
   (arg1)->set_lower_channel_energy(SWIG_STD_MOVE(arg2),(std::vector< float > const &)*arg3);
 }
 
@@ -8264,13 +8264,13 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
   jlong jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = ((SpecUtils::EnergyCalibration const *)arg1)->memmorysize();
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -8280,14 +8280,14 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCali
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   double arg2 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (double)jarg2;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (double)jarg2; 
   result = (double)((SpecUtils::EnergyCalibration const *)arg1)->channel_for_energy(arg2);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8297,14 +8297,14 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCali
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   double arg2 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
-  arg2 = (double)jarg2;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
+  arg2 = (double)jarg2; 
   result = (double)((SpecUtils::EnergyCalibration const *)arg1)->energy_for_channel(arg2);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8313,13 +8313,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalib
   jfloat jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (float)((SpecUtils::EnergyCalibration const *)arg1)->lower_energy();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -8328,13 +8328,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalib
   jfloat jresult = 0 ;
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   result = (float)((SpecUtils::EnergyCalibration const *)arg1)->upper_energy();
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -8342,11 +8342,11 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalib
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibration_1sm_1min_1channels_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)SpecUtils::EnergyCalibration::sm_min_channels;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -8354,11 +8354,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibration_1sm_1max_1channels_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)SpecUtils::EnergyCalibration::sm_max_channels;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -8366,21 +8366,21 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibr
 SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_EnergyCalibration_1sm_1polynomial_1offset_1limit_1get(JNIEnv *jenv, jclass jcls) {
   jfloat jresult = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (float)(float)SpecUtils::EnergyCalibration::sm_polynomial_offset_limit;
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1EnergyCalibration(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   SpecUtils::EnergyCalibration *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1;
+  arg1 = *(SpecUtils::EnergyCalibration **)&jarg1; 
   delete arg1;
 }
 
@@ -8390,7 +8390,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_energy_1cal_
   SpecUtils::EnergyCalibration *arg1 = 0 ;
   size_t arg2 ;
   SwigValueWrapper< std::shared_ptr< SpecUtils::EnergyCalibration > > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
@@ -8398,10 +8398,10 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_energy_1cal_
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::EnergyCalibration const & is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   result = SpecUtils::energy_cal_combine_channels((SpecUtils::EnergyCalibration const &)*arg1,SWIG_STD_MOVE(arg2));
-  *(std::shared_ptr< SpecUtils::EnergyCalibration > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration >(result);
+  *(std::shared_ptr< SpecUtils::EnergyCalibration > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration >(result); 
   return jresult;
 }
 
@@ -8412,24 +8412,24 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_polynomial_1
   size_t arg2 ;
   std::vector< std::pair< float,float > > *arg3 = 0 ;
   std::shared_ptr< std::vector< float > const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   arg3 = *(std::vector< std::pair< float,float > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = SpecUtils::polynomial_binning((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2),(std::vector< std::pair< float,float > > const &)*arg3);
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0; 
   return jresult;
 }
 
@@ -8441,25 +8441,25 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_fullrangefra
   std::vector< std::pair< float,float > > *arg3 = 0 ;
   bool arg4 ;
   std::shared_ptr< std::vector< float > const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   arg3 = *(std::vector< std::pair< float,float > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
-  arg4 = jarg4 ? true : false;
+  } 
+  arg4 = jarg4 ? true : false; 
   result = SpecUtils::fullrangefraction_binning((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2),(std::vector< std::pair< float,float > > const &)*arg3,arg4);
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0; 
   return jresult;
 }
 
@@ -8470,24 +8470,24 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_fullrangefra
   size_t arg2 ;
   std::vector< std::pair< float,float > > *arg3 = 0 ;
   std::shared_ptr< std::vector< float > const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   arg3 = *(std::vector< std::pair< float,float > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = SpecUtils::fullrangefraction_binning((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2),(std::vector< std::pair< float,float > > const &)*arg3);
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0; 
   return jresult;
 }
 
@@ -8499,25 +8499,25 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_fullrangef
   size_t arg3 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg3 = (size_t)jarg3;
+  } 
+  arg3 = (size_t)jarg3; 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::fullrangefraction_energy(arg1,(std::vector< float > const &)*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::pair< float,float > > const &)*arg4);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8528,24 +8528,24 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_polynomial
   std::vector< float > *arg2 = 0 ;
   std::vector< std::pair< float,float > > *arg3 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
+  } 
   arg3 = *(std::vector< std::pair< float,float > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::polynomial_energy(arg1,(std::vector< float > const &)*arg2,(std::vector< std::pair< float,float > > const &)*arg3);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8555,17 +8555,17 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_deviation_
   double arg1 ;
   std::vector< std::pair< float,float > > *arg2 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (double)jarg1;
+  arg1 = (double)jarg1; 
   arg2 = *(std::vector< std::pair< float,float > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::deviation_pair_correction(arg1,(std::vector< std::pair< float,float > > const &)*arg2);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8575,17 +8575,17 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_correction
   double arg1 ;
   std::vector< std::pair< float,float > > *arg2 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = (double)jarg1;
+  arg1 = (double)jarg1; 
   arg2 = *(std::vector< std::pair< float,float > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::correction_due_to_dev_pairs(arg1,(std::vector< std::pair< float,float > > const &)*arg2);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8595,23 +8595,23 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_apply_1devia
   std::vector< float > *arg1 = 0 ;
   std::vector< std::pair< float,float > > *arg2 = 0 ;
   std::shared_ptr< std::vector< float > const > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
+  } 
   arg2 = *(std::vector< std::pair< float,float > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = SpecUtils::apply_deviation_pair((std::vector< float > const &)*arg1,(std::vector< std::pair< float,float > > const &)*arg2);
-  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0;
+  *(std::shared_ptr< std::vector< float > const > **)&jresult = result ? new std::shared_ptr< std::vector< float > const >(result) : 0; 
   return jresult;
 }
 
@@ -8621,19 +8621,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_polynomial_1
   std::vector< float > *arg1 = 0 ;
   size_t arg2 ;
   std::vector< float > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   result = SpecUtils::polynomial_coef_to_fullrangefraction((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2));
-  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result));
+  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result)); 
   return jresult;
 }
 
@@ -8643,19 +8643,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_fullrangefra
   std::vector< float > *arg1 = 0 ;
   size_t arg2 ;
   std::vector< float > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   result = SpecUtils::fullrangefraction_coef_to_polynomial((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2));
-  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result));
+  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result)); 
   return jresult;
 }
 
@@ -8665,19 +8665,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_mid_1channel
   std::vector< float > *arg1 = 0 ;
   size_t arg2 ;
   std::vector< float > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   result = SpecUtils::mid_channel_polynomial_to_fullrangeFraction((std::vector< float > const &)*arg1,SWIG_STD_MOVE(arg2));
-  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result));
+  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result)); 
   return jresult;
 }
 
@@ -8689,25 +8689,25 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_calibrati
   std::vector< std::pair< float,float > > *arg3 = 0 ;
   size_t arg4 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (SpecUtils::EnergyCalType)jarg1;
-
+  arg1 = (SpecUtils::EnergyCalType)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
+  } 
   arg3 = *(std::vector< std::pair< float,float > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
-  arg4 = (size_t)jarg4;
+  } 
+  arg4 = (size_t)jarg4; 
   result = (bool)SpecUtils::calibration_is_valid(arg1,(std::vector< float > const &)*arg2,(std::vector< std::pair< float,float > > const &)*arg3,SWIG_STD_MOVE(arg4));
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -8717,19 +8717,19 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_polynomial_1
   int arg1 ;
   std::vector< float > *arg2 = 0 ;
   std::vector< float > result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (int)jarg1;
-
+  arg1 = (int)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
+  } 
   result = SpecUtils::polynomial_cal_remove_first_channels(arg1,(std::vector< float > const &)*arg2);
-  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result));
+  *(std::shared_ptr<  std::vector<float> > **)&jresult = new std::shared_ptr<  std::vector<float> >(new std::vector< float >(result)); 
   return jresult;
 }
 
@@ -8742,26 +8742,26 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_find_1full
   std::vector< std::pair< float,float > > *arg4 = 0 ;
   double arg5 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg3 = (size_t)jarg3;
+  } 
+  arg3 = (size_t)jarg3; 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
-  arg5 = (double)jarg5;
+  } 
+  arg5 = (double)jarg5; 
   result = (double)SpecUtils::find_fullrangefraction_channel(arg1,(std::vector< float > const &)*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::pair< float,float > > const &)*arg4,arg5);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8773,25 +8773,25 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_find_1full
   size_t arg3 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg3 = (size_t)jarg3;
+  } 
+  arg3 = (size_t)jarg3; 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::find_fullrangefraction_channel(arg1,(std::vector< float > const &)*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::pair< float,float > > const &)*arg4);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8804,26 +8804,26 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_find_1poly
   std::vector< std::pair< float,float > > *arg4 = 0 ;
   double arg5 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg3 = (size_t)jarg3;
+  } 
+  arg3 = (size_t)jarg3; 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
-  arg5 = (double)jarg5;
+  } 
+  arg5 = (double)jarg5; 
   result = (double)SpecUtils::find_polynomial_channel(arg1,(std::vector< float > const &)*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::pair< float,float > > const &)*arg4,arg5);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8835,25 +8835,25 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_find_1poly
   size_t arg3 ;
   std::vector< std::pair< float,float > > *arg4 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
-  arg1 = (double)jarg1;
-
+  arg1 = (double)jarg1; 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return 0;
-  }
-  arg3 = (size_t)jarg3;
+  } 
+  arg3 = (size_t)jarg3; 
   arg4 = *(std::vector< std::pair< float,float > > **)&jarg4;
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< float,float > > const & is null");
     return 0;
-  }
+  } 
   result = (double)SpecUtils::find_polynomial_channel(arg1,(std::vector< float > const &)*arg2,SWIG_STD_MOVE(arg3),(std::vector< std::pair< float,float > > const &)*arg4);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -8863,37 +8863,37 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_rebin_1by_1lo
   std::vector< float > *arg2 = 0 ;
   std::vector< float > *arg3 = 0 ;
   std::vector< float > *arg4 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   (void)jarg2_;
   (void)jarg3_;
   (void)jarg4_;
-
+  
   arg1 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg1) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg1)->get() : 0);
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
-
+  } 
+  
   arg2 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg2) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
-
+  } 
+  
   arg3 = (std::vector< float > *)((*(std::shared_ptr< const std::vector<float> > **)&jarg3) ? (*(std::shared_ptr< const std::vector<float> > **)&jarg3)->get() : 0);
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > const & reference is null");
     return ;
-  }
-
+  } 
+  
   arg4 = (std::vector< float > *)((*(std::shared_ptr<  std::vector<float> > **)&jarg4) ? (*(std::shared_ptr<  std::vector<float> > **)&jarg4)->get() : 0);
   if (!arg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< float > & reference is null");
     return ;
-  }
+  } 
   SpecUtils::rebin_by_lower_edge((std::vector< float > const &)*arg1,(std::vector< float > const &)*arg2,(std::vector< float > const &)*arg3,*arg4);
 }
 
@@ -8904,22 +8904,22 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_energy_1cal_
   size_t arg2 ;
   std::string *arg3 = 0 ;
   SwigValueWrapper< std::shared_ptr< SpecUtils::EnergyCalibration > > result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = *(std::istream **)&jarg1;
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::istream & is null");
     return 0;
-  }
-  arg2 = (size_t)jarg2;
+  } 
+  arg2 = (size_t)jarg2; 
   arg3 = *(std::string **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::string & is null");
     return 0;
-  }
+  } 
   result = SpecUtils::energy_cal_from_CALp_file(*arg1,SWIG_STD_MOVE(arg2),*arg3);
-  *(std::shared_ptr< SpecUtils::EnergyCalibration > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration >(result);
+  *(std::shared_ptr< SpecUtils::EnergyCalibration > **)&jresult = new std::shared_ptr< SpecUtils::EnergyCalibration >(result); 
   return jresult;
 }
 
@@ -8930,30 +8930,30 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1CA
   std::shared_ptr< SpecUtils::EnergyCalibration const > *arg2 = 0 ;
   std::string *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = *(std::ostream **)&jarg1;
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   arg2 = *(std::shared_ptr< SpecUtils::EnergyCalibration const > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::shared_ptr< SpecUtils::EnergyCalibration const > const & is null");
     return 0;
-  }
+  } 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return 0;
   std::string arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   result = (bool)SpecUtils::write_CALp_file(*arg1,(std::shared_ptr< SpecUtils::EnergyCalibration const > const &)*arg2,(std::string const &)*arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -8961,11 +8961,11 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1CA
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3_1MIN_1JS_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)(unsigned char *)D3_MIN_JS;
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -8973,11 +8973,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3_1MIN_1JS_
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3_1MIN_1JS_1SIZE_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)D3_MIN_JS_SIZE;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -8985,11 +8985,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3_1MIN_1JS_
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1JS_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)(unsigned char *)SPECTRUM_CHART_D3_JS;
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -8997,11 +8997,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CH
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1JS_1SIZE_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)SPECTRUM_CHART_D3_JS_SIZE;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -9009,11 +9009,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CH
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1CSS_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)(unsigned char *)SPECTRUM_CHART_D3_CSS;
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9021,11 +9021,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CH
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1CSS_1SIZE_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)SPECTRUM_CHART_D3_CSS_SIZE;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -9033,11 +9033,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CH
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1STANDALONE_1CSS_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)(unsigned char *)SPECTRUM_CHART_D3_STANDALONE_CSS;
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9045,11 +9045,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CH
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_SPECTRUM_1CHART_1D3_1STANDALONE_1CSS_1SIZE_1get(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   size_t result;
-
+  
   (void)jenv;
   (void)jcls;
   result = (size_t)SPECTRUM_CHART_D3_STANDALONE_CSS_SIZE;
-  jresult = (jlong)result;
+  jresult = (jlong)result; 
   return jresult;
 }
 
@@ -9062,7 +9062,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1sp
   size_t arg4 ;
   int arg5 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg2_;
@@ -9071,22 +9071,22 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1sp
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
-
+  } 
+  
   arg2 = (SpecUtils::Measurement *)((*(std::shared_ptr< const SpecUtils::Measurement > **)&jarg2) ? (*(std::shared_ptr< const SpecUtils::Measurement > **)&jarg2)->get() : 0);
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "SpecUtils::Measurement const & reference is null");
     return 0;
-  }
+  } 
   arg3 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "D3SpectrumExport::D3SpectrumOptions const & is null");
     return 0;
-  }
-  arg4 = (size_t)jarg4;
-  arg5 = (int)jarg5;
+  } 
+  arg4 = (size_t)jarg4; 
+  arg5 = (int)jarg5; 
   result = (bool)D3SpectrumExport::write_spectrum_data_js(*arg1,(SpecUtils::Measurement const &)*arg2,(D3SpectrumExport::D3SpectrumOptions const &)*arg3,SWIG_STD_MOVE(arg4),arg5);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9097,7 +9097,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1d3
   std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > *arg2 = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg3_;
@@ -9105,19 +9105,19 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1d3
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   arg2 = *(std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > **)&jarg2;
   if (!arg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > const & is null");
     return 0;
-  }
+  } 
   arg3 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "D3SpectrumExport::D3SpectrumChartOptions const & is null");
     return 0;
-  }
+  } 
   result = (bool)D3SpectrumExport::write_d3_html(*arg1,(std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > const &)*arg2,(D3SpectrumExport::D3SpectrumChartOptions const &)*arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9127,25 +9127,25 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1ht
   std::ostream *arg1 = 0 ;
   std::string *arg2 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = *(std::ostream **)&jarg1;
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   result = (bool)D3SpectrumExport::write_html_page_header(*arg1,(std::string const &)*arg2);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9158,52 +9158,52 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1js
   std::string *arg4 = 0 ;
   std::string *arg5 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = *(std::ostream **)&jarg1;
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return 0;
   std::string arg3_str(arg3_pstr);
   arg3 = &arg3_str;
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   if(!jarg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0);
+  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0); 
   if (!arg4_pstr) return 0;
   std::string arg4_str(arg4_pstr);
   arg4 = &arg4_str;
-  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr);
+  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr); 
   if(!jarg5) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg5_pstr = jenv->GetStringUTFChars(jarg5, 0);
+  const char *arg5_pstr = jenv->GetStringUTFChars(jarg5, 0); 
   if (!arg5_pstr) return 0;
   std::string arg5_str(arg5_pstr);
   arg5 = &arg5_str;
-  jenv->ReleaseStringUTFChars(jarg5, arg5_pstr);
+  jenv->ReleaseStringUTFChars(jarg5, arg5_pstr); 
   result = (bool)D3SpectrumExport::write_js_for_chart(*arg1,(std::string const &)*arg2,(std::string const &)*arg3,(std::string const &)*arg4,(std::string const &)*arg5);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9214,30 +9214,30 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1an
   std::string *arg2 = 0 ;
   std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   arg1 = *(std::ostream **)&jarg1;
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   arg3 = *(std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > const & is null");
     return 0;
-  }
+  } 
   result = (bool)D3SpectrumExport::write_and_set_data_for_chart(*arg1,(std::string const &)*arg2,(std::vector< std::pair< SpecUtils::Measurement const *,D3SpectrumExport::D3SpectrumOptions > > const &)*arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9248,7 +9248,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1se
   std::string *arg2 = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg3_;
@@ -9256,23 +9256,23 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1se
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   arg3 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "D3SpectrumExport::D3SpectrumChartOptions const & is null");
     return 0;
-  }
+  } 
   result = (bool)D3SpectrumExport::write_set_options_for_chart(*arg1,(std::string const &)*arg2,(D3SpectrumExport::D3SpectrumChartOptions const &)*arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9283,7 +9283,7 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1ht
   std::string *arg2 = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg3 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg3_;
@@ -9291,23 +9291,23 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1ht
   if (!arg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::ostream & is null");
     return 0;
-  }
+  } 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   arg3 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg3;
   if (!arg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "D3SpectrumExport::D3SpectrumChartOptions const & is null");
     return 0;
-  }
+  } 
   result = (bool)D3SpectrumExport::write_html_display_options_for_chart(*arg1,(std::string const &)*arg2,(D3SpectrumExport::D3SpectrumChartOptions const &)*arg3);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9315,11 +9315,11 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_write_1ht
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_d3_1js(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)D3SpectrumExport::d3_js();
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9327,11 +9327,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_d3_1js(JNIEn
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1chart_1d3_1js(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)D3SpectrumExport::spectrum_chart_d3_js();
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9339,11 +9339,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1ch
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1char_1d3_1css(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)D3SpectrumExport::spectrum_char_d3_css();
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9351,11 +9351,11 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1ch
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1chart_1d3_1standalone_1css(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   unsigned char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (unsigned char *)D3SpectrumExport::spectrum_chart_d3_standalone_css();
-  *(unsigned char **)&jresult = result;
+  *(unsigned char **)&jresult = result; 
   return jresult;
 }
 
@@ -9363,7 +9363,7 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1ch
 SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1chart_1setup_1js(JNIEnv *jenv, jclass jcls) {
   jstring jresult = 0 ;
   char *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (char *)D3SpectrumExport::spectrum_chart_setup_js();
@@ -9375,11 +9375,11 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_spectrum_1
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1D3SpectrumOptions(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (D3SpectrumExport::D3SpectrumOptions *)new D3SpectrumExport::D3SpectrumOptions();
-  *(D3SpectrumExport::D3SpectrumOptions **)&jresult = result;
+  *(D3SpectrumExport::D3SpectrumOptions **)&jresult = result; 
   return jresult;
 }
 
@@ -9387,20 +9387,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1D3Spect
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1peaks_1json_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->peaks_json = *arg2;
 }
 
@@ -9409,13 +9409,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->peaks_json);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9423,20 +9423,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1line_1color_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->line_color = *arg2;
 }
 
@@ -9445,13 +9445,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->line_color);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9459,20 +9459,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1peak_1color_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->peak_color = *arg2;
 }
 
@@ -9481,13 +9481,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->peak_color);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9495,20 +9495,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1title_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->title = *arg2;
 }
 
@@ -9517,13 +9517,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->title);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9531,12 +9531,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1display_1scale_1factor_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jdouble jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   double arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
-  arg2 = (double)jarg2;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
+  arg2 = (double)jarg2; 
   if (arg1) (arg1)->display_scale_factor = arg2;
 }
 
@@ -9545,13 +9545,13 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jdouble jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   double result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (double) ((arg1)->display_scale_factor);
-  jresult = (jdouble)result;
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -9559,12 +9559,12 @@ SWIGEXPORT jdouble JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOptions_1spectrum_1type_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   SpecUtils::SpectrumType arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
-  arg2 = (SpecUtils::SpectrumType)jarg2;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
+  arg2 = (SpecUtils::SpectrumType)jarg2; 
   if (arg1) (arg1)->spectrum_type = arg2;
 }
 
@@ -9573,23 +9573,23 @@ SWIGEXPORT jint JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumOpt
   jint jresult = 0 ;
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
   SpecUtils::SpectrumType result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   result = (SpecUtils::SpectrumType) ((arg1)->spectrum_type);
-  jresult = (jint)result;
+  jresult = (jint)result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1D3SpectrumOptions(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   D3SpectrumExport::D3SpectrumOptions *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumOptions **)&jarg1; 
   delete arg1;
 }
 
@@ -9597,11 +9597,11 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1D3Spe
 SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1D3SpectrumChartOptions_1_1SWIG_10(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   result = (D3SpectrumExport::D3SpectrumChartOptions *)new D3SpectrumExport::D3SpectrumChartOptions();
-  *(D3SpectrumExport::D3SpectrumChartOptions **)&jresult = result;
+  *(D3SpectrumExport::D3SpectrumChartOptions **)&jresult = result; 
   return jresult;
 }
 
@@ -9631,65 +9631,65 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1D3Spect
   SwigValueWrapper< std::map< std::string,std::string > > arg21 ;
   std::map< std::string,std::string > *argp21 ;
   D3SpectrumExport::D3SpectrumChartOptions *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   if(!jarg1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  }
-  const char *arg1_pstr = jenv->GetStringUTFChars(jarg1, 0);
+  } 
+  const char *arg1_pstr = jenv->GetStringUTFChars(jarg1, 0); 
   if (!arg1_pstr) return 0;
   (&arg1)->assign(arg1_pstr);
-  jenv->ReleaseStringUTFChars(jarg1, arg1_pstr);
+  jenv->ReleaseStringUTFChars(jarg1, arg1_pstr); 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  } 
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return 0;
   (&arg2)->assign(arg2_pstr);
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if(!jarg3) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  }
-  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0);
+  } 
+  const char *arg3_pstr = jenv->GetStringUTFChars(jarg3, 0); 
   if (!arg3_pstr) return 0;
   (&arg3)->assign(arg3_pstr);
-  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr);
+  jenv->ReleaseStringUTFChars(jarg3, arg3_pstr); 
   if(!jarg4) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  }
-  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0);
+  } 
+  const char *arg4_pstr = jenv->GetStringUTFChars(jarg4, 0); 
   if (!arg4_pstr) return 0;
   (&arg4)->assign(arg4_pstr);
-  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr);
-  arg5 = jarg5 ? true : false;
-  arg6 = jarg6 ? true : false;
-  arg7 = jarg7 ? true : false;
-  arg8 = jarg8 ? true : false;
-  arg9 = jarg9 ? true : false;
-  arg10 = jarg10 ? true : false;
-  arg11 = jarg11 ? true : false;
-  arg12 = jarg12 ? true : false;
-  arg13 = jarg13 ? true : false;
-  arg14 = jarg14 ? true : false;
-  arg15 = jarg15 ? true : false;
-  arg16 = jarg16 ? true : false;
-  arg17 = jarg17 ? true : false;
-  arg18 = jarg18 ? true : false;
-  arg19 = (float)jarg19;
-  arg20 = (float)jarg20;
-  argp21 = *(std::map< std::string,std::string > **)&jarg21;
+  jenv->ReleaseStringUTFChars(jarg4, arg4_pstr); 
+  arg5 = jarg5 ? true : false; 
+  arg6 = jarg6 ? true : false; 
+  arg7 = jarg7 ? true : false; 
+  arg8 = jarg8 ? true : false; 
+  arg9 = jarg9 ? true : false; 
+  arg10 = jarg10 ? true : false; 
+  arg11 = jarg11 ? true : false; 
+  arg12 = jarg12 ? true : false; 
+  arg13 = jarg13 ? true : false; 
+  arg14 = jarg14 ? true : false; 
+  arg15 = jarg15 ? true : false; 
+  arg16 = jarg16 ? true : false; 
+  arg17 = jarg17 ? true : false; 
+  arg18 = jarg18 ? true : false; 
+  arg19 = (float)jarg19; 
+  arg20 = (float)jarg20; 
+  argp21 = *(std::map< std::string,std::string > **)&jarg21; 
   if (!argp21) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null std::map< std::string,std::string >");
     return 0;
   }
-  arg21 = *argp21;
+  arg21 = *argp21; 
   result = (D3SpectrumExport::D3SpectrumChartOptions *)new D3SpectrumExport::D3SpectrumChartOptions(SWIG_STD_MOVE(arg1),SWIG_STD_MOVE(arg2),SWIG_STD_MOVE(arg3),SWIG_STD_MOVE(arg4),arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,SWIG_STD_MOVE(arg21));
-  *(D3SpectrumExport::D3SpectrumChartOptions **)&jresult = result;
+  *(D3SpectrumExport::D3SpectrumChartOptions **)&jresult = result; 
   return jresult;
 }
 
@@ -9697,20 +9697,20 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_new_1D3Spect
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1title_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->m_title = *arg2;
 }
 
@@ -9719,13 +9719,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->m_title);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9733,20 +9733,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1xAxisTitle_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->m_xAxisTitle = *arg2;
 }
 
@@ -9755,13 +9755,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->m_xAxisTitle);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9769,20 +9769,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1yAxisTitle_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->m_yAxisTitle = *arg2;
 }
 
@@ -9791,13 +9791,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->m_yAxisTitle);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9805,20 +9805,20 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1dataTitle_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   if(!jarg2) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return ;
   }
-  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0);
+  const char *arg2_pstr = jenv->GetStringUTFChars(jarg2, 0); 
   if (!arg2_pstr) return ;
   std::string arg2_str(arg2_pstr);
   arg2 = &arg2_str;
-  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr);
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   if (arg1) (arg1)->m_dataTitle = *arg2;
 }
 
@@ -9827,13 +9827,13 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
   jstring jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::string *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (std::string *) & ((arg1)->m_dataTitle);
-  jresult = jenv->NewStringUTF(result->c_str());
+  jresult = jenv->NewStringUTF(result->c_str()); 
   return jresult;
 }
 
@@ -9841,12 +9841,12 @@ SWIGEXPORT jstring JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectrum
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1useLogYAxis_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_useLogYAxis = arg2;
 }
 
@@ -9855,13 +9855,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_useLogYAxis);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9869,12 +9869,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showVerticalGridLines_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showVerticalGridLines = arg2;
 }
 
@@ -9883,13 +9883,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showVerticalGridLines);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9897,12 +9897,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showHorizontalGridLines_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showHorizontalGridLines = arg2;
 }
 
@@ -9911,13 +9911,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showHorizontalGridLines);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9925,12 +9925,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1legendEnabled_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_legendEnabled = arg2;
 }
 
@@ -9939,13 +9939,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_legendEnabled);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9953,12 +9953,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1compactXAxis_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_compactXAxis = arg2;
 }
 
@@ -9967,13 +9967,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_compactXAxis);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -9981,12 +9981,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showPeakUserLabels_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showPeakUserLabels = arg2;
 }
 
@@ -9995,13 +9995,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showPeakUserLabels);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10009,12 +10009,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showPeakEnergyLabels_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showPeakEnergyLabels = arg2;
 }
 
@@ -10023,13 +10023,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showPeakEnergyLabels);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10037,12 +10037,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showPeakNuclideLabels_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showPeakNuclideLabels = arg2;
 }
 
@@ -10051,13 +10051,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showPeakNuclideLabels);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10065,12 +10065,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showPeakNuclideEnergyLabels_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showPeakNuclideEnergyLabels = arg2;
 }
 
@@ -10079,13 +10079,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showPeakNuclideEnergyLabels);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10093,12 +10093,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showEscapePeakMarker_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showEscapePeakMarker = arg2;
 }
 
@@ -10107,13 +10107,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showEscapePeakMarker);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10121,12 +10121,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showComptonPeakMarker_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showComptonPeakMarker = arg2;
 }
 
@@ -10135,13 +10135,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showComptonPeakMarker);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10149,12 +10149,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showComptonEdgeMarker_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showComptonEdgeMarker = arg2;
 }
 
@@ -10163,13 +10163,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showComptonEdgeMarker);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10177,12 +10177,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1showSumPeakMarker_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_showSumPeakMarker = arg2;
 }
 
@@ -10191,13 +10191,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_showSumPeakMarker);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10205,12 +10205,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1backgroundSubtract_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_backgroundSubtract = arg2;
 }
 
@@ -10219,13 +10219,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_backgroundSubtract);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10233,12 +10233,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1allowDragRoiExtent_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jboolean jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = jarg2 ? true : false;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = jarg2 ? true : false; 
   if (arg1) (arg1)->m_allowDragRoiExtent = arg2;
 }
 
@@ -10247,13 +10247,13 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
   jboolean jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   bool result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (bool) ((arg1)->m_allowDragRoiExtent);
-  jresult = (jboolean)result;
+  jresult = (jboolean)result; 
   return jresult;
 }
 
@@ -10261,12 +10261,12 @@ SWIGEXPORT jboolean JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3Spectru
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1xMin_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->m_xMin = arg2;
 }
 
@@ -10275,13 +10275,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumC
   jfloat jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (float) ((arg1)->m_xMin);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -10289,12 +10289,12 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumC
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1xMax_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   float arg2 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = (float)jarg2;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = (float)jarg2; 
   if (arg1) (arg1)->m_xMax = arg2;
 }
 
@@ -10303,13 +10303,13 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumC
   jfloat jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   float result;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (float) ((arg1)->m_xMax);
-  jresult = (jfloat)result;
+  jresult = (jfloat)result; 
   return jresult;
 }
 
@@ -10317,12 +10317,12 @@ SWIGEXPORT jfloat JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumC
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumChartOptions_1m_1reference_1lines_1json_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::map< std::string,std::string > *arg2 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
-  arg2 = *(std::map< std::string,std::string > **)&jarg2;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
+  arg2 = *(std::map< std::string,std::string > **)&jarg2; 
   if (arg1) (arg1)->m_reference_lines_json = *arg2;
 }
 
@@ -10331,23 +10331,23 @@ SWIGEXPORT jlong JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_D3SpectrumCh
   jlong jresult = 0 ;
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
   std::map< std::string,std::string > *result = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   result = (std::map< std::string,std::string > *)& ((arg1)->m_reference_lines_json);
-  *(std::map< std::string,std::string > **)&jresult = result;
+  *(std::map< std::string,std::string > **)&jresult = result; 
   return jresult;
 }
 
 
 SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1D3SpectrumChartOptions(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   D3SpectrumExport::D3SpectrumChartOptions *arg1 = 0 ;
-
+  
   (void)jenv;
   (void)jcls;
-  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1;
+  arg1 = *(D3SpectrumExport::D3SpectrumChartOptions **)&jarg1; 
   delete arg1;
 }
 
@@ -10355,3 +10355,4 @@ SWIGEXPORT void JNICALL Java_gov_sandia_specutils_SpecUtilsSwigJNI_delete_1D3Spe
 #ifdef __cplusplus
 }
 #endif
+

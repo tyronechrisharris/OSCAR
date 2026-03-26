@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * Linux 
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Feb 11, 2016
  */
 public class BleDbusCommNetwork extends AbstractModule<BluetoothNetworkConfig> implements IBleNetwork<BluetoothNetworkConfig>
@@ -357,7 +357,7 @@ public class BleDbusCommNetwork extends AbstractModule<BluetoothNetworkConfig> i
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         try
         {
@@ -408,7 +408,7 @@ public class BleDbusCommNetwork extends AbstractModule<BluetoothNetworkConfig> i
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (btAdapter != null)
             btAdapter.StopDiscovery();

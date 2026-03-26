@@ -36,9 +36,9 @@ public class PlumeSensor extends AbstractSensorModule<PlumeConfig>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate IDs
         generateUniqueID("urn:osh:model:plume:", null);
@@ -62,14 +62,14 @@ public class PlumeSensor extends AbstractSensorModule<PlumeConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         dataInterface.start();
     }
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         dataInterface.stop();
     }

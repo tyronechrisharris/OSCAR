@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * Communication provider for serial ports
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since July 2, 2015
  */
 public class RxtxSerialCommProvider extends AbstractModule<RxtxSerialCommProviderConfig> implements ICommProvider<RxtxSerialCommProviderConfig>
@@ -54,7 +54,7 @@ public class RxtxSerialCommProvider extends AbstractModule<RxtxSerialCommProvide
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         UARTConfig config = this.config.protocol;
         
@@ -173,7 +173,7 @@ public class RxtxSerialCommProvider extends AbstractModule<RxtxSerialCommProvide
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (serialPort != null)
         {

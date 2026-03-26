@@ -9,12 +9,5 @@ rootProject.allprojects {
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedImpl 'jdk:jdk.dio:1.0.1'
-}
-
-osgi {
-  manifest {
-    attributes('Bundle-Vendor': 'Sensia Software LLC')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.comm.dio.Activator')
-  }
+  implementation 'jdk:jdk.dio:1.0.1'
 }
