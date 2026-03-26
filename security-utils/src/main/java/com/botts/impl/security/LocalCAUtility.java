@@ -45,9 +45,11 @@ public class LocalCAUtility {
         File keystoreFile = new File(keystorePath);
         File secretsFile = new File(secretsPath);
 
-        String password;
-        if (!keystoreFile.exists() || keystoreFile.length() == 0) {
-            System.out.println("Keystore does not exist or is empty. Generating persistent Root CA and Leaf Certificate...");
+        String password = null;
+
+        // Handle directory vs file pitfall and empty files
+        if (!keystoreFile.exists() || !keystoreFile.isFile() || keystoreFile.length() == 0) {
+            System.out.println("Keystore does not exist, is a directory, or is empty. Generating persistent Root CA and Leaf Certificate...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
@@ -67,6 +69,10 @@ public class LocalCAUtility {
             ks.setKeyEntry(leafAlias, leafKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{leafCert, rootCert});
             ks.setKeyEntry(rootAlias, rootKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{rootCert});
 
+            if (keystoreFile.isDirectory()) {
+                keystoreFile.delete(); // Attempt to clear if it's a directory
+            }
+
             try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
                 ks.store(fos, password.toCharArray());
             }
@@ -79,11 +85,10 @@ public class LocalCAUtility {
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
             // Check for renewal
-            password = null;
-            if (secretsFile.exists() && secretsFile.length() > 0) {
+            if (secretsFile.exists() && secretsFile.isFile() && secretsFile.length() > 0) {
                 try {
                     List<String> lines = Files.readAllLines(secretsFile.toPath());
-                    if (!lines.isEmpty()) {
+                    if (lines != null && !lines.isEmpty()) {
                         password = lines.get(0).trim();
                     }
                 } catch (Exception e) {
@@ -96,7 +101,7 @@ public class LocalCAUtility {
             }
 
             if (password == null || password.isEmpty()) {
-                System.out.println("Warning: No keystore password found in .app_secrets or environment. Falling back to default for compatibility.");
+                System.out.println("Warning: No keystore password found. Falling back to default 'atakatak' for backward compatibility.");
                 password = "atakatak";
             }
 
@@ -104,7 +109,7 @@ public class LocalCAUtility {
             try (java.io.FileInputStream fis = new java.io.FileInputStream(keystoreFile)) {
                 ks.load(fis, password.toCharArray());
             } catch (Exception e) {
-                System.err.println("CRITICAL ERROR: Failed to load keystore. Renewal check skipped. " + e.getMessage());
+                System.err.println("CRITICAL ERROR: Failed to load keystore with current password. Renewal check skipped. " + e.getMessage());
                 return;
             }
 
@@ -153,6 +158,9 @@ public class LocalCAUtility {
 
     private static void saveSecret(String path, String secret) throws IOException {
         File file = new File(path);
+        if (file.isDirectory()) {
+            file.delete();
+        }
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(secret);
         }
@@ -160,6 +168,7 @@ public class LocalCAUtility {
     }
 
     private static void lockdownFile(File file) {
+        if (!file.isFile()) return;
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
             try {
