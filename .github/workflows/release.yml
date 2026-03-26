@@ -70,6 +70,7 @@ jobs:
           echo "tag_name=$FINAL_NAME" >> $GITHUB_OUTPUT
           
           # Rename the artifact
+          # Note: distribution name from build.gradle is 'oscar' (rel distribution)
           mv build/distributions/oscar-3.0.0.zip "build/distributions/${FINAL_NAME}.zip"
 
       - name: Create Release
@@ -80,8 +81,12 @@ jobs:
           tag_name: ${{ steps.date.outputs.tag_name }}
           files: build/distributions/${{ steps.date.outputs.tag_name }}.zip
           body: |
-            ## Release Snapshot: ${{ github.event.pull_request.title || 'Manual Trigger' }}
+            ## OSCAR Containerized Release Snapshot: ${{ github.event.pull_request.title || 'Manual Trigger' }}
             **Branch:** ${{ github.event.pull_request.base.ref || github.ref_name }}
             **Merged from PR:** #${{ github.event.pull_request.number || 'N/A' }}
             **Summary:** ${{ github.event.pull_request.body || 'Manually triggered build for testing.' }}
             **Build Date:** ${{ steps.date.outputs.date }}
+
+            ### Deployment Instructions:
+            1. Download and extract the `${{ steps.date.outputs.tag_name }}.zip` file.
+            2. Follow the instructions in `README.md` for launching the unified Docker Compose stack.
