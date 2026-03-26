@@ -79,7 +79,7 @@
     "idb": "^7.1.1",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
-    "next": "^14.2.5",
+    "next": "^14.2.35",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "nouislider": "^15.6.1",
     "ol": "^10.1.0",
