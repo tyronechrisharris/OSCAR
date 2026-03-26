@@ -1,7 +1,7 @@
 services:
   osh-postgis:
     build:
-      context: ./dist/release/postgis
+      context: ./postgis
       dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
     image: oscar-postgis:latest
     container_name: oscar-postgis-container

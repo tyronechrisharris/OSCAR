@@ -96,9 +96,31 @@ distributions{
                 from project.configurations.runtimeClasspath
             }
 
-            // POSTGIS / DOCKER / SCRIPTS
+            // UNIFIED CONTAINER STACK
             into('.') {
-                from('dist/release')
+                from 'docker-compose.yml'
+                from 'Dockerfile.osh'
+                from '.env.template'
+                from 'SYSTEM_ARCHITECTURE.md'
+                from 'SECURITY_ARCHITECTURE.md'
+                from 'MAPPING.md'
+                from 'changelog.md'
+            }
+            into('caddy') {
+                from 'caddy/'
+            }
+            into('docs') {
+                from 'docs/'
+            }
+            into('postgis') {
+                from 'dist/release/postgis'
+            }
+
+            // DOCKER / SCRIPTS
+            into('.') {
+                from('dist/release') {
+                    exclude 'postgis/'
+                }
             }
 
         }
