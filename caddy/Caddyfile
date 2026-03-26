@@ -8,8 +8,6 @@
     reverse_proxy https://osh-backend:8282 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
         transport http {
             tls_insecure_skip_verify
         }
@@ -20,15 +18,15 @@
 }
 
 # 2. Tailscale Block (Conditional Federated Access)
-{$TAILSCALE_DOMAIN} {
+# Using a dummy default to prevent Caddy from failing when the variable is empty.
+# The internal 'handle' block correctly checks if the domain is actually set.
+{$TAILSCALE_DOMAIN:tailscale.dummy} {
     @has_tailscale expression "{env.TAILSCALE_DOMAIN} != ''"
     handle @has_tailscale {
         # Forward headers to the backend
         reverse_proxy https://osh-backend:8282 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-For {remote_host}
-            header_up X-Forwarded-Proto {scheme}
             transport http {
                 tls_insecure_skip_verify
             }

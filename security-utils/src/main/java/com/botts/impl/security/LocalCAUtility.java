@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.Base64;
+import java.util.List;
 import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -45,8 +46,8 @@ public class LocalCAUtility {
         File secretsFile = new File(secretsPath);
 
         String password;
-        if (!keystoreFile.exists()) {
-            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate...");
+        if (!keystoreFile.exists() || keystoreFile.length() == 0) {
+            System.out.println("Keystore does not exist or is empty. Generating persistent Root CA and Leaf Certificate...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
@@ -78,13 +79,19 @@ public class LocalCAUtility {
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
             // Check for renewal
-            if (secretsFile.exists()) {
-                password = Files.readAllLines(secretsFile.toPath()).get(0).trim();
+            if (secretsFile.exists() && secretsFile.length() > 0) {
+                List<String> lines = Files.readAllLines(secretsFile.toPath());
+                if (lines.isEmpty()) {
+                    password = System.getenv("KEYSTORE_PASSWORD");
+                } else {
+                    password = lines.get(0).trim();
+                }
             } else {
                 password = System.getenv("KEYSTORE_PASSWORD");
-                if (password == null || password.isEmpty()) {
-                    throw new IOException("CRITICAL ERROR: .app_secrets not found and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
-                }
+            }
+
+            if (password == null || password.isEmpty()) {
+                throw new IOException("CRITICAL ERROR: Keystore exists but .app_secrets is missing/empty and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
             }
 
             KeyStore ks = KeyStore.getInstance("PKCS12");

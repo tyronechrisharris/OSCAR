@@ -72,9 +72,14 @@ services:
           memory: ${BACKEND_MEM_LIMIT:-2G}
     restart: unless-stopped
     # Port 8282 is not exposed to the host network to ensure it's only accessible via the proxy
-    # For local debugging, it can be bound to 127.0.0.1:8282
     ports:
       - "127.0.0.1:8282:8282"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8282 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   osh-proxy:
     image: caddy:2-alpine
@@ -94,6 +99,9 @@ services:
       - ./osh-node-oscar/osh-leaf.key:/etc/caddy/certs/osh-leaf.key:ro
     networks:
       - osh-internal
+    depends_on:
+      osh-backend:
+        condition: service_healthy
     restart: unless-stopped
 
 networks:
