@@ -1,4 +1,4 @@
-name: Automated Build and Versioned Releases docker
+name: Docker Automated Build and Versioned Releases 
 on:
   pull_request:
     types:
