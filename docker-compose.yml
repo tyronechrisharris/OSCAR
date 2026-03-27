@@ -1,0 +1,135 @@
+services:
+  # Pre-flight container to generate secrets exactly like launch-all.sh
+  init-secrets:
+    image: alpine:latest
+    container_name: oscar-init-secrets
+    volumes:
+      - oscar_secrets:/secrets
+    command: >
+      /bin/sh -c "
+      apk add --no-cache openssl;
+      if [ ! -f /secrets/.db_password ]; then
+        echo 'Generating new database password...';
+        openssl rand -base64 32 > /secrets/.db_password;
+      fi;
+      if [ ! -f /secrets/.app_secrets ]; then
+        echo 'Generating new keystore password...';
+        openssl rand -base64 32 > /secrets/.app_secrets;
+      fi;
+      "
+
+  osh-postgis:
+    depends_on:
+      init-secrets:
+        condition: service_completed_successfully
+    build:
+      context: ./dist/release/postgis
+      dockerfile: Dockerfile
+    image: oscar-postgis:latest
+    container_name: oscar-postgis-container
+    environment:
+      - POSTGRES_DB=gis
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/secrets/.db_password
+      # Performance Tuning from .env
+      - POSTGRES_SHARED_BUFFERS=${DB_SHARED_BUFFERS:-128MB}
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=${DB_EFFECTIVE_CACHE_SIZE:-512MB}
+      - POSTGRES_WORK_MEM=${DB_WORK_MEM:-4MB}
+      - POSTGRES_MAX_WAL_SIZE=${DB_MAX_WAL_SIZE:-1GB}
+      - POSTGRES_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-50}
+      - POSTGRES_MAINTENANCE_WORK_MEM=${DB_MAINTENANCE_WORK_MEM:-64MB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - oscar_secrets:/secrets:ro
+    networks:
+      - osh-internal
+    deploy:
+      resources:
+        limits:
+          memory: ${DB_MEM_LIMIT:-1G}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  osh-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.osh
+    image: oscar-backend:latest
+    container_name: oscar-backend-container
+    environment:
+      - DB_HOST=${DB_HOST:-osh-postgis}
+      - POSTGRES_PASSWORD_FILE=/secrets/.db_password
+      - KEYSTORE=/app/config/osh-keystore.p12
+      - KEYSTORE_TYPE=PKCS12
+      - SHOW_CMD=true
+      # JVM Tuning from .env
+      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
+    volumes:
+      # Use named volumes or bind mounts for persistent backend state
+      - ./dist/config/standard:/app/config
+      - ./osh-node-oscar/db:/app/db
+      - ./osh-node-oscar/files:/app/files
+      # The secrets volume guarantees persistence for the CA and database passwords
+      - oscar_secrets:/secrets:ro
+    networks:
+      - osh-internal
+    depends_on:
+      osh-postgis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: ${BACKEND_MEM_LIMIT:-2G}
+    restart: unless-stopped
+    # Port 8282 is not exposed to the host network to ensure it's only accessible via the proxy
+    # For local debugging, it can be bound to 127.0.0.1:8282
+    ports:
+      - "127.0.0.1:8282:8282"
+    healthcheck:
+      # Wait-State Logic: The backend takes significant time to generate certificates,
+      # process the Setup Wizard, and validate TOTP/Admin states before it is ready.
+      # The -L flag ensures curl follows the 302 redirect to the Setup Wizard on first boot.
+      test: ["CMD", "curl", "-f", "-L", "-k", "https://localhost:8282/sensorhub/admin"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
+
+  osh-proxy:
+    image: caddy:2-alpine
+    depends_on:
+      osh-backend:
+        condition: service_healthy
+    container_name: oscar-proxy-container
+    environment:
+      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-}
+      - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+      # Mount the generated certificates from the backend's persistent config volume
+      - ./dist/config/standard/osh-leaf.crt:/etc/caddy/certs/osh-leaf.crt:ro
+      - ./dist/config/standard/osh-leaf.key:/etc/caddy/certs/osh-leaf.key:ro
+    networks:
+      - osh-internal
+    restart: unless-stopped
+
+networks:
+  osh-internal:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+  oscar_secrets:

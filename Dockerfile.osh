@@ -1,0 +1,24 @@
+# Dockerfile.osh
+FROM eclipse-temurin:21-jre-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
+# GLOBAL BUILD CONSTRAINT: Bypass HTTPS for corporate SSL inspection during build
+RUN sed -i 's/https/http/g' /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache fonts-freefont-ttf openssl bash curl && \
+    rm -rf /var/cache/apk/*
+
+# Copy build artifacts
+COPY ./osh-node-oscar/lib /app/lib
+COPY ./dist/config/standard /app/config
+COPY ./osh-node-oscar/web /app/web
+COPY ./osh-node-oscar/logback.xml /app/logback.xml
+
+# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts.
+# It implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
+# It dynamically copies the Alpine JRE cacerts to build a valid truststore for federation, using the default 'changeit' password.
+# JAVA_OPTS is used to pass memory limits from the .env file.
+ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app/config; if [ ! -f .app_secrets ]; then cp /secrets/.app_secrets .; fi; java -cp '../lib/*' com.botts.impl.security.LocalCAUtility && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && cp $JAVA_HOME/lib/security/cacerts truststore.jks && chmod 644 truststore.jks && java $JAVA_OPTS -Djavax.net.ssl.keyStorePassword=$KEYSTORE_PASSWORD -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStore=./truststore.jks -cp '../lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ../db"]

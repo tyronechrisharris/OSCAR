@@ -14,24 +14,24 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **Client Web UI**: React/Frontend viewer.
 
 ### Default Port Configuration:
-- **OSH Backend API (HTTP)**: `8282`
-- **OSH Backend Admin UI**: `8282`
-- **PostGIS Database**: `5432`
-- **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy on port `8282`)
+- **Caddy Reverse Proxy**: `80` (HTTP) and `443` (HTTPS)
+- **OSH Backend API (HTTP)**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
+- **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
+- **PostGIS Database**: `5432` (Internal Docker Network only)
+- **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy)
 
 ### Network Flows:
-- **Client to OSH**: Clients interact with OSH through its REST API and Web UI on port `8282`. The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
+- **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
 - **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
 - **Certificate Management**: OSH manages its own internal PKI. On first boot, a 20-year Root CA and a 1-year Leaf certificate are generated and stored in `osh-keystore.p12`. The system automatically renews the Leaf certificate if it is within 30 days of expiration during the boot sequence.
 
 ## Deployment and Lifecycle Commands
 
-### Main Launch Scripts:
-Located in `dist/release/`:
-- `launch-all.sh`: Starts the PostGIS container and the OSH backend (Linux/macOS).
-- `launch-all-arm.sh`: Starts the PostGIS container and the OSH backend (ARM64, e.g., Mac M1/M2/M3).
-- `launch-all.bat`: Starts the PostGIS container and the OSH backend (Windows).
+### Main Launch Commands:
+The stack is fully containerized using Docker Compose. Launch from the repository root:
+- `docker compose up -d`: Starts the init-secrets, PostGIS, OSH Backend, and Caddy Proxy containers.
+Launch scripts in `dist/release/` (e.g., `launch-all.sh`, `launch-all-arm.sh`, `launch-all.bat`) still wrap this command to provide backward compatibility.
 
 ### Automated Provisioning Utilities:
 Located in the repository root:
