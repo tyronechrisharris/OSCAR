@@ -119,8 +119,7 @@ services:
       - caddy_config:/config
       - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
       # Mount the generated certificates from the backend's persistent config volume
-      - ./dist/config/standard/osh-leaf.crt:/etc/caddy/certs/osh-leaf.crt:ro
-      - ./dist/config/standard/osh-leaf.key:/etc/caddy/certs/osh-leaf.key:ro
+      - ./dist/config/standard:/etc/caddy/certs:ro
     networks:
       - osh-internal
     restart: unless-stopped
