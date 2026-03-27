@@ -45,7 +45,6 @@ services:
       - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
       - KEYSTORE=./osh-keystore.p12
       - KEYSTORE_TYPE=PKCS12
-      - TRUSTSTORE=./truststore.jks
       - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
       # JVM Tuning from .env
@@ -56,7 +55,6 @@ services:
       - ./osh-node-oscar/files:/app/files
       - ./osh-node-oscar/osh-keystore.p12:/app/osh-keystore.p12
       - ./osh-node-oscar/.app_secrets:/app/.app_secrets
-      - ./osh-node-oscar/truststore.jks:/app/truststore.jks
       - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates
       - ./osh-node-oscar/rules:/app/rules
       - ./osh-node-oscar/osh-leaf.crt:/app/osh-leaf.crt

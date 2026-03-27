@@ -55,7 +55,6 @@ if not exist "osh-node-oscar\rules" mkdir "osh-node-oscar\rules"
 REM Touch required secret/cert files to prevent Docker from creating them as directories
 if not exist "osh-node-oscar\osh-keystore.p12" type nul > "osh-node-oscar\osh-keystore.p12"
 if not exist "osh-node-oscar\.app_secrets" type nul > "osh-node-oscar\.app_secrets"
-if not exist "osh-node-oscar\truststore.jks" type nul > "osh-node-oscar\truststore.jks"
 if not exist "osh-node-oscar\osh-leaf.crt" type nul > "osh-node-oscar\osh-leaf.crt"
 if not exist "osh-node-oscar\osh-leaf.key" type nul > "osh-node-oscar\osh-leaf.key"
 
