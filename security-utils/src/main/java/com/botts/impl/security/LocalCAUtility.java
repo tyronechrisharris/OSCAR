@@ -48,7 +48,9 @@ public class LocalCAUtility {
         String password = null;
 
         // Handle directory vs file pitfall and empty files
-        if (!keystoreFile.exists() || !keystoreFile.isFile() || keystoreFile.length() == 0) {
+        // We MUST also trigger regeneration if the keystore does not exist AND the secrets file is missing or 0-bytes.
+        // If keystore exists but secrets is missing/0-bytes, we'll try to use environment variables in the else block.
+        if (!keystoreFile.exists() || !keystoreFile.isFile() || keystoreFile.length() == 0 || !secretsFile.exists() || secretsFile.length() == 0) {
             System.out.println("Keystore does not exist, is a directory, or is empty. Generating persistent Root CA and Leaf Certificate...");
 
             // 1. Generate Keystore Password
@@ -88,8 +90,13 @@ public class LocalCAUtility {
             if (secretsFile.exists() && secretsFile.isFile() && secretsFile.length() > 0) {
                 try {
                     List<String> lines = Files.readAllLines(secretsFile.toPath());
-                    if (lines != null && !lines.isEmpty()) {
-                        password = lines.get(0).trim();
+                    if (lines != null) {
+                        for (String line : lines) {
+                            if (line != null && !line.trim().isEmpty()) {
+                                password = line.trim();
+                                break;
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     System.err.println("Warning: Could not read .app_secrets: " + e.getMessage());
