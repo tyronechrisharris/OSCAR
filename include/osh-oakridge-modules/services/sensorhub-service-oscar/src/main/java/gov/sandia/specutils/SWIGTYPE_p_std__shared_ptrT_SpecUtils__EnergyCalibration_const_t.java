@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__shared_ptrT_SpecUtils__EnergyCalibration_const_t {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

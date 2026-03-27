@@ -26,7 +26,7 @@ import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.DataType;
 import net.opengis.swe.v20.TextEncoding;
 import org.sensorhub.api.data.IMultiSourceDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.usgs.water.CodeEnums.ObsParam;
 import org.vast.swe.SWEConstants;
@@ -39,7 +39,7 @@ import org.vast.swe.SWEHelper;
  * protocol. This particular class stores configuration parameters.
  * </p>
  * 
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since March 22, 2017
  */
 
@@ -52,7 +52,14 @@ public class AllWaterOutput extends AbstractSensorOutput <USGSWaterDriver> imple
 
     public AllWaterOutput(USGSWaterDriver driver)
     {
-        super("allData", driver);
+        super(driver);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "All-Data";
     }
     
     
@@ -175,7 +182,7 @@ public class AllWaterOutput extends AbstractSensorOutput <USGSWaterDriver> imple
     		latestRecordTime = System.currentTimeMillis();
     		latestRecord = dataBlock;
     		latestRecords.put(USGSWaterDriver.UID_PREFIX + rec.getSiteCode(), latestRecord); 
-    		eventHandler.publish(new DataEvent(latestRecordTime, rec.getSiteCode(), AllWaterOutput.this, dataBlock));
+    		eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, rec.getSiteCode(), AllWaterOutput.this, dataBlock));
     	}
     }
     

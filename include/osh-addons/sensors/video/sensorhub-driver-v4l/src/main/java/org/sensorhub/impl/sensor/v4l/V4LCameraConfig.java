@@ -27,7 +27,7 @@ import org.sensorhub.api.sensor.PositionConfig.LLALocation;
  * Configuration class for the generic Video4Linux camera driver
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Sep 6, 2013
  */
 public class V4LCameraConfig extends SensorConfig

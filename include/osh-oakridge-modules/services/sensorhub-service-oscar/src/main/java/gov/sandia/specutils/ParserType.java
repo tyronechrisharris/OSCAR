@@ -74,3 +74,4 @@ public final class ParserType {
   private final int swigValue;
   private final String swigName;
 }
+

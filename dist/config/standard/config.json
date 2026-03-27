@@ -27,7 +27,9 @@
         "roles": [
           "admin"
         ],
-        "allow": [],
+        "allow": [
+          "fileserver[af72442c-1ce6-4baa-a126-ed41dda26910]"
+        ],
         "deny": []
       },
       {
@@ -173,7 +175,7 @@
       "url": "localhost:5432",
       "dbName": "gis",
       "login": "postgres",
-      "password": "",
+      "password": "postgres",
       "idProviderType": "SEQUENTIAL",
       "autoCommitPeriod": 10,
       "useBatch": false,

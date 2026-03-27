@@ -34,7 +34,7 @@ import org.sensorhub.impl.sensor.videocam.ptz.PtzConfig;
  * protocol. This particular class stores configuration parameters.
  * </p>
  * 
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since October 30, 2014
  */
 public class AxisCameraConfig extends SensorConfig {

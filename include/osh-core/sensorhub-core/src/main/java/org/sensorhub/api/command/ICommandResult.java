@@ -16,8 +16,7 @@ package org.sensorhub.api.command;
 
 import java.util.Collection;
 import org.sensorhub.api.common.BigId;
-import org.vast.ogc.xlink.IXlinkReference;
-import net.opengis.swe.v20.DataBlock;
+import org.sensorhub.api.data.IObsData;
 
 
 /**
@@ -44,29 +43,22 @@ import net.opengis.swe.v20.DataBlock;
 public interface ICommandResult
 {
     /**
-     * @return inline data records matching the result schema defined by
-     * {@link ICommandStreamInfo}, or null if none provided.
+     * @return inline result data, as a list of observations matching the
+     * result schema defined by {@link ICommandStreamInfo}
      */
-    Collection<DataBlock> getInlineRecords();
-    
+    Collection<IObsData> getObservations();
     
     /**
-     * @return IDs to observations generated during the execution of the command
-     * and available on the sensor hub, or null if none provided.
+     * @return reference to observations (when not provided inline) generated
+     * during the execution of the command and added to one or more existing
+     * datastream(s).
      */
-    Collection<BigId> getObservationIDs();
-    
+    Collection<BigId> getObservationRefs();
     
     /**
-     * @return references to datastreams that contain observations generated during
-     * the execution of the command, or null if none provided.
+     * @return reference to an entire datastream that contains one or more
+     * observations (but usually many) generated during the execution of the
+     * command.
      */
-    Collection<BigId> getDataStreamIDs();
-    
-    
-    /**
-     * @return reference to external resources that contain data generated during
-     * the execution of the command, or null if none provided.
-     */
-    Collection<IXlinkReference<?>> getExternalLinks();
+    BigId getDataStreamID();
 }

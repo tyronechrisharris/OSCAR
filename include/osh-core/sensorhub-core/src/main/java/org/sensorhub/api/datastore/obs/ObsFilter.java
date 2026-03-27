@@ -19,14 +19,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.function.Predicate;
-
-import org.geootols.filter.text.cql_2.CQL2;
-import org.geotools.api.filter.*;
-import org.geotools.api.filter.spatial.*;
-import org.geotools.api.filter.temporal.*;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.filter.Filters;
-import org.geotools.filter.text.cql2.CQLException;
 import org.sensorhub.api.common.BigId;
 import org.sensorhub.api.data.IObsData;
 import org.sensorhub.api.datastore.EmptyFilterIntersection;
@@ -60,7 +52,6 @@ public class ObsFilter implements IQueryFilter, Predicate<IObsData>
     protected FoiFilter foiFilter;
     protected Predicate<IObsData> valuePredicate;
     protected long limit = Long.MAX_VALUE;
-    protected Filter cqlFilter;
     
     
     /*
@@ -104,14 +95,12 @@ public class ObsFilter implements IQueryFilter, Predicate<IObsData>
         return foiFilter;
     }
 
-    public Filter getCQLFilter() {
-        return cqlFilter;
-    }
 
     public Predicate<IObsData> getValuePredicate()
     {
         return valuePredicate;
     }
+
 
     @Override
     public long getLimit()
@@ -195,12 +184,7 @@ public class ObsFilter implements IQueryFilter, Predicate<IObsData>
         var foiFilter = this.foiFilter != null ? this.foiFilter.intersect(filter.foiFilter) : filter.foiFilter;
         if (foiFilter != null)
             builder.withFois(foiFilter);
-
-        var ff = CommonFactoryFinder.getFilterFactory();
-        var cqlFilter = this.cqlFilter != null ? Filters.and(ff, this.cqlFilter, filter.cqlFilter) : filter.cqlFilter;
-        if (cqlFilter != null)
-            builder.withCQLFilter(cqlFilter);
-
+        
         var valuePredicate = this.valuePredicate != null ? this.valuePredicate.and(filter.valuePredicate) : filter.valuePredicate;
         if (valuePredicate != null)
             builder.withValuePredicate(valuePredicate);
@@ -293,7 +277,6 @@ public class ObsFilter implements IQueryFilter, Predicate<IObsData>
             instance.dataStreamFilter = base.dataStreamFilter;
             instance.foiFilter = base.foiFilter;
             instance.valuePredicate = base.valuePredicate;
-            instance.cqlFilter = base.cqlFilter;
             instance.limit = base.limit;
             return (B)this;
         }
@@ -610,22 +593,6 @@ public class ObsFilter implements IQueryFilter, Predicate<IObsData>
         {
             instance.valuePredicate = valuePredicate;
             return (B)this;
-        }
-
-        public B withCQLFilter(Filter cqlFilter)
-        {
-            instance.cqlFilter = cqlFilter;
-            return (B)this;
-        }
-
-        public B withCQLFilter(String cqlFilter)
-        {
-            try {
-                instance.cqlFilter = CQL2.toFilter(cqlFilter);
-                return (B)this;
-            } catch (CQLException e) {
-                throw new IllegalArgumentException("Invalid CQL filter", e);
-            }
         }
 
 
