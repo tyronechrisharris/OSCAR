@@ -17,7 +17,7 @@ The database container starts and provisions the `gis` database, loading spatial
 
 #### 2. Backend Delay & Persistent CA
 The OSH Backend (`osh-backend`) must wait for PostGIS to become `service_healthy`. On initial boot, the backend requires significant processing time to:
-- Generate local certificates via `LocalCAUtility.java`. This utility generates a random keystore password (if `.app_secrets` is missing), a 20-year Root CA (`root-ca.crt`), and a 1-year leaf certificate (`osh-keystore.p12`). These artifacts are written to a persistent volume so they survive restarts.
+- Generate local certificates via `LocalCAUtility.java`. This utility generates a random keystore password (if `.app_secrets` is missing), a 20-year Root CA (`root-ca.crt`), and a 1-year leaf certificate (`osh-keystore.p12`). These artifacts are written to a persistent volume so they survive restarts. *Note: `LocalCAUtility.java` must be programmed to export `osh-leaf.crt` and `osh-leaf.key` to the filesystem for the proxy to consume.*
 - Evaluate the `SecurityManagerImpl.isUninitialized()` state (checking for default passwords and missing TOTP secrets).
 
 #### 3. Proxy Delay
@@ -95,8 +95,6 @@ services:
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
       - KEYSTORE=/app/config/osh-keystore.p12
       - KEYSTORE_TYPE=PKCS12
-      - TRUSTSTORE=./truststore.jks
-      - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
       # JVM Tuning from .env
       - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
@@ -124,7 +122,8 @@ services:
     healthcheck:
       # Wait-State Logic: The backend takes significant time to generate certificates,
       # process the Setup Wizard, and validate TOTP/Admin states before it is ready.
-      test: ["CMD", "curl", "-f", "-k", "https://localhost:8282/sensorhub/admin"]
+      # The -L flag ensures curl follows the 302 redirect to the Setup Wizard on first boot.
+      test: ["CMD", "curl", "-f", "-L", "-k", "https://localhost:8282/sensorhub/admin"]
       interval: 15s
       timeout: 10s
       retries: 15
@@ -170,6 +169,8 @@ volumes:
 - **osh-backend**: Port 8282 is bound specifically to `127.0.0.1` on the host, preventing external access except through the reverse proxy. Within the Docker network, it is reachable by `osh-proxy` at `http://osh-backend:8282`.
 - **osh-proxy**: Ports 80 and 443 are exposed to the host for public/LAN access.
 
+---
+
 ## 2. Proposed TLS & Routing Strategy (Caddy Dynamic Switching)
 
 The Caddy reverse proxy will handle TLS termination and dynamic routing based on environment variables.
@@ -180,10 +181,6 @@ The Caddyfile will implement a "Dual-Listener" setup, ensuring the local LAN fal
 
 **Main Caddyfile (`/etc/caddy/Caddyfile`):**
 ```caddy
-{
-    # Global options
-}
-
 # 1. Local LAN Block (Always Active Fallback)
 {$LOCAL_DOMAIN:localhost}, 127.0.0.1 {
     # Forward headers to the backend
@@ -230,11 +227,13 @@ The Caddyfile will implement a "Dual-Listener" setup, ensuring the local LAN fal
 - **Federated Mode (Tailscale)**: Uses the `get_certificate tailscale` directive. This block is only active when `TAILSCALE_DOMAIN` is populated.
 - **Header Forwarding**: Standard headers (`X-Forwarded-For`, `X-Forwarded-Proto`, etc.) are forwarded to ensure the OSH backend correctly identifies the client's origin.
 
+---
+
 ## 3. Proposed Backend Dockerfile
 
 The OSH Backend will be containerized using a lightweight Alpine-based Java image.
 
-To accommodate the wait-state logic, the entrypoint integrates the required `curl` package for health checks and incorporates the necessary sleep/delay loops mirroring the original bash scripts.
+To accommodate the wait-state logic, the entrypoint integrates the required `curl` package for health checks and incorporates the necessary sleep/delay loops mirroring the original bash scripts. It also generates the required Java truststore dynamically to ensure federated HTTPS requests succeed.
 
 ### 3.1 Dockerfile Structure
 
@@ -245,11 +244,11 @@ FROM eclipse-temurin:21-jre-alpine
 # Set the working directory
 WORKDIR /app
 
-# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to font-freefont
+# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
 # GLOBAL BUILD CONSTRAINT: Bypass HTTPS for corporate SSL inspection during build
 RUN sed -i 's/https/http/g' /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache font-freefont openssl bash curl && \
+    apk add --no-cache fonts-freefont-ttf openssl bash curl && \
     rm -rf /var/cache/apk/*
 
 # Copy build artifacts
@@ -258,12 +257,14 @@ COPY ./osh-node-oscar/config /app/config
 COPY ./osh-node-oscar/web /app/web
 COPY ./osh-node-oscar/logback.xml /app/logback.xml
 
-# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts
-# It also implements a 30-second buffer delay after the database is reachable, mimicking the original hybrid launch scripts, to allow PostGIS extensions to fully load before backend connection.
-# The LocalCAUtility is executed within the persistent /app/config directory to ensure `osh-keystore.p12`, `root-ca.crt`, and `.app_secrets` survive container restarts.
-# JAVA_OPTS is used to pass memory limits from the .env file
-ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app/config; if [ ! -f .app_secrets ]; then cp /secrets/.app_secrets .; fi; java -cp '../lib/*' com.botts.impl.security.LocalCAUtility && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && java $JAVA_OPTS -Djavax.net.ssl.keyStorePassword=$KEYSTORE_PASSWORD -Djavax.net.ssl.trustStorePassword=$KEYSTORE_PASSWORD -cp '../lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ../db"]
+# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts.
+# It implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
+# It dynamically copies the Alpine JRE cacerts to build a valid truststore for federation, using the default 'changeit' password.
+# JAVA_OPTS is used to pass memory limits from the .env file.
+ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app/config; if [ ! -f .app_secrets ]; then cp /secrets/.app_secrets .; fi; java -cp '../lib/*' com.botts.impl.security.LocalCAUtility && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && cp $JAVA_HOME/lib/security/cacerts truststore.jks && chmod 644 truststore.jks && java $JAVA_OPTS -Djavax.net.ssl.keyStorePassword=$KEYSTORE_PASSWORD -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStore=./truststore.jks -cp '../lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ../db"]
 ```
+
+---
 
 ## 4. Scaled Deployment Profiles (.env Templates)
 
@@ -318,6 +319,8 @@ DB_WORK_MEM=64MB
 DB_MAX_WAL_SIZE=8GB
 ```
 
+---
+
 ## 5. Global Build Constraint Acknowledgment
-- **Font Package**: All Alpine-based Dockerfiles explicitly set the font package to `font-freefont`.
+- **Font Package**: All Alpine-based Dockerfiles explicitly set the font package to `fonts-freefont-ttf` to ensure application reporting and charting render correctly.
 - **HTTP Bypass**: All `apk add` steps use `sed -i 's/https/http/g' /etc/apk/repositories` to ensure reliability behind corporate firewalls.
