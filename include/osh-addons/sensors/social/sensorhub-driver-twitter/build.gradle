@@ -4,16 +4,15 @@ version = '0.0.1'
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedImpl 'com.twitter:hbc-core:2.2.0'
-  embeddedImpl 'com.twitter:hbc-twitter4j:2.2.0'
-  embeddedImpl 'org.apache.httpcomponents:httpclient:4.5.13'
+  implementation 'com.twitter:hbc-core:2.2.0'
+  implementation 'com.twitter:hbc-twitter4j:2.2.0'
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research Inc.')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.sensor.twitter.Activator')
+    attributes 'Bundle-Vendor': 'Joshua Wolfe'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.sensor.twitter.Activator'
   }
 }
 

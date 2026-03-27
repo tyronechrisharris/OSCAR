@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * provided by the jmDNS library.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Feb 10, 2016
  */
 public class IpCommNetwork extends AbstractModule<IpNetworkConfig> implements ICommNetwork<IpNetworkConfig>
@@ -232,9 +232,9 @@ public class IpCommNetwork extends AbstractModule<IpNetworkConfig> implements IC
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // use first interface by default if none is specified
         if (config.networkInterface == null)
@@ -268,16 +268,10 @@ public class IpCommNetwork extends AbstractModule<IpNetworkConfig> implements IC
                     final String mac;
                     StringBuilder buf = new StringBuilder();
                     byte[] bytes = netInt.getHardwareAddress();
-                    if (bytes != null)
-                    {
-                        for (byte b: bytes)
-                            buf.append(String.format("%02X", b)).append(':');
-                        mac = buf.substring(0, buf.length()-1);
-                    }
-                    // If interface is loopback, VPN, or other non-physical interface, it won't have physical address in some operating systems
-                    else
-                        mac = "NONE";
-
+                    for (byte b: bytes)
+                        buf.append(String.format("%02X", b)).append(':');
+                    mac = buf.substring(0, buf.length()-1);
+                    
                     // IP address
                     Enumeration<InetAddress> ipList = netInt.getInetAddresses();
                     InetAddress ipAdd = getDefaultInetAddress(ipList);
@@ -325,7 +319,7 @@ public class IpCommNetwork extends AbstractModule<IpNetworkConfig> implements IC
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         // bind to selected network interface
         try
@@ -359,7 +353,7 @@ public class IpCommNetwork extends AbstractModule<IpNetworkConfig> implements IC
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         try
         {

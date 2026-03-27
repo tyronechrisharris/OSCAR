@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM ==== CONFIG ====
-if "%DB_HOST%"=="" (set HOST=localhost) else (set HOST=%DB_HOST%)
+set HOST=localhost
 set PORT=5432
 set DB_NAME=gis
 set USER=postgres
@@ -13,16 +13,6 @@ set CONTAINER_NAME=oscar-postgis-container
 set IMAGE_NAME=oscar-postgis
 
 echo PROJECT_DIR is: %PROJECT_DIR%
-
-REM Set up DB password secret
-if "%POSTGRES_PASSWORD_FILE%"=="" (set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password")
-
-if not exist "%POSTGRES_PASSWORD_FILE%" (
-    echo Generating new database password...
-    powershell -Command "$p = New-Object byte[] 32; (New-Object System.Security.Cryptography.RNGCryptoServiceProvider).GetBytes($p); $pwd = [Convert]::ToBase64String($p); [System.IO.File]::WriteAllText(\"%POSTGRES_PASSWORD_FILE:\=\\%\", $pwd)"
-)
-
-set /p DB_PASSWORD=<"%POSTGRES_PASSWORD_FILE%"
 
 where docker >nul 2>&1
 if %errorlevel% neq 0 (
@@ -71,10 +61,9 @@ if defined CONTAINER_EXISTS (
         --name %CONTAINER_NAME% ^
         -e POSTGRES_DB=%DB_NAME% ^
         -e POSTGRES_USER=%USER% ^
-        -e POSTGRES_PASSWORD_FILE=/run/secrets/db_password ^
+        -e POSTGRES_PASSWORD=postgres ^
         -p %PORT%:5432 ^
         -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
-        -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
         -d ^
         %IMAGE_NAME%
 
@@ -89,7 +78,7 @@ echo Waiting for PostGIS database to become ready...
 set RETRY_COUNT=0
 
 :wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
+docker exec %CONTAINER_NAME% pg_isready -U %USER% -d %DB_NAME% >nul 2>&1
 if %errorlevel% equ 0 (
     echo Received OK from PostGIS. Please wait for initialization...
     goto after_wait
@@ -108,24 +97,9 @@ goto wait_loop
 
 :after_wait
 
-timeout /t 30 >nul
-
-:final_wait_loop
-docker exec -u %USER% %CONTAINER_NAME% pg_isready -d %DB_NAME% >nul 2>&1
-if %errorlevel% equ 0 (
-    goto after_final_wait
-)
-echo PostGIS still restarting, waiting...
-timeout /t 5 >nul
-goto final_wait_loop
-
-:after_final_wait
+timeout /t 10 >nul
 
 echo PostGIS database is ready!
-
-REM Export for OSH backend
-set DB_HOST=%HOST%
-set POSTGRES_PASSWORD_FILE=%POSTGRES_PASSWORD_FILE%
 
 cd "%PROJECT_DIR%\osh-node-oscar"
 if %errorlevel% neq 0 (

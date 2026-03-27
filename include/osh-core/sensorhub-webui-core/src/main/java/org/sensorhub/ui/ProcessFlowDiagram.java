@@ -284,7 +284,7 @@ public class ProcessFlowDiagram extends AbstractJavaScriptComponent
     
     protected void editValues(DataComponent component)
     {
-        Window popup = new Window(I18N.get("setParameter1"));
+        Window popup = new Window("Set Parameter");
         VerticalLayout content = new VerticalLayout();
         popup.setContent(content);
         popup.center();

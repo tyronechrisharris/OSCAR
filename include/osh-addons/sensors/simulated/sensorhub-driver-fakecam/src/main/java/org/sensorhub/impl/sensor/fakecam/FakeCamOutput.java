@@ -32,7 +32,7 @@ import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.DataType;
 import net.opengis.swe.v20.Time;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,14 @@ public class FakeCamOutput extends AbstractSensorOutput<FakeCamSensor>
 
     public FakeCamOutput(FakeCamSensor parentSensor)
     {
-        super("videoOut", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "videoOut";
     }
 
 
@@ -183,7 +190,7 @@ public class FakeCamOutput extends AbstractSensorOutput<FakeCamSensor>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, FakeCamOutput.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, FakeCamOutput.this, dataBlock));
     }
 
 

@@ -23,7 +23,7 @@ import org.sensorhub.impl.comm.TCPConfig;
  * RTP/RTSP configuration parameters
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 12, 2015
  */
 public class RTSPConfig extends TCPConfig

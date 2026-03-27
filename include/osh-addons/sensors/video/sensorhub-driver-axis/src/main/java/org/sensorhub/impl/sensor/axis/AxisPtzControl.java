@@ -24,7 +24,9 @@ import java.net.MalformedURLException;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataChoice;
 import net.opengis.swe.v20.DataComponent;
-import org.sensorhub.api.command.CommandException;
+import org.sensorhub.api.common.CommandStatus;
+import org.sensorhub.api.common.CommandStatus.StatusCode;
+import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorControl;
 import org.sensorhub.impl.sensor.videocam.VideoCamHelper;
 import org.sensorhub.impl.sensor.videocam.ptz.PtzPreset;
@@ -39,7 +41,7 @@ import org.vast.data.DataChoiceImpl;
  * (PTZ) capabilities.
  * </p>
  * 
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since October 30, 2014
  */
 public class AxisPtzControl extends AbstractSensorControl<AxisCameraDriver>
@@ -59,7 +61,7 @@ public class AxisPtzControl extends AbstractSensorControl<AxisCameraDriver>
     
     protected AxisPtzControl(AxisCameraDriver driver)
     {
-        super("ptzControl", driver);
+        super(driver);
         
         try {
             optionsURL = new URL(parentSensor.getHostUrl() + driver.VAPIX_QUERY_PARAMS_LIST_GROUP_PTZ);
@@ -68,6 +70,13 @@ public class AxisPtzControl extends AbstractSensorControl<AxisCameraDriver>
            
             e.printStackTrace();
         }
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "ptzControl";
     }
     
     
@@ -114,12 +123,13 @@ public class AxisPtzControl extends AbstractSensorControl<AxisCameraDriver>
     
     
     protected void start()
-    {        
+    {
+        
     }
     
 
     @Override
-    protected boolean execCommand(DataBlock command) throws CommandException
+    public CommandStatus execCommand(DataBlock command) throws SensorException
     {
     	// associate command data to msg structure definition
         DataChoice commandMsg = (DataChoice) commandData.copy();
@@ -185,10 +195,12 @@ public class AxisPtzControl extends AbstractSensorControl<AxisCameraDriver>
 	    }
 	    catch (Exception e)
 	    {	    	
-	        throw new CommandException("Error connecting to Axis PTZ control", e);
+	        throw new SensorException("Error connecting to Axis PTZ control", e);
 	    }        
        
-        return true;
+        CommandStatus cmdStatus = new CommandStatus();
+        cmdStatus.status = StatusCode.COMPLETED;        
+        return cmdStatus;
     }
     
     

@@ -47,7 +47,7 @@ import com.google.gson.JsonParser;
  * using Google Directions API.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Nov 29, 2015
  */
 public class SimulatedProvider extends AbstractModule<SimulatedProviderConfig> implements ICommProvider<SimulatedProviderConfig>
@@ -267,7 +267,7 @@ public class SimulatedProvider extends AbstractModule<SimulatedProviderConfig> i
     
 
     @Override
-    protected synchronized void doStart() throws SensorHubException
+    public synchronized void start() throws SensorHubException
     {
         if (config.googleApiKey == null || config.googleApiKey.isEmpty())
             throw new SensorHubException("A Google API key with access to the Directions API must be provided in the configuration");
@@ -333,7 +333,7 @@ public class SimulatedProvider extends AbstractModule<SimulatedProviderConfig> i
     
     
     @Override
-    protected synchronized void doStop() throws SensorHubException
+    public synchronized void stop() throws SensorHubException
     {
         try
         {

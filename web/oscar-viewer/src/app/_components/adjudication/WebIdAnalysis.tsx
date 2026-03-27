@@ -11,13 +11,12 @@ import {IWebIdIsotope} from "@/lib/data/oscar/adjudication/WebId";
 import WebIdAnalysisResult from "@/lib/data/oscar/adjudication/WebId";
 import {WEB_ID_DEF} from "@/lib/data/Constants";
 import {EventType} from "osh-js/source/core/event/EventType";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function WebIdAnalysis(props: {
     event: EventTableData;
 }) {
-    const { t } = useLanguage();
+
     const laneMapRef = useContext(DataSourceContext).laneMapRef;
     const [webIdLog, setWebIdLog] = useState<any[]>([]);
     const [filteredLog, setFilteredLog] = useState<any[]>([]);
@@ -213,7 +212,9 @@ export default function WebIdAnalysis(props: {
         <>
             <Stack spacing={2} sx={{ width: '100%' }}>
                 <Stack direction={"column"} spacing={1}>
-                    <Typography variant="h5">{t('webIdAnalysisLog') || "WebID Analysis Results Log"}</Typography>
+                    <Typography variant="h5">
+                        WebID Analysis Results Log
+                    </Typography>
                 </Stack>
                 <Box sx={{ width: '100%' }}>
                     <DataGrid

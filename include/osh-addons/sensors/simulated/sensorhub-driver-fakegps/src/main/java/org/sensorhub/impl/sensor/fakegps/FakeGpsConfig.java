@@ -14,7 +14,8 @@ Copyright (C) 2012-2015 Sensia Software LLC. All Rights Reserved.
 
 package org.sensorhub.impl.sensor.fakegps;
 
-import org.sensorhub.api.common.SensorHubException;
+import java.util.concurrent.TimeUnit;
+
 import org.sensorhub.api.sensor.SensorConfig;
 
 
@@ -34,24 +35,10 @@ public class FakeGpsConfig extends SensorConfig
     public double centerLongitude = -86.5850; // in deg
     public double areaSize = 0.1; // in deg
     
-    public double minSpeed = 40; // km/h
-    public double maxSpeed = 100; // km/h
+    public double vehicleSpeed = 40; // km/h
     public boolean walkingMode = false;
-    public double samplingPeriodSeconds = 1.0;
     
     //  parameters to limit number of calls to Google directions API
-    public Integer apiRequestPeriodMinutes = 720;
-    
-    
-    protected void validate() throws SensorHubException
-    {
-        if (googleApiKey == null || googleApiKey.isEmpty())
-            throw new SensorHubException("A Google API key with access to the Directions API must be provided in the configuration");
-        
-        if (areaSize <= 0 || areaSize > 90)
-            throw new SensorHubException(String.format("Invalid area size: %d", areaSize));
-        
-        if (minSpeed <= 0 || maxSpeed <= 0 || minSpeed > maxSpeed)
-            throw new SensorHubException(String.format("Invalid speed range: [%d - %d]", minSpeed, maxSpeed));
-    }
+    public boolean cacheTrajectory = false;
+    public Long apiRequestPeriodMinutes = TimeUnit.MINUTES.toMillis(720); 
 }
