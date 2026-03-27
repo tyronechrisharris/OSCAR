@@ -1,7 +1,3 @@
-{
-    # Global options
-}
-
 # 1. Local LAN Block (Always Active Fallback)
 {$LOCAL_DOMAIN:localhost}, 127.0.0.1 {
     # Forward headers to the backend
