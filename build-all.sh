@@ -7,4 +7,4 @@ npm run build
 
 cd ../.. || exit
 
-./gradlew build -x test -x osgi
+./gradlew clean build -x test -x osgi

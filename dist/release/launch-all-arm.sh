@@ -43,7 +43,6 @@ mkdir -p osh-node-oscar/rules
 # Touch required secret/cert files to prevent Docker from creating them as directories
 [ ! -f osh-node-oscar/osh-keystore.p12 ] && touch osh-node-oscar/osh-keystore.p12
 [ ! -f osh-node-oscar/.app_secrets ] && touch osh-node-oscar/.app_secrets
-[ ! -f osh-node-oscar/truststore.jks ] && touch osh-node-oscar/truststore.jks
 [ ! -f osh-node-oscar/osh-leaf.crt ] && touch osh-node-oscar/osh-leaf.crt
 [ ! -f osh-node-oscar/osh-leaf.key ] && touch osh-node-oscar/osh-leaf.key
 
