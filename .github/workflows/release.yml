@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version tag (e.g., oscar_3-15-2024_A)'
-        required: true
+        description: 'Optional tag suffix (e.g., v3.0.0-beta)'
+        required: false
         type: string
       notes:
         description: 'Release notes (optional)'
@@ -55,8 +55,18 @@ jobs:
         run: |
           EOF_DELIM=$(cat /proc/sys/kernel/random/uuid)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG_NAME=${INPUT_VERSION}" >> $GITHUB_ENV
-            echo "RELEASE_NAME=Release ${INPUT_VERSION}" >> $GITHUB_ENV
+            DATE_STR=$(date +'%-m-%d-%Y_%H%M')
+            BASE_TAG="oscar_${DATE_STR}"
+
+            if [ -n "${INPUT_VERSION}" ]; then
+              CLEAN_SUFFIX=$(echo "${INPUT_VERSION}" | tr -dc '[:alnum:]_.-')
+              TAG_NAME="${BASE_TAG}_${CLEAN_SUFFIX}"
+            else
+              TAG_NAME="${BASE_TAG}"
+            fi
+
+            echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Manual Release ${TAG_NAME}" >> $GITHUB_ENV
 
             echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
             echo "${INPUT_NOTES}" >> $GITHUB_ENV
@@ -65,7 +75,7 @@ jobs:
             # Automated release from PR
             DATE_STR=$(date +'%-m-%d-%Y')
             BASE_TAG="oscar_${DATE_STR}"
-            
+
             # Find the next available letter suffix (A, B, C...)
             SUFFIX="A"
             for letter in {A..Z}; do
