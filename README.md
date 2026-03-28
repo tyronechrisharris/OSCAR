@@ -1,10 +1,10 @@
-# OSH OAKRIDGE BUILDNODE
+# OSCAR FLAT
 
 This repository combines all the OSH modules and dependencies to deploy the OSH server and client for ORNL.
 
 ## Requirements
 - [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
-- [Oakridge Build Node Repository](https://github.com/Botts-Innovative-Research/osh-oakridge-buildnode) 
+- [OSCAR Flat Repository](https://github.com/Botts-Innovative-Research/oscar-flat)
 - Node v22
 - [Docker](https://docs.docker.com/get-docker/) (Required to run the PostGIS database system)
 
@@ -12,18 +12,18 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository and update all submodules recursively
 
 ```bash
-git clone git@github.com:Botts-Innovative-Research/osh-oakridge-buildnode.git --recursive
+git clone git@github.com:Botts-Innovative-Research/oscar-flat.git --recursive
 ```
 If you've already cloned without `--recursive`, run:
 ```bash
-cd path/to/osh-oakridge-buildnode
+cd path/to/oscar-flat
 git submodule update --init --recursive
 ```
 ## Build 
 Navigate to the project directory:
 
 ```bash
-cd path/to/osh-oakridge-buildnode
+cd path/to/oscar-flat
 ```
 
 Run the build script (macOS/Linux):
@@ -55,16 +55,21 @@ After the build completes, it can be located in `build/distributions/`
     cd osh-node-oscar-<version>/osh-node-oscar-<version>
     ```
    Option 2: Use File Explorer
-    1. Navigate to `path/to/osh-oakridge-buildnode/build/distributions/`
+    1. Navigate to `path/to/oscar-flat/build/distributions/`
     2. Right-click `osh-node-oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
     3. Select **Extract All..**
     4. Choose your destination, (or leave the default) and extract.
-1. Launch the OSH node and PostGIS Database:
-   The database management system is handled through Docker. The default launch scripts automatically build and run a PostGIS container using the `Dockerfile` located in `dist/release/postgis`, and then start the OSH node.
-   Run the launch script, `launch-all.sh` (or `launch.sh` within the `osh-node-oscar` folder directly if the database is already running) for linux, `launch-all-arm.sh` (or `launch-arm.sh` if it exists) for mac, and `launch-all.bat` (or `launch.bat`) for windows.
-2. Access the OSH Node
-- Remote: **[ip-address]:8282/sensorhub/admin**
-- Locally:  **http://localhost:8282/sensorhub/admin**
+1. Launch the Stack (Docker Compose):
+   The entire OSCAR stack (PostGIS, OSH Backend, and Caddy Reverse Proxy) is fully containerized. To launch the system from the repository root, ensure Docker is installed and run:
+
+   ```bash
+   docker compose up -d
+   ```
+   *Note: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for backward compatibility.*
+
+2. Access the OSCAR System
+- Remote/Local via Proxy (Recommended): **http://localhost** or **https://localhost**
+- Direct Local Backend: **http://localhost:8282/sensorhub/admin**
 
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
