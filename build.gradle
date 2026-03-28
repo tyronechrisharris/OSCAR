@@ -99,6 +99,17 @@ distributions{
             // POSTGIS / DOCKER / SCRIPTS
             into('.') {
                 from('dist/release')
+                from('docker-compose.yml')
+                from('Dockerfile.osh')
+            }
+
+            into('caddy') {
+                from('caddy')
+            }
+
+            into('config') {
+                from('dist/config/profiles.ini')
+                from('dist/config/profiles.toml')
             }
 
         }

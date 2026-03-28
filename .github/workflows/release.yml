@@ -87,15 +87,14 @@ jobs:
       - name: Prepare Artifacts
         run: |
           cd build/distributions
-          # The README indicates the artifact is named osh-node-oscar-<version>.zip.
+          # The artifact is named oscar-<version>.zip or osh-node-oscar-<version>.zip.
           # We rename it to the release tag version format required: oscar_M-DD-YYYY_A.zip
-          ORIGINAL_ZIP=$(ls osh-node-oscar-*.zip 2>/dev/null | head -n 1 || true)
+          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
           if [ -n "$ORIGINAL_ZIP" ]; then
             mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
           else
-            echo "No artifact found matching osh-node-oscar-*.zip"
-            # It might be named oscar-*.zip instead, let's check
-            ALT_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
+            echo "No artifact found matching oscar-*.zip"
+            ALT_ZIP=$(ls osh-node-oscar-*.zip 2>/dev/null | head -n 1 || true)
             if [ -n "$ALT_ZIP" ]; then
               mv "$ALT_ZIP" "${TAG_NAME}.zip"
             else

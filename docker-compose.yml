@@ -23,7 +23,7 @@ services:
       init-secrets:
         condition: service_completed_successfully
     build:
-      context: ./dist/release/postgis
+      context: ./postgis
       dockerfile: Dockerfile
     image: oscar-postgis:latest
     container_name: oscar-postgis-container
@@ -72,7 +72,7 @@ services:
       - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
     volumes:
       # Use named volumes or bind mounts for persistent backend state
-      - ./dist/config/standard:/app/config
+      - ./osh-node-oscar:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
       # The secrets volume guarantees persistence for the CA and database passwords
@@ -119,7 +119,7 @@ services:
       - caddy_config:/config
       - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
       # Mount the generated certificates from the backend's persistent config volume
-      - ./dist/config/standard:/etc/caddy/certs:ro
+      - ./osh-node-oscar:/etc/caddy/certs:ro
     networks:
       - osh-internal
     restart: unless-stopped
