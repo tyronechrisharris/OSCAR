@@ -19,9 +19,9 @@ public class SimWeatherStationSensor extends AbstractSensorModule<SimWeatherStat
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
 
         // add unique ID based on serial number
         this.uniqueID = "urn:simweatherstation:" + config.modelNumber + ":" + config.serialNumber;
@@ -93,14 +93,14 @@ public class SimWeatherStationSensor extends AbstractSensorModule<SimWeatherStat
     }
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         weatherOut.start();
     }
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
     	weatherOut.stop();
     }

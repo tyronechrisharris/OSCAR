@@ -26,7 +26,7 @@ import org.sensorhub.impl.sensor.AbstractSensorModule;
  * Generic driver implementation for RTP/RTSP cameras.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 12, 2015
  */
 public class RTPCameraDriver extends AbstractSensorModule<RTPCameraConfig>
@@ -41,10 +41,10 @@ public class RTPCameraDriver extends AbstractSensorModule<RTPCameraConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
         // reset internal state in case init() was already called
-        super.doInit();
+        super.init();
         dataInterface = null;
         
         // generate identifiers
@@ -69,7 +69,7 @@ public class RTPCameraDriver extends AbstractSensorModule<RTPCameraConfig>
     
     
     @Override
-    protected synchronized void doStart() throws SensorHubException
+    public synchronized void start() throws SensorHubException
     {
         // wait for valid connection to camera
         connection.waitForConnection();
@@ -80,7 +80,7 @@ public class RTPCameraDriver extends AbstractSensorModule<RTPCameraConfig>
     
     
     @Override
-    protected synchronized void doStop()
+    public synchronized void stop()
     {
         if (connection != null)
             connection.cancel();

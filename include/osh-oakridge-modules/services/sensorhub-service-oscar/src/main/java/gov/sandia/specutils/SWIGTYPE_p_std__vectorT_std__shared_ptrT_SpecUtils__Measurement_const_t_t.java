@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__vectorT_std__shared_ptrT_SpecUtils__Measurement_con
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

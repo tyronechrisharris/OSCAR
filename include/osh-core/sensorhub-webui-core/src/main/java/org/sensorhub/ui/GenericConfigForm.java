@@ -138,8 +138,6 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName(propId);
-        else
-            title = I18N.get(title);
         
         build(title, prop.getDescription(), prop.getValue(), includeSubForms);
     }
@@ -203,8 +201,6 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                             label = ((FieldProperty)prop).getLabel();
                         if (label == null)
                             label = DisplayUtils.getPrettyName((String)propId);
-                        else
-                            label = I18N.get(label);
                         
                         String desc = null;
                         if (prop instanceof FieldProperty)
@@ -445,7 +441,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
 
                 // select system button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription(I18N.get("lookupSystem1"));
+                selectBtn.setDescription("Lookup System");
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -488,7 +484,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 
                 // select module button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription(I18N.get("lookupModule1"));
+                selectBtn.setDescription("Lookup Module");
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -533,7 +529,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 
                 // select module button
                 Button selectBtn = new Button(FontAwesome.SEARCH);
-                selectBtn.setDescription(I18N.get("lookupAddress1"));
+                selectBtn.setDescription("Lookup Address");
                 selectBtn.addStyleName(STYLE_QUIET);
                 layout.addComponent(selectBtn);
                 layout.setComponentAlignment(selectBtn, Alignment.MIDDLE_LEFT);
@@ -603,7 +599,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 // show/hide button
                 final Button showBtn = new Button(FontAwesome.EYE);
                 showBtn.addStyleName(STYLE_QUIET);
-                showBtn.setDescription(I18N.get("showPassword1"));
+                showBtn.setDescription("Show Password");
                 showBtn.setData(false);
                 layout.addComponent(showBtn);
                 layout.setComponentAlignment(showBtn, Alignment.MIDDLE_LEFT);
@@ -677,9 +673,9 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         chgButton.addStyleName(STYLE_SECTION_BUTTONS);
         chgButton.setIcon(EDIT_ICON);
         if (prop.getValue() == null)
-            chgButton.setCaption(I18N.get("add1"));
+            chgButton.setCaption("Add");
         else
-            chgButton.setCaption(I18N.get("modify1"));
+            chgButton.setCaption("Modify");
         
         chgButton.addClickListener(new ClickListener() {
             @Override
@@ -729,9 +725,9 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         chgButton.addStyleName(STYLE_SECTION_BUTTONS);
         chgButton.setIcon(EDIT_ICON);
         if (prop.getValue() == null)
-            chgButton.setCaption(I18N.get("add1"));
+            chgButton.setCaption("Add");
         else
-            chgButton.setCaption(I18N.get("modify1"));
+            chgButton.setCaption("Modify");
                 
         // show popup to select among available module types
         final ObjectTypeSelectionWithClearCallback callback = new ObjectTypeSelectionWithClearCallback() {
@@ -766,7 +762,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
                 // don't display remove button if value is required
                 if (prop.isRequired())
                     return;
-                chgButton.setCaption(I18N.get("remove1"));
+                chgButton.setCaption("Remove");
             }   
             
             chgButton.addClickListener(new ClickListener() {
@@ -876,8 +872,6 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String label = prop.getLabel();
         if (label == null)
             label = DisplayUtils.getPrettyName((String)propId);
-        else
-            label = I18N.get(label);
         
         final MyBeanItemContainer<Object> container = prop.getValue();
         final ListSelect listBox = new ListSelect(label, container);
@@ -1099,8 +1093,6 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName((String)propId);
-        else
-            title = I18N.get(title);
         wrapper.setCaption(title);
         wrapper.setDescription(prop.getDescription());
         
@@ -1118,8 +1110,6 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
         String title = prop.getLabel();
         if (title == null)
             title = DisplayUtils.getPrettyName((String)propId);
-        else
-            title = I18N.get(title);
         layout.setCaption(title);
         layout.setDescription(prop.getDescription());
         
@@ -1154,7 +1144,7 @@ public class GenericConfigForm extends VerticalLayout implements IModuleConfigFo
             {
                 final Tab tab = tabs.getTab(tabContent);
                 
-                final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToDelete0AllSettingsWillBeLost1", tab.getCaption()));
+                final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to delete " + tab.getCaption() + "?</br>All settings will be lost.");
                 popup.addCloseListener(new CloseListener() {
                     private static final long serialVersionUID = 1L;
                     @Override

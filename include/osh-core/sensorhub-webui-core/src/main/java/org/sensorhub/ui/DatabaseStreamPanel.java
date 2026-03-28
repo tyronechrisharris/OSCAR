@@ -185,10 +185,10 @@ public class DatabaseStreamPanel extends VerticalLayout
         timeRangeLabel.addStyleName(UIConstants.STYLE_SMALL);
         updateTimeRange();
         layout.addComponent(timeRangeLabel);
-        layout.setCaption(I18N.get("timeRange1"));
+        layout.setCaption("Time Range:");
         
         final Button btn = new Button(FontAwesome.BAR_CHART);
-        btn.setDescription(detailChart == null ? I18N.get("showHistogram1") : I18N.get("hideHistogram1"));
+        btn.setDescription(detailChart == null ? "Show Histogram" : "Hide Histogram");
         btn.setEnabled(dsInfo.getPhenomenonTimeRange() != null);
         btn.addStyleName(UIConstants.STYLE_SMALL);
         btn.addStyleName(UIConstants.STYLE_QUIET);
@@ -206,13 +206,13 @@ public class DatabaseStreamPanel extends VerticalLayout
                     Component timeline = buildHistogram();
                     int idx = panelLayout.getComponentIndex(layout.getParent());
                     panelLayout.addComponent(timeline, idx+1);
-                    btn.setDescription(I18N.get("hideHistogram1"));
+                    btn.setDescription("Hide Histogram");
                 }
                 else
                 {
                     // remove histogram
                     panelLayout.removeComponent(detailChart.getParent());
-                    btn.setDescription(I18N.get("showHistogram1"));
+                    btn.setDescription("Show Histogram");
                     detailChart = null;
                     navigatorChart = null;
                 }
@@ -220,8 +220,8 @@ public class DatabaseStreamPanel extends VerticalLayout
         });
         
         // refresh button
-        Button refreshButton = new Button(I18N.get("refresh1"));
-        refreshButton.setDescription(I18N.get("reloadDataFromDatabase1"));
+        Button refreshButton = new Button("Refresh");
+        refreshButton.setDescription("Reload data from database");
         refreshButton.setIcon(UIConstants.REFRESH_ICON);
         refreshButton.addStyleName(UIConstants.STYLE_SMALL);
         refreshButton.addStyleName(UIConstants.STYLE_QUIET);
@@ -283,7 +283,7 @@ public class DatabaseStreamPanel extends VerticalLayout
         
         if (!foiEntries.isEmpty())
         {
-            final ComboBox selectBox = new ComboBox(I18N.get("fois1"));
+            final ComboBox selectBox = new ComboBox("FOIs");
             selectBox.setNullSelectionAllowed(false);
             selectBox.addStyleName(UIConstants.STYLE_SMALL);
             selectBox.setWidth(50, Unit.EM);
@@ -515,10 +515,10 @@ public class DatabaseStreamPanel extends VerticalLayout
         
         PagedTableControls controls = table.createControls();
         controls.getItemsPerPageLabel().setValue("Items");
-        controls.getBtnFirst().setCaption(I18N.get("first1"));
-        controls.getBtnLast().setCaption(I18N.get("last1"));
-        controls.getBtnNext().setCaption(I18N.get("next1"));
-        controls.getBtnPrevious().setCaption(I18N.get("previous1"));
+        controls.getBtnFirst().setCaption("First");
+        controls.getBtnLast().setCaption("Last");
+        controls.getBtnNext().setCaption("Next");
+        controls.getBtnPrevious().setCaption("Previous");
         //controls.getPageLabel().setValue("Current:");
         tableLayout.addComponent(controls);
         

@@ -29,7 +29,7 @@ import com.MAVLink.common.msg_attitude_quaternion;
  * Output for MAVLink ATTITUDE_QUATERNION messages
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 12, 2015
  */
 public class AttitudeQuatOutput extends MavlinkOutput
@@ -39,8 +39,15 @@ public class AttitudeQuatOutput extends MavlinkOutput
     
     public AttitudeQuatOutput(MavlinkDriver parentSensor)
     {
-        super("platformAttQ", parentSensor);
+        super(parentSensor);
         this.samplingPeriod = 0.1; // default to 10Hz on startup        
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "platformAtt";
     }
     
     

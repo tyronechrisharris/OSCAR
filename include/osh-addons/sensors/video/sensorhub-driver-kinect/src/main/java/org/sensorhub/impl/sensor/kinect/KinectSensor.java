@@ -104,9 +104,9 @@ public class KinectSensor extends AbstractSensorModule<KinectConfig> {
 	}
 
 	@Override
-    protected void doInit() throws SensorHubException {
+	public void init() throws SensorHubException {
 
-		super.doInit();
+		super.init();
 
 		kinectContext = Freenect.createContext();
 
@@ -244,7 +244,7 @@ public class KinectSensor extends AbstractSensorModule<KinectConfig> {
 	}
 
 	@Override
-	protected void doStart() throws SensorHubException {
+	public void start() throws SensorHubException {
 
 		// Set Led to configured setting
 		kinectDevice.setLed(ledStatus);
@@ -258,7 +258,7 @@ public class KinectSensor extends AbstractSensorModule<KinectConfig> {
 	}
 
 	@Override
-	protected void doStop() throws SensorHubException {
+	public void stop() throws SensorHubException {
 
 		if (isConnected) {
 
