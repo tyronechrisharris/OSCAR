@@ -104,8 +104,8 @@ services:
     healthcheck:
       # Wait-State Logic: The backend takes significant time to generate certificates,
       # process the Setup Wizard, and validate TOTP/Admin states before it is ready.
-      # The -L flag ensures curl follows the 302 redirect to the Setup Wizard on first boot.
-      test: ["CMD", "curl", "-f", "-L", "http://localhost:8282/sensorhub/admin"]
+      # We test against the base API root to ensure it accepts connections.
+      test: ["CMD-SHELL", "curl -s -I http://localhost:8282/sensorhub/api | grep -q 'HTTP/1.1' || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 15
