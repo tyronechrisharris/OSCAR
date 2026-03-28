@@ -1,0 +1,119 @@
+services:
+  osh-postgis:
+    build:
+      context: ./postgis
+      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
+    image: oscar-postgis:latest
+    container_name: oscar-postgis-container
+    environment:
+      - POSTGRES_DB=gis
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      # Performance Tuning from .env
+      - POSTGRES_SHARED_BUFFERS=${DB_SHARED_BUFFERS:-128MB}
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=${DB_EFFECTIVE_CACHE_SIZE:-512MB}
+      - POSTGRES_WORK_MEM=${DB_WORK_MEM:-4MB}
+      - POSTGRES_MAX_WAL_SIZE=${DB_MAX_WAL_SIZE:-1GB}
+      - POSTGRES_MAX_CONNECTIONS=${DB_MAX_CONNECTIONS:-50}
+      - POSTGRES_MAINTENANCE_WORK_MEM=${DB_MAINTENANCE_WORK_MEM:-64MB}
+    # Port 5432 is internal only within the Docker network
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    networks:
+      - osh-internal
+    deploy:
+      resources:
+        limits:
+          memory: ${DB_MEM_LIMIT:-1G}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  osh-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.osh
+    image: oscar-backend:latest
+    container_name: oscar-backend-container
+    environment:
+      - DB_HOST=${DB_HOST:-osh-postgis}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      - KEYSTORE=./osh-keystore.p12
+      - KEYSTORE_TYPE=PKCS12
+      - TRUSTSTORE=./truststore.jks
+      - TRUSTSTORE_TYPE=JKS
+      - SHOW_CMD=true
+      # JVM Tuning from .env
+      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
+    volumes:
+      - ./osh-node-oscar/config:/app/config
+      - ./osh-node-oscar/db:/app/db
+      - ./osh-node-oscar/files:/app/files
+      - ./osh-node-oscar/osh-keystore.p12:/app/osh-keystore.p12
+      - ./osh-node-oscar/.app_secrets:/app/.app_secrets
+      - ./osh-node-oscar/truststore.jks:/app/truststore.jks
+      - ./osh-node-oscar/trusted_certificates:/app/trusted_certificates
+      - ./osh-node-oscar/rules:/app/rules
+      - ./osh-node-oscar/osh-leaf.crt:/app/osh-leaf.crt
+      - ./osh-node-oscar/osh-leaf.key:/app/osh-leaf.key
+    secrets:
+      - db_password
+    networks:
+      - osh-internal
+    depends_on:
+      osh-postgis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: ${BACKEND_MEM_LIMIT:-2G}
+    restart: unless-stopped
+    # Port 8282 is not exposed to the host network to ensure it's only accessible via the proxy
+    ports:
+      - "127.0.0.1:8282:8282"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8282 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  osh-proxy:
+    image: caddy:2-alpine
+    container_name: oscar-proxy-container
+    environment:
+      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-}
+      - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+      - ./osh-node-oscar/osh-leaf.crt:/etc/caddy/certs/osh-leaf.crt:ro
+      - ./osh-node-oscar/osh-leaf.key:/etc/caddy/certs/osh-leaf.key:ro
+    networks:
+      - osh-internal
+    depends_on:
+      osh-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  osh-internal:
+    driver: bridge
+
+secrets:
+  db_password:
+    file: .db_password
+
+volumes:
+  caddy_data:
+  caddy_config:

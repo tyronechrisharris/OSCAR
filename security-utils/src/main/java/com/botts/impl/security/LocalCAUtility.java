@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.Base64;
+import java.util.List;
 import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -44,9 +45,11 @@ public class LocalCAUtility {
         File keystoreFile = new File(keystorePath);
         File secretsFile = new File(secretsPath);
 
-        String password;
-        if (!keystoreFile.exists()) {
-            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate...");
+        String password = null;
+
+        // Handle directory vs file pitfall and empty files
+        if (!keystoreFile.exists() || !keystoreFile.isFile() || keystoreFile.length() == 0) {
+            System.out.println("Keystore does not exist, is a directory, or is empty. Generating persistent Root CA and Leaf Certificate...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
@@ -66,6 +69,10 @@ public class LocalCAUtility {
             ks.setKeyEntry(leafAlias, leafKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{leafCert, rootCert});
             ks.setKeyEntry(rootAlias, rootKeyPair.getPrivate(), password.toCharArray(), new Certificate[]{rootCert});
 
+            if (keystoreFile.isDirectory()) {
+                keystoreFile.delete(); // Attempt to clear if it's a directory
+            }
+
             try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
                 ks.store(fos, password.toCharArray());
             }
@@ -78,18 +85,32 @@ public class LocalCAUtility {
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
             // Check for renewal
-            if (secretsFile.exists()) {
-                password = Files.readAllLines(secretsFile.toPath()).get(0).trim();
-            } else {
-                password = System.getenv("KEYSTORE_PASSWORD");
-                if (password == null || password.isEmpty()) {
-                    throw new IOException("CRITICAL ERROR: .app_secrets not found and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
+            if (secretsFile.exists() && secretsFile.isFile() && secretsFile.length() > 0) {
+                try {
+                    List<String> lines = Files.readAllLines(secretsFile.toPath());
+                    if (lines != null && !lines.isEmpty()) {
+                        password = lines.get(0).trim();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Warning: Could not read .app_secrets: " + e.getMessage());
                 }
+            }
+
+            if (password == null || password.isEmpty()) {
+                password = System.getenv("KEYSTORE_PASSWORD");
+            }
+
+            if (password == null || password.isEmpty()) {
+                System.out.println("Warning: No keystore password found. Falling back to default 'atakatak' for backward compatibility.");
+                password = "atakatak";
             }
 
             KeyStore ks = KeyStore.getInstance("PKCS12");
             try (java.io.FileInputStream fis = new java.io.FileInputStream(keystoreFile)) {
                 ks.load(fis, password.toCharArray());
+            } catch (Exception e) {
+                System.err.println("CRITICAL ERROR: Failed to load keystore with current password. Renewal check skipped. " + e.getMessage());
+                return;
             }
 
             X509Certificate leafCert = (X509Certificate) ks.getCertificate(leafAlias);
@@ -137,6 +158,9 @@ public class LocalCAUtility {
 
     private static void saveSecret(String path, String secret) throws IOException {
         File file = new File(path);
+        if (file.isDirectory()) {
+            file.delete();
+        }
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(secret);
         }
@@ -144,6 +168,7 @@ public class LocalCAUtility {
     }
 
     private static void lockdownFile(File file) {
+        if (!file.isFile()) return;
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
             try {

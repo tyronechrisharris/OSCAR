@@ -3,9 +3,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- **Full-Stack Containerization**: Migrated the entire OSCAR stack (PostGIS, OSH Backend, and Caddy Proxy) to a unified Docker Compose orchestration model.
+- **Reverse Proxy Gateway**: Integrated Caddy as a reverse proxy with automated TLS switching (Local LAN vs. Tailscale) and security header enforcement.
+- **Scalable Deployment Profiles**: Added `.env.template` with predefined scaling profiles for Edge Nodes, Tactical Hubs, and Enterprise Central Hubs.
+- **Alpine-Based Backend**: Re-architected the OSH Backend to use a lightweight, secure Alpine-based Java image with explicit font support.
 - Added Progressive Web App (PWA) capabilities, allowing the client to be installed as a local application with offline support.
 - Integrated Spectroscopic QR Code scanning for Adjudication workflows.
 - Added WebID analysis and result logging to the Adjudication Detail view.
+
+### Changed
+- Unified all service orchestration into `docker-compose.yml` at the repository root.
+- Updated `launch-all.sh`, `launch-all-arm.sh`, and `launch-all.bat` to use Docker Compose, removing legacy standalone Docker logic.
+- Restructured documentation to reflect the new container-first architecture.
 
 ## 3.0.0 2026-02-04
 This is the official first release of 3.0.0
