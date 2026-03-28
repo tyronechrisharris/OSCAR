@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
@@ -55,13 +53,14 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          EOF_DELIM=$(cat /proc/sys/kernel/random/uuid)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "TAG_NAME=${INPUT_VERSION}" >> $GITHUB_ENV
             echo "RELEASE_NAME=Release ${INPUT_VERSION}" >> $GITHUB_ENV
 
-            echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+            echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
             echo "${INPUT_NOTES}" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "${EOF_DELIM}" >> $GITHUB_ENV
           else
             # Automated release from PR
             DATE_STR=$(date +'%-m-%d-%Y')
@@ -80,9 +79,9 @@ jobs:
             echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
             echo "RELEASE_NAME=Auto-Release ${TAG_NAME}" >> $GITHUB_ENV
 
-            echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+            echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
             echo "${PR_BODY}" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "${EOF_DELIM}" >> $GITHUB_ENV
           fi
 
       - name: Prepare Artifacts
@@ -90,15 +89,20 @@ jobs:
           cd build/distributions
           # The README indicates the artifact is named osh-node-oscar-<version>.zip.
           # We rename it to the release tag version format required: oscar_M-DD-YYYY_A.zip
-          ORIGINAL_ZIP=$(ls osh-node-oscar-*.zip | head -n 1)
+          ORIGINAL_ZIP=$(ls osh-node-oscar-*.zip 2>/dev/null | head -n 1 || true)
           if [ -n "$ORIGINAL_ZIP" ]; then
             mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
           else
             echo "No artifact found matching osh-node-oscar-*.zip"
             # It might be named oscar-*.zip instead, let's check
-            ALT_ZIP=$(ls oscar-*.zip | head -n 1 || true)
+            ALT_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
             if [ -n "$ALT_ZIP" ]; then
               mv "$ALT_ZIP" "${TAG_NAME}.zip"
+            else
+              echo "No artifact found at all."
+              ls -l
+              # Force workflow to fail if artifact not found
+              sh -c 'exit 1'
             fi
           fi
 

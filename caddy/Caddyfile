@@ -16,7 +16,7 @@
 }
 
 # 2. Tailscale Block (Conditional Federated Access)
-{$TAILSCALE_DOMAIN} {
+{$TAILSCALE_DOMAIN:http://invalid.local} {
     @has_tailscale expression "{env.TAILSCALE_DOMAIN} != ''"
     handle @has_tailscale {
         # Forward headers to the backend
