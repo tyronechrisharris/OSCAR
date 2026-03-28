@@ -1,7 +1,7 @@
 services:
   # Pre-flight container to generate secrets exactly like launch-all.sh
   init-secrets:
-    image: alpine:latest
+    image: eclipse-temurin:21-jre-alpine
     container_name: oscar-init-secrets
     volumes:
       - oscar_secrets:/secrets
@@ -13,8 +13,16 @@ services:
         openssl rand -base64 32 > /secrets/.db_password;
       fi;
       if [ ! -f /secrets/.app_secrets ]; then
-        echo 'Generating new keystore password...';
+        echo 'Generating new keystore and truststore password...';
         openssl rand -base64 32 > /secrets/.app_secrets;
+
+        echo 'Creating secure truststore.jks with generated password...';
+        cp $$JAVA_HOME/lib/security/cacerts /secrets/truststore.jks;
+        chmod 644 /secrets/truststore.jks;
+
+        # Change the default 'changeit' password to the secure generated password
+        NEW_PASS=$$(cat /secrets/.app_secrets);
+        keytool -storepasswd -new $$NEW_PASS -keystore /secrets/truststore.jks -storepass changeit;
       fi;
       "
 
@@ -67,6 +75,8 @@ services:
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
       - KEYSTORE=/app/config/osh-keystore.p12
       - KEYSTORE_TYPE=PKCS12
+      - TRUSTSTORE=/secrets/truststore.jks
+      - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
       # JVM Tuning from .env
       - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}

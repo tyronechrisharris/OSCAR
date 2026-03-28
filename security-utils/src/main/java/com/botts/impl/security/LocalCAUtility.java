@@ -76,8 +76,9 @@ public class LocalCAUtility {
             lockdownFile(new File(rootCaExportPath));
 
             // Export Leaf Certificate and Key for Proxy
-            exportCertificatePem("osh-leaf.crt", leafCert);
-            exportPrivateKey("osh-leaf.key", leafKeyPair.getPrivate());
+            new File("config").mkdirs();
+            exportCertificatePem("config/osh-leaf.crt", leafCert);
+            exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
 
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
@@ -127,8 +128,9 @@ public class LocalCAUtility {
                 lockdownFile(keystoreFile);
 
                 // Export renewed Leaf Certificate and Key for Proxy
-                exportCertificatePem("osh-leaf.crt", renewedLeafCert);
-                exportPrivateKey("osh-leaf.key", leafKeyPair.getPrivate());
+                new File("config").mkdirs();
+                exportCertificatePem("config/osh-leaf.crt", renewedLeafCert);
+                exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
 
                 System.out.println("Leaf certificate renewed successfully.");
             } else {
