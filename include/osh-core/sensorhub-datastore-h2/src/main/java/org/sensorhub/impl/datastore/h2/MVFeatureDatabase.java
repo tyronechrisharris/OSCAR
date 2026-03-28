@@ -100,9 +100,6 @@ public class MVFeatureDatabase extends AbstractModule<MVFeatureDatabaseConfig> i
     {
         if (mvStore != null) 
         {
-            // must call commit first to make sure kryo persistent class resolver
-            // is updated before we serialize it again in close
-            mvStore.commit();
             mvStore.close();
             mvStore = null;
         }

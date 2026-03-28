@@ -58,7 +58,7 @@ public class SensorAdminPanel extends DataSourceAdminPanel<ISensorModule<?>>
                 addComponent(new Spacing());
                 HorizontalLayout titleBar = new HorizontalLayout();
                 titleBar.setSpacing(true);
-                Label sectionLabel = new Label(I18N.get("commandInputs1"));
+                Label sectionLabel = new Label("Command Inputs");
                 sectionLabel.addStyleName(STYLE_H3);
                 sectionLabel.addStyleName(STYLE_COLORED);
                 titleBar.addComponent(sectionLabel);

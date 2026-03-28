@@ -3,10 +3,10 @@ version = oshCoreVersion
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  implementation 'org.sensorhub:sensorhub-datastore-h2:' + oshCoreVersion
   implementation 'org.sensorhub:sensorhub-service-swe:' + oshCoreVersion
-  implementation 'org.sensorhub:sensorhub-service-sweapi:' + oshCoreVersion
+  implementation 'org.sensorhub:sensorhub-storage-perst:' + oshCoreVersion
   implementation 'org.sensorhub:sensorhub-webui-core:' + oshCoreVersion
+  implementation 'org.sensorhub:sensorhub-tools:' + oshCoreVersion
   implementation 'org.sensorhub:sensorhub-driver-fakegps:[0.1,2.0)'
   implementation 'org.sensorhub:sensorhub-driver-fakeweather:[0.1,2.0)'
 }
