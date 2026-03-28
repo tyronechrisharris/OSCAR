@@ -8,7 +8,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
-docker compose up -d
+docker compose up -d || sh -c 'exit 1'
 
 echo "OSCAR Stack is launching. Please wait a few moments for the database and backend to initialize."
 echo "Access the system at: http://localhost or https://localhost"

@@ -9,7 +9,7 @@ fi
 
 echo "Launching fully containerized OSCAR Stack via Docker Compose for ARM64..."
 export POSTGIS_DOCKERFILE="Dockerfile-arm64"
-docker compose up -d
+docker compose up -d || sh -c 'exit 1'
 
 echo "OSCAR Stack is launching. Please wait a few moments for the database and backend to initialize."
 echo "Access the system at: http://localhost or https://localhost"
