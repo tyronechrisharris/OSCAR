@@ -29,7 +29,7 @@ import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.TextEncoding;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.sensor.videocam.VideoCamHelper;
@@ -42,7 +42,7 @@ import org.sensorhub.impl.sensor.videocam.VideoCamHelper;
  * (PTZ) capabilities.
  * </p>
  *
-  * @author Mike Botts
+  * @author Mike Botts <mike.botts@botts-inc.com>
  * @since March 2016
  */
 public class DahuaPtzOutput extends AbstractSensorOutput<DahuaCameraDriver>
@@ -62,7 +62,14 @@ public class DahuaPtzOutput extends AbstractSensorOutput<DahuaCameraDriver>
 
     public DahuaPtzOutput(DahuaCameraDriver driver)
     {
-        super("ptzOutput", driver);
+        super(driver);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "ptzOutput";
     }
     
     
@@ -178,7 +185,7 @@ public class DahuaPtzOutput extends AbstractSensorOutput<DahuaCameraDriver>
         }
         catch (Exception e)
         {
-            getParentProducer().getLogger().error("Error requesting PTZ status", e);
+            getParentModule().getLogger().error("Error requesting PTZ status", e);
         }
         finally
         {
@@ -213,7 +220,7 @@ public class DahuaPtzOutput extends AbstractSensorOutput<DahuaCameraDriver>
         
         latestRecord = ptzData;
         latestRecordTime = now;
-        eventHandler.publish(new DataEvent(latestRecordTime, DahuaPtzOutput.this, latestRecord));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, DahuaPtzOutput.this, latestRecord));
     }
 
     

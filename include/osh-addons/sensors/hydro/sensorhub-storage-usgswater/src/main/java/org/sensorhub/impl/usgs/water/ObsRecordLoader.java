@@ -20,30 +20,22 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.concurrent.TimeUnit;
-import java.util.Map.Entry;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import org.sensorhub.api.common.BigId;
-import org.sensorhub.api.data.IObsData;
-import org.sensorhub.api.data.ObsData;
-import org.slf4j.Logger;
-import org.vast.data.DataBlockDouble;
-import org.vast.data.DataBlockFloat;
-import org.vast.data.DataBlockMixed;
-import org.vast.data.DataBlockString;
-import org.vast.util.Asserts;
-import net.opengis.swe.v20.DataBlock;
+import java.util.Set;
 
+import org.sensorhub.impl.module.AbstractModule;
+import org.sensorhub.impl.usgs.water.CodeEnums.ObsParam;
+import org.sensorhub.impl.usgs.water.CodeEnums.SiteType;
+import org.sensorhub.impl.usgs.water.CodeEnums.StateCode;
+import org.slf4j.Logger;
+import org.vast.util.Bbox;
+import org.vast.util.DateTimeFormat;
+
+import net.opengis.swe.v20.DataBlock;
+import net.opengis.swe.v20.DataComponent;
 
 /**
  * <p>
@@ -52,397 +44,288 @@ import net.opengis.swe.v20.DataBlock;
  * service documentation</a>
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 15, 2017
  */
-public class ObsRecordLoader implements Iterator<Entry<BigId, IObsData>>
-{
-    static final String BASE_URL = USGSWaterDataArchive.BASE_USGS_URL + "iv?";
+public class ObsRecordLoader implements Iterator<DataBlock> {
+	static final String BASE_URL = USGSWaterDataArchive.BASE_USGS_URL + "iv?";
 
-    final int idScope;
-    final IParamDatabase paramDb;
-    final Logger logger;
-    USGSDataFilter usgsFilter;
-    long originalEndTime = 0;
-    long limit;
-    long batchDuration;
-    long nextBatchStartTime;
-    boolean lastBatch;
-    BufferedReader reader;
-    ArrayDeque<Entry<BigId, IObsData>> nextRecords = new ArrayDeque<>();
-    ParamValueParser[] paramReaders;
-    DataBlockMixed dataBlkTemplate;
-    
-    
-    public ObsRecordLoader(int idScope, IParamDatabase paramDb, Logger logger)
-    {
-        this.idScope = idScope;
-        this.paramDb = Asserts.checkNotNull(paramDb, IParamDatabase.class);
-        this.logger = Asserts.checkNotNull(logger, Logger.class);
-    }
-    
-    
-    @Override
-    public boolean hasNext()
-    {
-        return !nextRecords.isEmpty();
-    }
-    
+	AbstractModule<?> module;
+	BufferedReader reader;
+	DataFilter filter;
+	ParamValueParser[] paramReaders;
+	DataBlock templateRecord, nextRecord;
 
-    @Override
-    public Entry<BigId, IObsData> next()
-    {
-        if (!hasNext())
-            throw new NoSuchElementException();
-        var next = nextRecords.poll();
-        if (nextRecords.isEmpty())
-            preloadNext();
-        return next;
-    }
-    
-    
-    protected void preloadNext()
-    {
-        String line = null;
-        
-        try
-        {
-            do
-            {
-                while ((line = reader.readLine()) != null)
-                {                            
-                    // parse site header
-                    if (line.startsWith("#"))
-                    {
-                        // reset param value parsers
-                        paramReaders = parseHeader(reader, usgsFilter);
-                        
-                        // create initial datablock
-                        dataBlkTemplate = new DataBlockMixed(3);
-                        dataBlkTemplate.setBlock(0, new DataBlockDouble(1)); // time
-                        dataBlkTemplate.setBlock(1, new DataBlockString(1)); // site
-                        dataBlkTemplate.setBlock(2, new DataBlockFloat(1)); // value
-                        continue;
-                    }
-                    
-                    // split line into field values
-                    line = line.trim();
-                    String[] fields = line.split("\t");
-                    if (fields.length < 2) // no result
-                        continue;
-                    
-                    // read all requested fields to datablock
-                    var dataBlk = dataBlkTemplate.renew();
-                    for (ParamValueParser reader: paramReaders)
-                    {
-                        reader.parse(fields, dataBlk);
-                    
-                        if (reader instanceof TimeStampParser || reader instanceof SiteNumParser)
-                            continue;
-                        
-                        if (reader.noValue)
-                            continue;
-                        
-                        var ts = Instant.ofEpochMilli((long)(dataBlk.getDoubleValue(0)*1000.));
-                        var obs = new ObsData.Builder()
-                            .withDataStream(reader.dsId)
-                            .withFoi(UsgsUtils.toBigId(idScope, dataBlk.getStringValue(1)))
-                            .withPhenomenonTime(ts)
-                            .withResult(dataBlk)
-                            .build();
-    
-                        var id = UsgsUtils.toObsId(reader.dsId, ts);
-                        nextRecords.add(new SimpleEntry<>(id, obs));
-                        dataBlk = dataBlk.clone();
-                    }
-                    
-                    if (!nextRecords.isEmpty())
-                        return;
-                }
-                
-                if (line == null && !lastBatch)
-                    nextBatch();
-            }
-            while (!lastBatch);
-        }
-        catch (IOException e)
-        {
-            logger.error("Error while reading tabular data", e);
-        }
-    }
-    
-    
-    protected void nextBatch()
-    {
-        try
-        {
-            if (originalEndTime != Long.MIN_VALUE)
-            {                
-                usgsFilter.startTime = new Date(nextBatchStartTime);
-                
-                // set start time for next batch
-                // adjust batch length to avoid a very small batch at the end
-                long timeGap = 1000; // gap to avoid duplicated obs
-                long adjBatchLength = batchDuration;
-                long timeLeft = originalEndTime - nextBatchStartTime;
-                if (((double) timeLeft) / batchDuration < 1.5)
-                    adjBatchLength = timeLeft + timeGap;
-                
-                var endTime = nextBatchStartTime + adjBatchLength - timeGap;
-                if (endTime >= originalEndTime)
-                {
-                    endTime = originalEndTime;
-                    lastBatch = true;
-                }
-                usgsFilter.endTime = new Date(endTime);
-                                
-                logger.debug("Next batch is {} - {}",
-                    Instant.ofEpochMilli(nextBatchStartTime),
-                    Instant.ofEpochMilli(endTime));
-                
-                nextBatchStartTime += adjBatchLength;
-            }
-            else
-                lastBatch = true;
-            
-            String requestUrl = buildInstantValuesRequest(usgsFilter);
-            
-            logger.debug("Requesting observations: {}", requestUrl);
-            URL url = new URL(requestUrl);
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
-        }
-        catch (IOException e)
-        {
-            logger.error("Error fetching observation data", e);
-        }
-    }
-    
-    
-    public Stream<Entry<BigId, IObsData>> getObservations(USGSDataFilter filter, long limit)
-    {
-        this.usgsFilter = filter;
-        this.originalEndTime = filter.endTime != null ? filter.endTime.getTime() : Long.MIN_VALUE;
-        this.nextBatchStartTime = filter.startTime != null ? filter.startTime.getTime() : Long.MIN_VALUE;
-        this.reader = null;
-        this.limit = limit;
-        this.lastBatch = false;
-        this.nextRecords.clear();
-        
-        // compute batch size
-        // assuming an average of 4 records per hour
-        limit = Math.max(Math.min(limit, 6000), 100);
-        int numTimeSeries = filter.siteIds.size() * filter.getAllParamCodes().size();
-        batchDuration = TimeUnit.MINUTES.toMillis(15) * Math.min(limit, 5000) / numTimeSeries;
-        
-        nextBatch();
-        preloadNext();
-        return StreamSupport
-            .stream(Spliterators.spliteratorUnknownSize(this, Spliterator.DISTINCT), false)
-            .onClose(this::close);
-    }
-    
-    
-    protected void close()
-    {
-        try
-        {
-            logger.debug("Closing RDB reader");
-            if (reader != null)
-                reader.close();
-        }
-        catch (IOException e)
-        {
-        }
-    }
+	public ObsRecordLoader(AbstractModule<?> module, DataComponent recordDesc) {
+		this.module = module;
+		this.templateRecord = recordDesc.createDataBlock();
+	}
 
+	protected String buildInstantValuesRequest(DataFilter filter) {
+		StringBuilder buf = new StringBuilder(BASE_URL);
 
-    protected String buildInstantValuesRequest(USGSDataFilter filter)
-    {
-        StringBuilder sb = UsgsUtils.buildRequestUrl(BASE_URL, filter);
-        return sb.toString();
-    }
+		// site ids
+		if (!filter.siteIds.isEmpty()) {
+			buf.append("sites=");
+			for (String id : filter.siteIds)
+				buf.append(id).append(',');
+			buf.setCharAt(buf.length() - 1, '&');
+		}
 
+		// state codes
+		else if (!filter.stateCodes.isEmpty()) {
+			buf.append("stateCd=");
+			for (StateCode state : filter.stateCodes)
+				buf.append(state.name()).append(',');
+			buf.setCharAt(buf.length() - 1, '&');
+		}
 
-    protected ParamValueParser[] parseHeader(BufferedReader reader, USGSDataFilter filter) throws IOException
-    {
-        // skip header comments
-        String line;
-        while ((line = reader.readLine()) != null)
-        {
-            line = line.trim();
-            if (!line.startsWith("#"))
-                break;
-        }
+		// county codes
+		else if (!filter.countyCodes.isEmpty()) {
+			buf.append("countyCd=");
+			for (String countyCd : filter.countyCodes)
+				buf.append(countyCd).append(',');
+			buf.setCharAt(buf.length() - 1, '&');
+		}
 
-        // parse field names and prepare corresponding readers
-        String[] fieldNames = line.split("\t");
-        
-        // skip field sizes
-        reader.readLine();
-        
-        // create param readers
-        return initParamReaders(filter, fieldNames);        
-    }
+		// site bbox
+		else if (filter.siteBbox != null && !filter.siteBbox.isNull()) {
+			Bbox bbox = filter.siteBbox;
+			buf.append("bbox=").append(bbox.getMinX()).append(",").append(bbox.getMaxY()).append(",")
+					.append(bbox.getMaxX()).append(",").append(bbox.getMinY()).append("&");
+		}
 
+		// site types
+		if (!filter.siteTypes.isEmpty()) {
+			buf.append("siteType=");
+			for (SiteType type : filter.siteTypes)
+				buf.append(type.name()).append(',');
+			buf.setCharAt(buf.length() - 1, '&');
+		}
 
-    protected ParamValueParser[] initParamReaders(USGSDataFilter filter, String[] fieldNames)
-    {
-        ArrayList<ParamValueParser> readers = new ArrayList<>();
-        int i = 0;
+		// parameters
+		if (!filter.parameters.isEmpty()) {
+			buf.append("parameterCd=");
+			for (ObsParam param : filter.parameters)
+				buf.append(param.getCode()).append(',');
+			buf.setCharAt(buf.length() - 1, '&');
+		}
 
-        // always add time stamp and site ID readers
-        readers.add(new TimeStampParser(2, i++));
-        readers.add(new SiteNumParser(1, i++));
+		// time range
+		DateTimeFormat timeFormat = new DateTimeFormat();
+		if (filter.startTime != null)
+			buf.append("startDT=").append(timeFormat.formatIso(filter.startTime.getTime() / 1000., 0)).append("&");
+		if (filter.endTime != null)
+			buf.append("endDT=").append(timeFormat.formatIso(filter.endTime.getTime() / 1000., 0)).append("&");
 
-        // create a reader for each selected param
-        var selectedParams = filter.getAllParamCodes();
-        for (int j = 4; j < fieldNames.length; j++)
-        {
-            var tokens = fieldNames[j].split("_");
-            if (tokens.length != 2)
-                continue;
-            
-            var fieldTs = tokens[0];
-            var paramCd = tokens[1];
-            if (!UsgsUtils.PARAM_CODE_REGEX.matcher(paramCd).matches())
-                continue;
-            
-            // use field only if param code is selected
-            if (selectedParams.isEmpty() || selectedParams.contains(paramCd))
-            {
-                logger.debug("Creating parser for param {} @ index={}", paramCd, j);
-                var paramReader = new FloatValueParser(j, i, logger);
-                paramReader.dsId = UsgsUtils.toDataStreamId(idScope, fieldTs, paramCd);
-                readers.add(paramReader);
-            }
-        }
+		// constant options
+		buf.append("format=rdb"); // output format
 
-        return readers.toArray(new ParamValueParser[0]);
-    }
-    
+		return buf.toString();
+	}
 
-    // The following classes are used to parse individual values from the tabular
-    // data
-    // A list of parsers is built according to the desired output and parsers are
-    // applied
-    // in sequence to fill the datablock with the proper values
+	public void sendRequest(DataFilter filter) throws IOException {
+		String requestUrl = buildInstantValuesRequest(filter);
 
-    /*
-     * Base value parser class
-     */
-    static abstract class ParamValueParser
-    {
-        int fromIndex;
-        int toIndex;
-        BigId dsId;
-        boolean noValue;
+		module.getLogger().debug("Requesting observations from: " + requestUrl);
+		URL url = new URL(requestUrl);
 
-        public ParamValueParser(int fromIndex, int toIndex)
-        {
-            this.fromIndex = fromIndex;
-            this.toIndex = toIndex;
-        }
+		reader = new BufferedReader(new InputStreamReader(url.openStream()));
+		this.filter = filter;
 
+		// preload first record
+		nextRecord = null;
+		preloadNext();
+	}
 
-        public abstract void parse(String[] tokens, DataBlock data) throws IOException;
-    }
+	protected void parseHeader() throws IOException {
+		// skip header comments
+		String line;
+		while ((line = reader.readLine()) != null) {
+			line = line.trim();
+			if (!line.startsWith("#"))
+				break;
+		}
 
-    /*
-     * Parser for time stamp field, including time zone
-     */
-    static class TimeStampParser extends ParamValueParser
-    {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm z");
-        StringBuilder buf = new StringBuilder();
+		// parse field names and prepare corresponding readers
+		String[] fieldNames = line.split("\t");
+		initParamReaders(filter.parameters, fieldNames);
 
-        public TimeStampParser(int fromIndex, int toIndex)
-        {
-            super(fromIndex, toIndex);
-        }
+		// skip field sizes
+		reader.readLine();
+	}
 
+	protected void initParamReaders(Set<ObsParam> params, String[] fieldNames) {
+		ArrayList<ParamValueParser> readers = new ArrayList<>();
+		int i = 0;
 
-        public void parse(String[] tokens, DataBlock data) throws IOException
-        {
-            buf.setLength(0);
-            buf.append(tokens[fromIndex].trim());
-            buf.append(' ');
-            buf.append(tokens[fromIndex + 1].trim());
+		// always add time stamp and site ID readers
+		readers.add(new TimeStampParser(2, i++));
+		readers.add(new SiteNumParser(1, i++));
 
-            try
-            {
-                long ts = dateFormat.parse(buf.toString()).getTime();
-                data.setDoubleValue(toIndex, ts / 1000.);
-            }
-            catch (ParseException e)
-            {
-                throw new IOException("Invalid time stamp " + buf.toString());
-            }
-        }
-    }
+		// create a reader for each selected param
+		for (ObsParam param : params) {
+			// look for field with same param code
+			int fieldIndex = -1;
+			for (int j = 0; j < fieldNames.length; j++) {
+				if (fieldNames[j].endsWith(param.getCode())) {
+					fieldIndex = j;
+					break;
+				}
+			}
 
-    /*
-     * Parser for site ID
-     */
-    static class SiteNumParser extends ParamValueParser
-    {
-        public SiteNumParser(int fromIndex, int toIndex)
-        {
-            super(fromIndex, toIndex);
-        }
+			readers.add(new FloatValueParser(fieldIndex, i++, module.getLogger()));
+		}
 
+		paramReaders = readers.toArray(new ParamValueParser[0]);
+	}
 
-        public void parse(String[] tokens, DataBlock data)
-        {
-            String val = tokens[fromIndex].trim();
-            data.setStringValue(toIndex, val);
-        }
-    }
+	protected DataBlock preloadNext() {
+		try {
+			DataBlock currentRecord = nextRecord;
+			nextRecord = null;
 
-    /*
-     * Parser for floating point value
-     */
-    static class FloatValueParser extends ParamValueParser
-    {
-        Logger logger;
+			String line;
+			while ((line = reader.readLine()) != null) {
+				line = line.trim();
 
-        public FloatValueParser(int fromIndex, int toIndex, Logger logger)
-        {
-            super(fromIndex, toIndex);
-            this.logger = logger;
-        }
+				// parse section header when data for next site begins
+				if (line.startsWith("#")) {
+					parseHeader();
+					line = reader.readLine();
+					if (line == null || line.trim().isEmpty())
+						return null;
+				}
 
-        public void parse(String[] tokens, DataBlock data) throws IOException
-        {
-            try
-            {
-                float f = Float.NaN;
-                noValue = false;
-                
-                if (fromIndex >= 0 && fromIndex < tokens.length)
-                {
-                    String val = tokens[fromIndex].trim();
-                    if (!val.isEmpty() && !val.startsWith("*"))
-                    {
-                        try
-                        {
-                            f = Float.parseFloat(val);
-                        }
-                        catch (NumberFormatException e)
-                        {
-                            //  If value is non-numeric, leave field as NaN
-                            logger.trace("Special value: {}", val);
-                        }
-                    }
-                    else
-                        noValue = true;
-                }
+				String[] fields = line.split("\t");
+				nextRecord = templateRecord.renew();
 
-                data.setFloatValue(toIndex, f);
-            }
-            catch (NumberFormatException e)
-            {
-                throw new IOException("Invalid numeric value " + tokens[fromIndex], e);
-            }
-        }
-    }
+				// read all requested fields to datablock
+				for (ParamValueParser reader : paramReaders)
+					reader.parse(fields, nextRecord);
+
+				break;
+			}
+
+			return currentRecord;
+		} catch (IOException e) {
+			module.getLogger().error("Error while reading tabular data", e);
+		}
+
+		return null;
+	}
+
+	@Override
+	public boolean hasNext() {
+		return (nextRecord != null);
+	}
+
+	@Override
+	public DataBlock next() {
+		if (!hasNext())
+			throw new NoSuchElementException();
+		return preloadNext();
+	}
+
+	public void close() {
+		try {
+			if (reader != null)
+				reader.close();
+		} catch (IOException e) {
+			module.getLogger().error("Error while closing reader", e);
+		}
+	}
+
+	// The following classes are used to parse individual values from the tabular
+	// data
+	// A list of parsers is built according to the desired output and parsers are
+	// applied
+	// in sequence to fill the datablock with the proper values
+
+	/*
+	 * Base value parser class
+	 */
+	static abstract class ParamValueParser {
+		int fromIndex;
+		int toIndex;
+
+		public ParamValueParser(int fromIndex, int toIndex) {
+			this.fromIndex = fromIndex;
+			this.toIndex = toIndex;
+		}
+
+		public abstract void parse(String[] tokens, DataBlock data) throws IOException;
+	}
+
+	/*
+	 * Parser for time stamp field, including time zone
+	 */
+	static class TimeStampParser extends ParamValueParser {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm z");
+		StringBuilder buf = new StringBuilder();
+
+		public TimeStampParser(int fromIndex, int toIndex) {
+			super(fromIndex, toIndex);
+		}
+
+		public void parse(String[] tokens, DataBlock data) throws IOException {
+			buf.setLength(0);
+			buf.append(tokens[fromIndex].trim());
+			buf.append(' ');
+			buf.append(tokens[fromIndex + 1].trim());
+
+			try {
+				long ts = dateFormat.parse(buf.toString()).getTime();
+				data.setDoubleValue(toIndex, ts / 1000.);
+			} catch (ParseException e) {
+				throw new IOException("Invalid time stamp " + buf.toString());
+			}
+		}
+	}
+
+	/*
+	 * Parser for site ID
+	 */
+	static class SiteNumParser extends ParamValueParser {
+		public SiteNumParser(int fromIndex, int toIndex) {
+			super(fromIndex, toIndex);
+		}
+
+		public void parse(String[] tokens, DataBlock data) {
+			String val = tokens[fromIndex].trim();
+			data.setStringValue(toIndex, val);
+		}
+	}
+
+	/*
+	 * Parser for floating point value
+	 */
+	static class FloatValueParser extends ParamValueParser {
+		Logger logger;
+		public FloatValueParser(int fromIndex, int toIndex, Logger logger) {
+			super(fromIndex, toIndex);
+			this.logger = logger;
+		}
+
+		public void parse(String[] tokens, DataBlock data) throws IOException {
+			try {
+				float f = Float.NaN;
+
+				if (fromIndex >= 0 && fromIndex < tokens.length) {
+					String val = tokens[fromIndex].trim();
+					if (!val.isEmpty() && !val.startsWith("*"))
+						try {
+							f = Float.parseFloat(val);
+						} catch (NumberFormatException e) {
+							//  If value is non-numeric, leave field as NaN
+							logger.trace("Special value: {}", val);
+						}
+				}
+
+				data.setFloatValue(toIndex, f);
+			} catch (NumberFormatException e) {
+				throw new IOException("Invalid numeric value " + tokens[fromIndex], e);
+			}
+		}
+	}
 }

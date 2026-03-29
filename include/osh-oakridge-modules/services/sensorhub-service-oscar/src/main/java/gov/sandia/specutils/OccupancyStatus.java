@@ -52,3 +52,4 @@ public final class OccupancyStatus {
   private final int swigValue;
   private final String swigName;
 }
+

@@ -1,45 +1,58 @@
 "use client";
 
-import { Box, ThemeProvider, createTheme, useMediaQuery } from "@mui/material";
-import {ReactNode, Suspense, useMemo} from "react";
-import CssBaseline from '@mui/material/CssBaseline';
+import {
+  Box,
+  ThemeProvider,
+  createTheme,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
+import { ReactNode, Suspense, useMemo } from "react";
+import CssBaseline from "@mui/material/CssBaseline";
 import { getTheme } from "@/app/style/theme";
-import "@/app/style/global.css"
+import "@/app/style/global.css";
 import SuspenseLoad from "./_components/SuspenseLoad";
-import {LanguageProvider, useLanguage} from "@/contexts/LanguageContext";
-
-function ThemeWrapper({ children }: { children: ReactNode }) {
-  // Get system preference for dark/light mode
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const { direction } = useLanguage();
-
-  // Implement custom theme based on system preference and language direction
-  const theme = useMemo(
-    () => createTheme({
-        ...getTheme(prefersDarkMode ? "dark" : "light"),
-        direction: direction
-    }),
-    [prefersDarkMode, direction],
-  );
-
-  return (
-      <ThemeProvider theme={theme}>
-        <Box sx={{backgroundColor: "background.default"}} dir={direction}>
-          <CssBaseline />
-          {children}
-        </Box>
-      </ThemeProvider>
-  );
-}
+import {LanguageProvider} from "@/app/contexts/LanguageContext";
 
 export default function Providers({ children }: { children: ReactNode }) {
+  // Get system preference for dark/light mode
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  // Implement custom theme based on system preference
+  const theme = useMemo(
+    () => createTheme(getTheme(prefersDarkMode ? "dark" : "light")),
+    [prefersDarkMode]
+  );
+
   return (
     <Suspense fallback={<SuspenseLoad />}>
       <LanguageProvider>
-          <ThemeWrapper>
-            {children}
-          </ThemeWrapper>
+          <ThemeProvider theme={theme}>
+            <Box sx={{backgroundColor: "background.default"}}>
+              <CssBaseline />
+              {children}
+            </Box>
+          </ThemeProvider>
       </LanguageProvider>
     </Suspense>
   );
+}
+
+// Handle breakpoints for desktop vs. tablets vs. mobile displays
+export const useBreakpoint = () => {
+  const theme = useTheme();
+
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isTablet = useMediaQuery(theme.breakpoints.up("md"));
+  const isSmallTablet = useMediaQuery(theme.breakpoints.up("sm"))
+
+  const size = isDesktop ? "desktop" : isTablet ? "tablet" : isSmallTablet ? "smallTablet" : "mobile"
+
+  return {
+    size,
+    isMobile: size === "mobile",
+    isSmallTablet: size === "smallTablet",
+    isTablet: size === "tablet",
+    isDesktop: size === "desktop",
+  };
 }

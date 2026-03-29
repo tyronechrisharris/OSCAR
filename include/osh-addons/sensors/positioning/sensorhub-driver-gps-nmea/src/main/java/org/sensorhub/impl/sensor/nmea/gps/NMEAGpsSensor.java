@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import org.sensorhub.api.comm.ICommProvider;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
+import org.sensorhub.api.sensor.ISensorDataInterface;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 
 
@@ -31,7 +31,7 @@ import org.sensorhub.impl.sensor.AbstractSensorModule;
  * Driver implementation for NMEA 0183 compatible GPS units
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Aug 27, 2015
  */
 public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
@@ -58,9 +58,9 @@ public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate identifiers: use serial number from config or first characters of local ID
         generateUniqueID("urn:osh:sensor:nmea-gps:", config.serialNumber);
@@ -108,7 +108,7 @@ public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         if (started)
             return;
@@ -122,8 +122,7 @@ public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
                 if (config.commSettings == null)
                     throw new SensorHubException("No communication settings specified");
                 
-                var moduleReg = getParentHub().getModuleRegistry();
-                commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+                commProvider = config.commSettings.getProvider();
                 commProvider.start();
             }
             catch (Exception e)
@@ -193,7 +192,7 @@ public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
             // let each registered output handle this message
             if (activeMessages.contains(msgID))
             {
-                for (IStreamingDataInterface output: this.getOutputs().values())
+                for (ISensorDataInterface output: this.getAllOutputs().values())
                 {
                     NMEAGpsOutput nmeaOut = (NMEAGpsOutput)output;
                     nmeaOut.handleMessage(msgTime, msgID, msg);
@@ -246,7 +245,7 @@ public class NMEAGpsSensor extends AbstractSensorModule<NMEAGpsConfig>
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         started = false;
         

@@ -78,17 +78,17 @@ public class DataSourceAdminPanel<ModuleType extends IDataProducerModule<?>> ext
         // sensor info panel
         if (module.isInitialized())
         {
-            Label sectionLabel = new Label(I18N.get("dataSourceInfo1"));
+            Label sectionLabel = new Label("Data Source Info");
             sectionLabel.addStyleName(STYLE_H3);
             sectionLabel.addStyleName(STYLE_COLORED);
             addComponent(sectionLabel);
-            addComponent(new Label("<b>" + I18N.get("uniqueID1") + ":</b> " + module.getUniqueIdentifier(), ContentMode.HTML));
+            addComponent(new Label("<b>Unique ID:</b> " + module.getUniqueIdentifier(), ContentMode.HTML));
             
             // display list of FOIs
             var fois = module.getCurrentFeaturesOfInterest().keySet();
             if (fois != null && !fois.isEmpty())
             {
-                addComponent(new Label("<b>" + I18N.get("foiIDs1") + ":</b>", ContentMode.HTML));
+                addComponent(new Label("<b>FOI IDs:</b>", ContentMode.HTML)); 
                 ListSelect list = new ListSelect();
                 list.setRows(4);
                 list.setNullSelectionAllowed(false);
@@ -104,7 +104,7 @@ public class DataSourceAdminPanel<ModuleType extends IDataProducerModule<?>> ext
                 addComponent(new Spacing());
                 HorizontalLayout titleBar = new HorizontalLayout();
                 titleBar.setSpacing(true);
-                sectionLabel = new Label(I18N.get("outputs1"));
+                sectionLabel = new Label("Outputs");
                 sectionLabel.addStyleName(STYLE_H3);
                 sectionLabel.addStyleName(STYLE_COLORED);
                 titleBar.addComponent(sectionLabel);
@@ -112,8 +112,8 @@ public class DataSourceAdminPanel<ModuleType extends IDataProducerModule<?>> ext
                 
                 // refresh button
                 final Timer timer = new Timer();
-                final Button refreshButton = new Button(I18N.get("refresh1"));
-                refreshButton.setDescription(I18N.get("toggleAutoRefreshDataOncePerSecond1"));
+                final Button refreshButton = new Button("Refresh");
+                refreshButton.setDescription("Toggle auto-refresh data once per second");
                 refreshButton.setIcon(REFRESH_ICON);
                 refreshButton.addStyleName(STYLE_SMALL);
                 refreshButton.addStyleName(STYLE_QUIET);
@@ -158,13 +158,13 @@ public class DataSourceAdminPanel<ModuleType extends IDataProducerModule<?>> ext
                             };
                             timer.schedule(autoRefreshTask, 0L, 1000L);
                             refreshButton.setIcon(FontAwesome.TIMES);
-                            refreshButton.setCaption(I18N.get("stop1"));
+                            refreshButton.setCaption("Stop");
                         }
                         else
                         {
                             autoRefreshTask.cancel();
                             refreshButton.setIcon(REFRESH_ICON);
-                            refreshButton.setCaption(I18N.get("refresh1"));
+                            refreshButton.setCaption("Refresh");
                         }
                     }
                 });               
