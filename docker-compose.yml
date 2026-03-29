@@ -118,13 +118,13 @@ services:
         condition: service_healthy
     container_name: oscar-proxy-container
     environment:
-      # We use 'http://invalid.local' as a hard fallback if TAILSCALE_DOMAIN is empty,
+      # We use 'invalid.local' as a hard fallback if TAILSCALE_DOMAIN is empty,
       # preventing Caddy from throwing a "server block without any key is global configuration"
       # error due to an empty string address block.
-      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-http://invalid.local}
+      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
       - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
       - "443:443"
     volumes:
       - ./caddy:/etc/caddy
