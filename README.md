@@ -6,18 +6,13 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 - [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
 - [OSCAR Flat Repository](https://github.com/Botts-Innovative-Research/oscar-flat)
 - Node v22
-- [Docker](https://docs.docker.com/get-docker/) (Required to run the PostGIS database system)
+- [Docker](https://docs.docker.com/get-docker/) (Required to run the containerized OSCAR stack)
 
 ## Installation
-Clone the repository and update all submodules recursively
+Clone the repository:
 
 ```bash
-git clone git@github.com:Botts-Innovative-Research/oscar-flat.git --recursive
-```
-If you've already cloned without `--recursive`, run:
-```bash
-cd path/to/oscar-flat
-git submodule update --init --recursive
+git clone git@github.com:Botts-Innovative-Research/oscar-flat.git
 ```
 ## Build 
 Navigate to the project directory:
@@ -68,12 +63,11 @@ After the build completes, it can be located in `build/distributions/`
    *Note: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for backward compatibility.*
 
 2. Access the OSCAR System
-- Remote/Local via Proxy (Recommended): **http://localhost** or **https://localhost**
-- Direct Local Backend: **http://localhost:8282/sensorhub/admin**
+- Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
 
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
-1. Navigate to `http://localhost:8282/` or `http://localhost:8282/sensorhub/admin`.
+1. Navigate to `https://localhost/sensorhub/admin`.
 2. You will be automatically redirected to the **Setup Wizard**.
 3. **Create an Admin Password**: Set a strong password for the `admin` account.
 4. **Configure TOTP**:
@@ -126,8 +120,8 @@ The OSCAR Viewer now features integrated Spectroscopic QR Code scanning for WebI
 
 ## Deploy the Client
 After configuring the Lanes on the OSH Admin Panel, you can navigate to the Clients endpoint:
-- Remote: **[ip-address]:8282**
-- Local: **http://localhost:8282/**
+- Remote: **https://[ip-address]** or **http://[ip-address]**
+- Local: **https://localhost** or **http://localhost**
 
 For documentation on configuring a server on the OSCAR Client refer to the OSCAR Documentation provided in the Google Drive documentation folder. 
 
