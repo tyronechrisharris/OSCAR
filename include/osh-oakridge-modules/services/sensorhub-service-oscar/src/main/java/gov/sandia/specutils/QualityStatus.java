@@ -53,3 +53,4 @@ public final class QualityStatus {
   private final int swigValue;
   private final String swigName;
 }
+

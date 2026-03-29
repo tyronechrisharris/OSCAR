@@ -65,3 +65,4 @@ public final class SaveSpectrumAsType {
   private final int swigValue;
   private final String swigName;
 }
+

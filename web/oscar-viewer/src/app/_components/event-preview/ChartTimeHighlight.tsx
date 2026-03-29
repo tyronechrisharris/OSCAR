@@ -17,7 +17,6 @@ import {
     createNSigmaCalcViewCurve,
     createThresholdViewCurve, createThreshSigmaViewCurve
 } from "@/app/utils/ChartUtils";
-import {useLanguage} from "@/contexts/LanguageContext";
 
 
 type CurveLayers = {
@@ -45,7 +44,6 @@ export class ChartInterceptProps {
 }
 
 export default function ChartTimeHighlight(props: ChartInterceptProps) {
-    const { t } = useLanguage();
 
     const gammaChartViewRef = useRef<HTMLDivElement | null>(null);
     const nSigmaChartViewRef = useRef<HTMLDivElement | null>(null);
@@ -228,6 +226,25 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
         };
     }
 
+    /**
+     * Patches a ChartJsView instance so that its internal buffer is sorted by
+     * timestamp before each chart update, ensuring data points render in order
+     * even when the API returns them out of chronological order.
+     *
+     * TODO Probably should guarantee order in the API / datastore, or fix this in osh-js
+     */
+    const patchChartSorting = (chartView: any) => {
+        const originalUpdate = chartView.chart.update.bind(chartView.chart);
+        chartView.chart.update = (mode?: any) => {
+            for (const dataset of chartView.chart.data.datasets) {
+                if (dataset.data?.length > 1) {
+                    dataset.data.sort((a: any, b: any) => a.x - b.x);
+                }
+            }
+            originalUpdate(mode);
+        };
+    };
+
     const renderCharts = (layers: CurveLayers, elementIds: string[]) => {
 
         if (layers?.gamma && gammaChartViewRef?.current) {
@@ -254,6 +271,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                 }
             });
 
+            patchChartSorting(gammaChart);
             setChartViews(prev => ({...prev, gamma: gammaChart}));
         }
 
@@ -283,6 +301,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                 }
             });
 
+            patchChartSorting(neutronChart);
             setChartViews(prev => ({...prev, neutron: neutronChart}));
         }
 
@@ -311,7 +330,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                     }
                 }
             });
-
+            patchChartSorting(nsigmaChart);
             setChartViews(prev => ({...prev, nsigma: nsigmaChart}));
         }
     };
@@ -331,13 +350,6 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                     onChange={handleToggle}
                     exclusive
                     value={toggleView}
-                    sx={{
-                        boxShadow: 1,
-                        '& .MuiToggleButton-root': {
-                            margin: 0.5,
-                            padding: "5px",
-                        },
-                    }}
                 >
                     {gammaToggleButtons}
                 </ToggleButtonGroup>

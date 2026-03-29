@@ -36,7 +36,7 @@ import com.google.gson.Gson;
  * Driver for Garmin VIRB XE camera
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since April 12, 2016
  */
 public class VirbXeDriver extends AbstractSensorModule<VirbXeConfig>
@@ -80,10 +80,10 @@ public class VirbXeDriver extends AbstractSensorModule<VirbXeConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
         // reset internal state in case init() was already called
-        super.doInit();
+        super.init();
         videoDataInterface = null;
         navDataInterface = null;
         healthDataInterface = null;
@@ -175,7 +175,7 @@ public class VirbXeDriver extends AbstractSensorModule<VirbXeConfig>
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         // wait for valid connection to camera
         connection.waitForConnection();
@@ -309,7 +309,7 @@ public class VirbXeDriver extends AbstractSensorModule<VirbXeConfig>
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (connection != null)
             connection.cancel();

@@ -26,7 +26,7 @@ import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.TextEncoding;
 import org.sensorhub.api.data.IMultiSourceDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEConstants;
 import org.vast.swe.SWEHelper;
@@ -38,7 +38,7 @@ import org.vast.swe.SWEHelper;
  * protocol. This particular class stores configuration parameters.
  * </p>
  * 
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since March 22, 2017
  */
 
@@ -50,7 +50,14 @@ public class DissolvedOxygenOutput extends AbstractSensorOutput <USGSWaterDriver
 
     public DissolvedOxygenOutput(USGSWaterDriver driver)
     {
-        super("oxygen", driver);
+        super(driver);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "oxygen";
     }
   
     
@@ -95,7 +102,7 @@ public class DissolvedOxygenOutput extends AbstractSensorOutput <USGSWaterDriver
     		latestRecordTime = System.currentTimeMillis();
     		latestRecord = dataBlock;
     		latestRecords.put(rec.getSiteCode(), latestRecord); 
-    		eventHandler.publish(new DataEvent(latestRecordTime, rec.getSiteCode(), DissolvedOxygenOutput.this, dataBlock));
+    		eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, rec.getSiteCode(), DissolvedOxygenOutput.this, dataBlock));
     	}
     }
 

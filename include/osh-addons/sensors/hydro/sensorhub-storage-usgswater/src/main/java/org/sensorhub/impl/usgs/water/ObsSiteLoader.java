@@ -18,18 +18,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.Map;
+import org.sensorhub.impl.module.AbstractModule;
+import org.sensorhub.impl.usgs.water.CodeEnums.SiteType;
 import org.sensorhub.impl.usgs.water.CodeEnums.StateCode;
-import org.slf4j.Logger;
-import org.vast.ogc.gml.IFeature;
 import org.vast.ogc.om.SamplingPoint;
-import org.vast.swe.SWEConstants;
-import org.vast.util.Asserts;
+import org.vast.swe.SWEHelper;
+import org.vast.util.Bbox;
+import net.opengis.gml.v32.AbstractFeature;
 import net.opengis.gml.v32.Point;
 import net.opengis.gml.v32.impl.GMLFactory;
 
@@ -41,7 +37,7 @@ import net.opengis.gml.v32.impl.GMLFactory;
  * web service documentation</a>
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 13, 2017
  */
 public class ObsSiteLoader
@@ -50,30 +46,90 @@ public class ObsSiteLoader
     static final String FOI_UID_PREFIX = USGSWaterDataArchive.UID_PREFIX + "site:";
     static final String AREA_UID_PREFIX = USGSWaterDataArchive.UID_PREFIX + "region:";
     
-    final int idScope;
-    final IParamDatabase paramDb;
-    final Logger logger;
+    AbstractModule<?> module;
     
-    public ObsSiteLoader(int idScope, IParamDatabase paramDb, Logger logger)
+    
+    public ObsSiteLoader(AbstractModule<?> module)
     {
-        this.idScope = idScope;
-        this.paramDb = Asserts.checkNotNull(paramDb, IParamDatabase.class);
-        this.logger = Asserts.checkNotNull(logger, Logger.class);
+        this.module = module;
     }
     
     
-    public Stream<IFeature> getSites(USGSDataFilter filter)
+    protected String buildSiteInfoRequest(DataFilter filter)
     {
-        try
-        {
-            String requestUrl = buildSiteInfoRequest(filter);
-            
-            logger.debug("Requesting site info: {}", requestUrl);
-            URL url = new URL(requestUrl);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+        StringBuilder buf = new StringBuilder(BASE_URL);
         
+        // site ids
+        if (!filter.siteIds.isEmpty())
+        {
+            buf.append("sites=");
+            for (String id: filter.siteIds)
+                buf.append(id).append(',');
+            buf.setCharAt(buf.length()-1, '&');
+        }
+        
+        // state codes
+        else if (!filter.stateCodes.isEmpty())
+        {
+            buf.append("stateCd=");
+            for (StateCode state: filter.stateCodes)
+                buf.append(state.name()).append(',');
+            buf.setCharAt(buf.length()-1, '&');
+        }
+        
+        // county codes
+        else if (!filter.countyCodes.isEmpty())
+        {
+            buf.append("countyCd=");
+            for (String countyCd: filter.countyCodes)
+            	buf.append(countyCd).append(',');
+            buf.setCharAt(buf.length()-1, '&');
+        }            
+        
+        // site bbox
+        else if (filter.siteBbox != null && !filter.siteBbox.isNull())
+        {
+            Bbox bbox = filter.siteBbox;
+            buf.append("bbox=")
+               .append(bbox.getMinX()).append(",")
+               .append(bbox.getMaxY()).append(",")
+               .append(bbox.getMaxX()).append(",")
+               .append(bbox.getMinY()).append("&");
+        }
+        
+        // site types
+        if (!filter.siteTypes.isEmpty())
+        {
+            buf.append("siteType=");
+            for (SiteType type: filter.siteTypes)
+                buf.append(type.name()).append(',');
+            buf.setCharAt(buf.length()-1, '&');
+        }
+        
+        // constant options
+        buf.append("dataType=iv&"); // site with IV data available
+        buf.append("siteOutput=expanded&"); // get all info
+        if(filter.isoPeriod != null)
+        	buf.append("period=" + filter.isoPeriod + "&");
+        buf.append("format=rdb"); // output format
+        
+        return buf.toString();
+    }
+    
+    
+    public void preloadSites(DataFilter filter, Map<String, AbstractFeature> fois) throws IOException
+    {
+        String requestUrl = buildSiteInfoRequest(filter);
+                
+        module.getLogger().debug("Requesting site info from: {}", requestUrl);        
+        URL url = new URL(requestUrl);
+        
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));)
+        {
+            GMLFactory gmlFac = new GMLFactory(true);
+            String line;
+            
             // skip header comments
-            String line = null;
             while ((line = reader.readLine()) != null)
             {
                 line = line.trim();
@@ -84,109 +140,64 @@ public class ObsSiteLoader
             // skip field names and sizes
             reader.readLine();
             
-            var it = new Iterator<IFeature>() {
-                GMLFactory gmlFac = new GMLFactory(true);
-                IFeature next;
+            // start parsing actual data records        
+            while ((line = reader.readLine()) != null)
+            {                
+                line = line.trim();
+                if (line.startsWith("#")) // skip comments
+                    continue;
                 
-                @Override
-                public boolean hasNext()
-                {
-                    return next != null;
-                }
-    
-                @Override
-                public IFeature next()
-                {
-                    if (!hasNext())
-                        throw new NoSuchElementException();
-                    var next = this.next;
-                    preloadNext();
-                    return next;
-                }
+                String[] fields = line.split("\t");
+                if (fields.length < 9) // skip if missing fields
+                    continue;
                 
-                public void preloadNext()
+                String id = fields[1];
+                String desc = fields[2];
+                
+                try
                 {
-                    String line = null;
-                    this.next = null;
+                    double lat = Double.parseDouble(fields[6]);
+                    double lon = Double.parseDouble(fields[7]);
+                    int stateCd = Integer.parseInt(fields[13]);
+                    //int countyCd = Integer.parseInt(fields[14]);
+                    double alt = fields[19].isEmpty() ? Double.NaN : Double.parseDouble(fields[19]);
+                                        
+                    SamplingPoint site = new SamplingPoint();
+                    site.setId(id);
+                    site.setUniqueIdentifier(FOI_UID_PREFIX+id);
+                    site.setName("USGS Water Site #" + id);
+                    site.setDescription(desc);
+                                        
+                    // location
+                    Point siteLoc = gmlFac.newPoint();
+                    if (Double.isNaN(alt))
+                    {
+                        siteLoc.setSrsDimension(2);
+                        siteLoc.setSrsName(SWEHelper.getEpsgUri(4269)); // NAD83
+                        siteLoc.setPos(new double[] {lat, lon});
+                    }
+                    else
+                    {
+                        siteLoc.setSrsDimension(3);
+                        siteLoc.setSrsName(SWEHelper.getEpsgUri(5498)); // NAD83 + NGVD29/NAVD88 height
+                        siteLoc.setPos(new double[] {lat, lon, alt});
+                    }
+                    site.setShape(siteLoc);
                     
-                    try
-                    {
-                        // start parsing actual data records
-                        while ((line = reader.readLine()) != null)
-                        {
-                            line = line.trim();
-                            if (line.startsWith("#")) // skip comments
-                                continue;
-                            
-                            String[] fields = line.split("\t");
-                            if (fields.length < 9) // skip if missing fields
-                                continue;
-                            
-                            String id = fields[1];
-                            String desc = fields[2];
-                            double lat = Double.parseDouble(fields[6]);
-                            double lon = Double.parseDouble(fields[7]);
-                            int stateCd = Integer.parseInt(fields[13]);
-                            //int countyCd = Integer.parseInt(fields[14]);
-                            double alt = fields[19].isEmpty() ? Double.NaN : Double.parseDouble(fields[19]);
-                            /*int natAqfrCd = Integer.parseInt(fields[35]);
-                            int aqfrCd = Integer.parseInt(fields[36]);
-                            int wellDepth = Integer.parseInt(fields[38]);*/
-                            
-                            SamplingPoint site = new SamplingPoint();
-                            site.setId(id);
-                            site.setUniqueIdentifier(FOI_UID_PREFIX+id);
-                            site.setName("USGS Water Site #" + id);
-                            site.setDescription(desc);
-                            
-                            // location
-                            Point siteLoc = gmlFac.newPoint();
-                            if (Double.isNaN(alt))
-                            {
-                                siteLoc.setSrsDimension(2);
-                                siteLoc.setSrsName(SWEConstants.REF_FRAME_4326);//SWEHelper.getEpsgUri(4269)); // NAD83
-                                siteLoc.setPos(new double[] {lat, lon});
-                            }
-                            else
-                            {
-                                siteLoc.setSrsDimension(3);
-                                siteLoc.setSrsName(SWEConstants.REF_FRAME_4979);//SWEHelper.getEpsgUri(5498)); // NAD83 + NGVD29/NAVD88 height
-                                siteLoc.setPos(new double[] {lat, lon, alt});
-                            }
-                            site.setShape(siteLoc);
-                            
-                            // sampled features (state and county)
-                            String stateStr = stateCd<10 ? "0" + stateCd : stateCd + "";
-                            site.setSampledFeature(null, AREA_UID_PREFIX + StateCode.get(stateStr));
-                            
-                            this.next = site;
-                            break;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        if (logger.isDebugEnabled())
-                            logger.warn("Cannot read site: " + line);
-                    }
+                    // sampled features (state and county)
+                    String stateStr = stateCd<10 ? "0" + stateCd : stateCd + "";
+                    
+                    site.setSampledFeatureUID(AREA_UID_PREFIX + StateCode.get(stateStr));
+                    
+                    //site.setSampledFeatureUID(AREA_UID_PREFIX + countyCd);
+                    module.getLogger().debug("Sample FOI ID: " + site.getUniqueIdentifier());
+                    fois.put(id, site);                
                 }
-            };
-            
-            it.preloadNext();
-            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, Spliterator.DISTINCT), false);
+                catch (Exception e)
+                {
+                    module.getLogger().debug("Unknown location for site " + id + " (" + desc + ")");
+                }
+            }
         }
-        catch (IOException e)
-        {
-            logger.error("Could not fetch site data", e);
-            return Stream.empty();
-        }
-    }
-    
-    
-    protected String buildSiteInfoRequest(USGSDataFilter filter)
-    {
-        return UsgsUtils.buildRequestUrl(BASE_URL, filter)
-            .append("&hasDataTypeCd=iv") // get only site with IV data available
-            .append("&siteOutput=expanded")
-            .toString();
     }
 }
