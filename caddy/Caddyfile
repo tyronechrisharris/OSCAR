@@ -9,7 +9,7 @@
 
 # 2. Tailscale Block (Conditional Federated Access)
 {$TAILSCALE_DOMAIN:http://invalid.local} {
-    @has_tailscale expression "{env.TAILSCALE_DOMAIN} != ''"
+    @has_tailscale expression "{env.TAILSCALE_DOMAIN} != '' && {env.TAILSCALE_DOMAIN} != 'http://invalid.local'"
 
     # Forward headers to the backend
     reverse_proxy @has_tailscale http://osh-backend:8282
