@@ -65,6 +65,11 @@ After the build completes, it can be located in `build/distributions/`
 2. Access the OSCAR System
 - Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
 
+**Important Note on Localhost TLS Warnings:**
+When accessing `https://localhost` or a local IP (including Tailscale IPs without MagicDNS), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
+- **To resolve this warning:** You can install the generated Root CA certificate (`osh-root.crt`) into your system or browser's Trust Store. This file is generated automatically upon first boot and can be found in the persistent config directory (e.g., `./osh-node-oscar/osh-root.crt`).
+- **Tailscale Users:** If accessing via a raw Tailscale IP (`100.x.x.x`), you will also encounter this warning. For a fully trusted connection without warnings, it is recommended to configure Tailscale MagicDNS and pass your MagicDNS hostname to the container via the `TAILSCALE_DOMAIN` environment variable (e.g., `TAILSCALE_DOMAIN=my-node.tailscale.net`). This allows Caddy to fetch a trusted Let's Encrypt certificate automatically.
+
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
 1. Navigate to `https://localhost/sensorhub/admin`.
@@ -136,4 +141,3 @@ For documentation on configuring a server on the OSCAR Client refer to the OSCAR
 - Version in `dist/config/standard/config.json`
 - Make sure no `pgdata` in `dist/release/postgis`
 - Build with `./build-all.sh` or `./build-all.bat`
-

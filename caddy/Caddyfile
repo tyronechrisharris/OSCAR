@@ -1,5 +1,5 @@
-# 1. Local LAN Block (Always Active Fallback)
-{$LOCAL_DOMAIN:localhost}, 127.0.0.1 {
+# 1. Default HTTPS Block (Handles Localhost, LAN IPs, and Tailscale IPs)
+https://, {$LOCAL_DOMAIN:localhost}, 127.0.0.1 {
     # Forward headers to the backend
     reverse_proxy http://osh-backend:8282
 
@@ -7,9 +7,9 @@
     tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
 }
 
-# 2. Tailscale Block (Conditional Federated Access)
+# 2. Tailscale Block (Conditional Federated Access via MagicDNS)
 {$TAILSCALE_DOMAIN:http://invalid.local} {
-    @has_tailscale expression "{env.TAILSCALE_DOMAIN} != '' && {env.TAILSCALE_DOMAIN} != 'http://invalid.local'"
+    @has_tailscale expression "{env.TAILSCALE_DOMAIN} != 'http://invalid.local'"
 
     # Forward headers to the backend
     reverse_proxy @has_tailscale http://osh-backend:8282
