@@ -119,8 +119,8 @@ services:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_STATE_DIR=/var/lib/tailscale
     volumes:
-      - tailscale_state:/var/lib/tailscale
-      - tailscale_sock:/var/run/tailscale
+      - ./tailscale/state:/var/lib/tailscale
+      - ./tailscale/sock:/var/run/tailscale
     networks:
       - osh-internal
     cap_add:
@@ -148,7 +148,8 @@ services:
       - ./caddy:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
-      - tailscale_sock:/var/run/tailscale/tailscaled.sock
+      # Mount the directory containing the socket, not the socket file itself, to avoid Docker creating a directory
+      - ./tailscale/sock:/var/run/tailscale
       # Mount the generated certificates from the backend's persistent config volume
       - ./osh-node-oscar:/etc/caddy/certs:ro
     restart: unless-stopped
@@ -161,5 +162,3 @@ volumes:
   caddy_data:
   caddy_config:
   oscar_secrets:
-  tailscale_state:
-  tailscale_sock:
