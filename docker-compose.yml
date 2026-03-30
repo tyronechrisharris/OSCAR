@@ -111,12 +111,32 @@ services:
       retries: 15
       start_period: 60s
 
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: oscar-tailscale
+    hostname: oscar-server
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - tailscale_sock:/var/run/tailscale
+    networks:
+      - osh-internal
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+
   osh-proxy:
     image: caddy:2-alpine
     depends_on:
       osh-backend:
         condition: service_healthy
+      tailscale:
+        condition: service_started
     container_name: oscar-proxy-container
+    network_mode: "service:tailscale"
     environment:
       # We use 'invalid.local' as a hard fallback if TAILSCALE_DOMAIN is empty,
       # preventing Caddy from throwing a "server block without any key is global configuration"
@@ -124,18 +144,13 @@ services:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
       - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
       - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
-    ports:
-      - "127.0.0.1:80:80"
-      - "${TAILSCALE_IP:-127.0.0.1}:443:443"
     volumes:
       - ./caddy:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
-      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
+      - tailscale_sock:/var/run/tailscale/tailscaled.sock
       # Mount the generated certificates from the backend's persistent config volume
       - ./osh-node-oscar:/etc/caddy/certs:ro
-    networks:
-      - osh-internal
     restart: unless-stopped
 
 networks:
@@ -146,3 +161,5 @@ volumes:
   caddy_data:
   caddy_config:
   oscar_secrets:
+  tailscale_state:
+  tailscale_sock:
