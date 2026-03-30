@@ -125,7 +125,7 @@ services:
       - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
     ports:
       - "127.0.0.1:80:80"
-      - "443:443"
+      - "${TAILSCALE_IP:-0.0.0.0}:443:443"
     volumes:
       - ./caddy:/etc/caddy
       - caddy_data:/data

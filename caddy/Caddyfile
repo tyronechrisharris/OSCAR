@@ -15,8 +15,6 @@ https://localhost, 127.0.0.1 {
 
 # 3. Tailscale Block (Conditional Federated Access via MagicDNS)
 {$TAILSCALE_DOMAIN} {
-    bind tailscale/
-
     # Forward headers to the backend
     reverse_proxy http://osh-backend:8282
 
