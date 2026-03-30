@@ -12,7 +12,7 @@ on:
         required: false
         type: string
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, closed]
     branches:
       - main
 
@@ -21,8 +21,10 @@ permissions:
 
 jobs:
   build-and-release:
-    # Run if it's a manual trigger or if a PR was merged into main
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    # Run if it's a manual trigger, a PR is opened/synchronized, or if a PR was merged into main
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || (github.event.action == 'closed' && github.event.pull_request.merged == true)))
     runs-on: ubuntu-latest
 
     steps:
@@ -67,31 +69,52 @@ jobs:
 
             echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
             echo "RELEASE_NAME=Manual Release ${TAG_NAME}" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
 
             echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
             echo "${INPUT_NOTES}" >> $GITHUB_ENV
             echo "${EOF_DELIM}" >> $GITHUB_ENV
           else
-            # Automated release from PR
-            DATE_STR=$(date +'%-m-%d-%Y')
-            BASE_TAG="oscar_${DATE_STR}"
+            if [ "${{ github.event.action }}" = "opened" ] || [ "${{ github.event.action }}" = "synchronize" ]; then
+              # Dev release from PR
+              DATE_STR=$(date +'%-m-%d-%Y')
+              BASE_TAG="oscar_${DATE_STR}"
 
-            # Find the next available letter suffix (A, B, C...)
-            SUFFIX="A"
-            for letter in {A..Z}; do
-              if ! gh release view "${BASE_TAG}_${letter}" >/dev/null 2>&1; then
-                SUFFIX="${letter}"
-                break
-              fi
-            done
+              # Append a suffix indicating a DEV release
+              TIME_STR=$(date +'%H%M')
+              TAG_NAME="${BASE_TAG}_dev_pr${{ github.event.pull_request.number }}_${TIME_STR}"
 
-            TAG_NAME="${BASE_TAG}_${SUFFIX}"
-            echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
-            echo "RELEASE_NAME=Auto-Release ${TAG_NAME}" >> $GITHUB_ENV
+              echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+              echo "RELEASE_NAME=Dev Release ${TAG_NAME}" >> $GITHUB_ENV
+              echo "IS_PRERELEASE=true" >> $GITHUB_ENV
 
-            echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
-            echo "${PR_BODY}" >> $GITHUB_ENV
-            echo "${EOF_DELIM}" >> $GITHUB_ENV
+              echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
+              echo "Dev release for PR #${{ github.event.pull_request.number }}. Updates:" >> $GITHUB_ENV
+              echo "${PR_BODY}" >> $GITHUB_ENV
+              echo "${EOF_DELIM}" >> $GITHUB_ENV
+            else
+              # Automated release from merged PR
+              DATE_STR=$(date +'%-m-%d-%Y')
+              BASE_TAG="oscar_${DATE_STR}"
+
+              # Find the next available letter suffix (A, B, C...)
+              SUFFIX="A"
+              for letter in {A..Z}; do
+                if ! gh release view "${BASE_TAG}_${letter}" >/dev/null 2>&1; then
+                  SUFFIX="${letter}"
+                  break
+                fi
+              done
+
+              TAG_NAME="${BASE_TAG}_${SUFFIX}"
+              echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+              echo "RELEASE_NAME=Auto-Release ${TAG_NAME}" >> $GITHUB_ENV
+              echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+
+              echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
+              echo "${PR_BODY}" >> $GITHUB_ENV
+              echo "${EOF_DELIM}" >> $GITHUB_ENV
+            fi
           fi
 
       - name: Prepare Artifacts
@@ -122,3 +145,4 @@ jobs:
           name: ${{ env.RELEASE_NAME }}
           body: ${{ env.RELEASE_NOTES }}
           files: build/distributions/${{ env.TAG_NAME }}.zip
+          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
