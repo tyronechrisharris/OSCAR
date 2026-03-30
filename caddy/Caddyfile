@@ -4,12 +4,13 @@ http://localhost {
     reverse_proxy http://osh-backend:8282
 }
 
-# 2. Local HTTPS Block
-https://localhost, 127.0.0.1 {
+# 2. Local HTTPS Block (Including Tailscale IP Fallback)
+https://localhost, 127.0.0.1, https://{$TAILSCALE_IP} {
     # Forward headers to the backend
     reverse_proxy http://osh-backend:8282
 
     # Use local Java certificates for LAN encryption
+    # (Since Tailscale IPs can't use MagicDNS Let's Encrypt certs, they fall back to this)
     tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
 }
 

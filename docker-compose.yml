@@ -122,10 +122,11 @@ services:
       # preventing Caddy from throwing a "server block without any key is global configuration"
       # error due to an empty string address block.
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
+      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
       - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
     ports:
       - "127.0.0.1:80:80"
-      - "${TAILSCALE_IP:-0.0.0.0}:443:443"
+      - "${TAILSCALE_IP:-127.0.0.1}:443:443"
     volumes:
       - ./caddy:/etc/caddy
       - caddy_data:/data
