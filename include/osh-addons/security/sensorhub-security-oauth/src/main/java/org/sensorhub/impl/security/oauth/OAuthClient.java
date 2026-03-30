@@ -14,11 +14,15 @@ Copyright (C) 2012-2016 Sensia Software LLC. All Rights Reserved.
 
 package org.sensorhub.impl.security.oauth;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import org.eclipse.jetty.security.Authenticator;
+import org.eclipse.jetty.security.ServerAuthException;
+import org.eclipse.jetty.server.Authentication;
+import org.eclipse.jetty.server.Authentication.User;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.service.IHttpServer;
+import org.sensorhub.impl.SensorHub;
 import org.sensorhub.impl.module.AbstractModule;
-import org.sensorhub.impl.service.HttpServerConfig;
 
 
 /**
@@ -26,10 +30,10 @@ import org.sensorhub.impl.service.HttpServerConfig;
  * OAuth Client module relying on Apache Oltu library
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Nov 29, 2016
  */
-public class OAuthClient extends AbstractModule<OAuthClientConfig>
+public class OAuthClient extends AbstractModule<OAuthClientConfig> implements Authenticator
 {
     Authenticator authenticator;
     
@@ -37,35 +41,22 @@ public class OAuthClient extends AbstractModule<OAuthClientConfig>
     @Override
     public void setConfiguration(OAuthClientConfig config)
     {
-        super.setConfiguration(config);
+        super.setConfiguration(config);        
+        authenticator = new OAuthAuthenticator(config, getLogger());
     }
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
-        // retrieve HTTP server config and base URL
-        var httpServer = getParentHub().getModuleRegistry().getModuleByType(IHttpServer.class);
-        if (httpServer == null)
-            throw new SensorHubException("No HTTP server module configured");
-        var callbackBaseUrl = httpServer.getServerBaseUrl();
-        var httpConfig = (HttpServerConfig)httpServer.getConfiguration();
-        
-        authenticator = new OAuthAuthenticator(
-            config,
-            callbackBaseUrl,
-            httpConfig.enableCORS,
-            getParentHub().getSecurityManager(),
-            getLogger());
-        
-        getParentHub().getSecurityManager().registerAuthenticator(authenticator);
+        SensorHub.getInstance().getSecurityManager().registerAuthenticator(this);
     }
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
-        //getParentHub().getSecurityManager().registerAuthenticator(null);
+        SensorHub.getInstance().getSecurityManager().registerAuthenticator(authenticator);
         this.authenticator = null;
     }
 
@@ -74,4 +65,40 @@ public class OAuthClient extends AbstractModule<OAuthClientConfig>
     public void cleanup() throws SensorHubException
     {
     }
+
+
+    @Override
+    public void setConfiguration(AuthConfiguration configuration)
+    {
+        authenticator.setConfiguration(configuration);
+    }
+
+
+    @Override
+    public String getAuthMethod()
+    {
+        return authenticator.getAuthMethod();
+    }
+
+
+    @Override
+    public void prepareRequest(ServletRequest request)
+    {
+        authenticator.prepareRequest(request);        
+    }
+
+
+    @Override
+    public Authentication validateRequest(ServletRequest request, ServletResponse response, boolean mandatory) throws ServerAuthException
+    {
+        return authenticator.validateRequest(request, response, mandatory);
+    }
+
+
+    @Override
+    public boolean secureResponse(ServletRequest request, ServletResponse response, boolean mandatory, User validatedUser) throws ServerAuthException
+    {
+        return authenticator.secureResponse(request, response, mandatory, validatedUser);
+    }
+
 }

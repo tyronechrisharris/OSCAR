@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__chrono__time_pointT_std__chrono__system_clock_std__
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

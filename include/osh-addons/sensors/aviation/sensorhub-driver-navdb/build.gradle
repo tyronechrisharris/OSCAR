@@ -1,17 +1,17 @@
 description = 'Navigation Database'
 ext.details = 'Adaptor for aeronautical navigation database provider in ARINC 424 format'
-version = '0.6'
+version = '0.5'
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  implementation project(':sensorhub-utils-aero')
+  implementation project(':sensorhub-utils-grid')
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research Inc.')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.sensor.navDb.Activator')
+    attributes 'Bundle-Vendor': 'Botts Innovative Research Inc.'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.sensor.navDb.NavDriver'
   }
 }
 

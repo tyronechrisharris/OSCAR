@@ -5,10 +5,9 @@ import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.Quantity;
 
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEHelper;
-
 
 public class UAHweatherOutput extends AbstractSensorOutput<UAHweatherSensor>
 {
@@ -17,7 +16,14 @@ public class UAHweatherOutput extends AbstractSensorOutput<UAHweatherSensor>
     
     public UAHweatherOutput(UAHweatherSensor parentSensor)
     {
-        super("weatherData", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "UAH Weather";
     }
 
 
@@ -91,7 +97,7 @@ public class UAHweatherOutput extends AbstractSensorOutput<UAHweatherSensor>
     	// update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(latestRecordTime, UAHweatherOutput.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, UAHweatherOutput.this, dataBlock));
     	
     }
 }

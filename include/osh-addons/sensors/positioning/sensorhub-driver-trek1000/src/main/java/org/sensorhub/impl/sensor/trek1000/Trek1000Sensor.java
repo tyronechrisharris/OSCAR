@@ -19,6 +19,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.sensorhub.api.comm.ICommProvider;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.sensor.PositionConfig.LLALocation;
@@ -57,9 +58,9 @@ public class Trek1000Sensor extends AbstractSensorModule<Trek1000Config>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
 
         // generate identifiers
         generateUniqueID("urn:osh:sensor:trek1000:", config.serialNumber);
@@ -93,7 +94,7 @@ public class Trek1000Sensor extends AbstractSensorModule<Trek1000Config>
 
 
     @Override
-    protected void doStart() throws SensorException
+    public void start() throws SensorException
     {
         if (started)
             return;
@@ -107,8 +108,7 @@ public class Trek1000Sensor extends AbstractSensorModule<Trek1000Config>
                 if (config.commSettings == null)
                     throw new SensorException("No communication settings specified");
                 
-                var moduleReg = getParentHub().getModuleRegistry();
-                commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+                commProvider = config.commSettings.getProvider();
                 commProvider.start();
             }
             catch (Exception e)
@@ -199,7 +199,7 @@ public class Trek1000Sensor extends AbstractSensorModule<Trek1000Config>
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         started = false;
         

@@ -16,7 +16,7 @@ package org.sensorhub.impl.sensor.bno055;
 
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.api.comm.ICommProvider;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Timer;
@@ -69,7 +69,14 @@ public class Bno055Output extends AbstractSensorOutput<Bno055Sensor>
     
     public Bno055Output(Bno055Sensor parentSensor)
     {
-        super("imuData", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "imuData";
     }
 
 
@@ -154,7 +161,7 @@ public class Bno055Output extends AbstractSensorOutput<Bno055Sensor>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(latestRecordTime, Bno055Output.this, dataBlock));        
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, Bno055Output.this, dataBlock));        
     }
    
 

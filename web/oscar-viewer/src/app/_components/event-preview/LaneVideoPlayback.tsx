@@ -9,7 +9,6 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import '../../../Styles.css';
 import CircularProgress from "@mui/material/CircularProgress";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 
 export class LaneVideoPlaybackProps {
@@ -25,7 +24,6 @@ export class LaneVideoPlaybackProps {
 }
 
 export default function LaneVideoPlayback({selectedNode, videos, modeType, startTime, endTime, isPlaying, syncTime, onVideoTimeUpdate, onSelectedVideoIdxChange}: LaneVideoPlaybackProps) {
-    const { t } = useLanguage();
     const [videoHeight, setVideoHeight] = useState("320px");
     const videoRefs = useRef<HTMLVideoElement[]>([]);
     const [videoDuration, setVideoDuration] = useState<number>(0);
@@ -177,7 +175,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
                                     playsInline
                                 >
                                     <source src={`${tls}://${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${video.trim()}`} type="video/mp4" />
-                                    {t('yourBrowserDoesNotSupportVideoTag')}
+                                    Your browser does not support the video tag.
                                 </video>
                             );
                         })}
@@ -194,7 +192,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
                 )
                 : (
                     <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>
-                        <Typography>{t('noVideoAvailable')}</Typography>
+                        <Typography>No Video Available</Typography>
                     </Box>
                 )}
         </Box>

@@ -40,7 +40,7 @@ import org.vast.swe.SWEHelper;
  * protocol Based on Dahua v1.23 API.
  * </p>
  *
- * @author Mike Botts
+  * @author Mike Botts <mike.botts@botts-inc.com>
  * @since March 2016
  */
 public class DahuaCameraDriver extends AbstractSensorModule<DahuaCameraConfig>
@@ -83,10 +83,10 @@ public class DahuaCameraDriver extends AbstractSensorModule<DahuaCameraConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
         // reset internal state in case init() was already called
-        super.doInit();
+        super.init();
         videoDataInterface = null;
         ptzDataInterface = null;
         ptzControlInterface = null;
@@ -248,7 +248,7 @@ public class DahuaCameraDriver extends AbstractSensorModule<DahuaCameraConfig>
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         // wait for valid connection to camera
         connection.waitForConnection();
@@ -336,7 +336,7 @@ public class DahuaCameraDriver extends AbstractSensorModule<DahuaCameraConfig>
 
     
     @Override
-    protected void doStop()
+    public void stop()
     {
         if (connection != null)
             connection.cancel();

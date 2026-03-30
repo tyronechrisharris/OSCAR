@@ -19,10 +19,9 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.sensorhub.utils.NamedThreadFactory;
+import org.sensorhub.impl.common.DefaultThreadFactory;
 import org.slf4j.Logger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -43,8 +42,8 @@ public class MessageHandler implements IMessageHandler
     List<FlightPlanListener> planListeners = new ArrayList<>();
     List<PositionListener> positionListeners = new ArrayList<>();
     IFlightObjectFilter flightFilter;
-    BlockingQueue<Runnable> flightPlanExecQueue, flightPosExecQueue;
-    ExecutorService flightPlanExec, flightPosExec;
+    BlockingQueue<Runnable> execQueue;
+    ExecutorService exec;
     volatile long latestMessageReceiveTime = System.currentTimeMillis()/1000; // in seconds
     volatile long latestMessageTimeStamp = 0L; // in seconds
     volatile long latestMessageTimeLag = 0L; // in seconds
@@ -58,10 +57,8 @@ public class MessageHandler implements IMessageHandler
         this.flightFilter = driver.flightFilter;
         
         // executor to process messages in parallel
-        this.flightPlanExecQueue = new LinkedBlockingQueue<>(10000);
-        this.flightPosExecQueue = new LinkedBlockingQueue<>(10000);
-        this.flightPlanExec = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, flightPlanExecQueue, new NamedThreadFactory("FlightPlanProcessPool"));
-        this.flightPosExec = new ThreadPoolExecutor(2, 4, 10, TimeUnit.SECONDS, flightPosExecQueue, new NamedThreadFactory("FlightPosProcessPool"));
+        this.execQueue = new LinkedBlockingQueue<>(10000);
+        this.exec = new ThreadPoolExecutor(2, 4, 1, TimeUnit.SECONDS, execQueue, new DefaultThreadFactory("MsgHandlerPool"));
     }
         
     public void handle(String message) {
@@ -71,20 +68,12 @@ public class MessageHandler implements IMessageHandler
             fltObj.json = message;
             latestMessageTimeStamp = Long.parseLong(fltObj.pitr);
             latestMessageTimeLag = latestMessageReceiveTime - latestMessageTimeStamp;
-            msgCount++;
-            
+           
             if (log.isTraceEnabled())
             {
                 log.trace("New message:\n{}",  message);
-                log.trace("message count: {}, flight plan queue size: {}, flight pos queue size: {}",
-                    msgCount, flightPlanExecQueue.size(), flightPosExecQueue.size());
+                log.trace("message count: {}, queue size: {}", ++msgCount, execQueue.size());
                 log.trace("time lag: {}", latestMessageTimeLag);
-            }
-            
-            if (log.isDebugEnabled() && msgCount % 100 == 0)
-            {
-                log.debug("message count: {}, flight plan queue size: {}, flight pos queue size: {}",
-                    msgCount, flightPlanExecQueue.size(), flightPosExecQueue.size());
             }
             
             if (!liveStarted && latestMessageTimeLag < 10)
@@ -107,9 +96,6 @@ public class MessageHandler implements IMessageHandler
             // process message
             processMessage(fltObj);
             
-        } catch (RejectedExecutionException e) {
-            log.error("Processing queue full", e);
-            return;
         } catch (Exception e) {
             log.error("Cannot read JSON\n{}", message, e);
             if (latestMessageTimeStamp == 0L)
@@ -121,11 +107,11 @@ public class MessageHandler implements IMessageHandler
     private void processMessage(FlightObject fltObj) {
         switch (fltObj.type) {
             case FLIGHTPLAN_MSG_TYPE:
-                flightPlanExec.execute(new ProcessPlanTask(this, fltObj));
+                exec.execute(new ProcessPlanTask(this, fltObj));
                 break;
             case POSITION_MSG_TYPE:
                 if (!isReplay()) // skip replayed position messages
-                    flightPosExec.execute(new ProcessPositionTask(this, fltObj));
+                    exec.execute(new ProcessPositionTask(this, fltObj));
                 break;
             case ARRIVAL_MSG_TYPE:
                 //log.info("{}_{} arrived at {}", obj.ident, obj.dest, Instant.ofEpochSecond(Long.parseLong(obj.aat)));
@@ -139,8 +125,7 @@ public class MessageHandler implements IMessageHandler
     }
     
     public void stop() {
-        flightPlanExec.shutdownNow();
-        flightPosExec.shutdownNow();
+        exec.shutdownNow();
     }
 
     public void addObjectListener(FlightObjectListener l) {

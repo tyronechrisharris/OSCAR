@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__vectorT_std__pairT_int_int_t_t {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+
