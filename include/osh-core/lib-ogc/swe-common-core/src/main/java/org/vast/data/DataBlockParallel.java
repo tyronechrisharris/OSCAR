@@ -32,13 +32,8 @@ public class DataBlockParallel extends AbstractDataBlock
 {
 	private static final long serialVersionUID = 6492226220927792777L;
     protected AbstractDataBlock[] blockArray;
-    transient ThreadLocal<CachedIndex> cachedIndex = new ThreadLocal<>();
-    
-    static class CachedIndex
-    {
-        int blockIndex;
-        int localIndex;
-    }
+	protected int blockIndex;
+	protected int localIndex;
 
 
 	public DataBlockParallel()
@@ -150,8 +145,8 @@ public class DataBlockParallel extends AbstractDataBlock
 	@Override
     public DataType getDataType(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getDataType(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getDataType(localIndex);
 	}
 
 
@@ -166,22 +161,11 @@ public class DataBlockParallel extends AbstractDataBlock
 	}
 
 
-	protected CachedIndex selectBlock(int index)
+	protected void selectBlock(int index)
 	{
-	    // use thread local index so we can read concurrently from multiple threads
-        CachedIndex cachedIdx = cachedIndex.get();
-        if (cachedIdx == null) {
-            cachedIdx = new CachedIndex();
-            cachedIndex.set(cachedIdx);
-        }
-        
-        var blockIndex = index % blockArray.length;
-        var localIndex = startIndex + index / blockArray.length;
+		blockIndex = index % blockArray.length;
+        localIndex = startIndex + index / blockArray.length;
         localIndex -= blockArray[blockIndex].startIndex;
-        
-        cachedIdx.blockIndex = blockIndex;
-        cachedIdx.localIndex = localIndex;
-        return cachedIdx;
 	}
 
 
@@ -192,20 +176,17 @@ public class DataBlockParallel extends AbstractDataBlock
 		buffer.append("PARALLEL: ");
 		buffer.append('[');
 
-        if (atomCount > 0)
-        {
-    		var idx = selectBlock(0);
-    		int start = idx.blockIndex;
-    		idx = selectBlock(getAtomCount() - 1);
-    		int stop = idx.blockIndex + 1;
-    		
-    		for (int i = start; i < stop; i++)
-    		{
-    			buffer.append(blockArray[i].toString());
-    			if (i < stop - 1)
-    				buffer.append(',');
-    		}
-        }
+		selectBlock(0);
+		int start = blockIndex;
+		selectBlock(getAtomCount() - 1);
+		int stop = blockIndex + 1;
+		
+		for (int i = start; i < stop; i++)
+		{
+			buffer.append(blockArray[i].toString());
+			if (i < stop - 1)
+				buffer.append(',');
+		}
 
 		buffer.append(']');
 		return buffer.toString();
@@ -215,160 +196,160 @@ public class DataBlockParallel extends AbstractDataBlock
 	@Override
     public boolean getBooleanValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getBooleanValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getBooleanValue(localIndex);
 	}
 
 
 	@Override
     public byte getByteValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getByteValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getByteValue(localIndex);
 	}
 
 
 	@Override
     public short getShortValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getShortValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getShortValue(localIndex);
 	}
 
 
 	@Override
     public int getIntValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getIntValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getIntValue(localIndex);
 	}
 
 
 	@Override
     public long getLongValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getLongValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getLongValue(localIndex);
 	}
 
 
 	@Override
     public float getFloatValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getFloatValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getFloatValue(localIndex);
 	}
 
 
 	@Override
     public double getDoubleValue(int index)
 	{
-		var idx = selectBlock(index);
+		selectBlock(index);
         //System.out.println(blockIndex + " " + localIndex);
-		return blockArray[idx.blockIndex].getDoubleValue(idx.localIndex);
+		return blockArray[blockIndex].getDoubleValue(localIndex);
 	}
 
 
 	@Override
     public String getStringValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockArray[idx.blockIndex].getStringValue(idx.localIndex);
+		selectBlock(index);
+		return blockArray[blockIndex].getStringValue(localIndex);
 	}
 
 
     @Override
     public Instant getTimeStamp(int index)
     {
-        var idx = selectBlock(index);
-        return blockArray[idx.blockIndex].getTimeStamp(idx.localIndex);
+        selectBlock(index);
+        return blockArray[blockIndex].getTimeStamp(localIndex);
     }
 
 
     @Override
     public OffsetDateTime getDateTime(int index)
     {
-        var idx = selectBlock(index);
-        return blockArray[idx.blockIndex].getDateTime(idx.localIndex);
+        selectBlock(index);
+        return blockArray[blockIndex].getDateTime(localIndex);
     }
 
 
 	@Override
     public void setBooleanValue(int index, boolean value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setBooleanValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setBooleanValue(localIndex, value);
 	}
 
 
 	@Override
     public void setByteValue(int index, byte value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setByteValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setByteValue(localIndex, value);
 	}
 
 
 	@Override
     public void setShortValue(int index, short value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setShortValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setShortValue(localIndex, value);
 	}
 
 
 	@Override
     public void setIntValue(int index, int value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setIntValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setIntValue(localIndex, value);
 	}
 
 
 	@Override
     public void setLongValue(int index, long value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setLongValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setLongValue(localIndex, value);
 	}
 
 
 	@Override
     public void setFloatValue(int index, float value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setFloatValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setFloatValue(localIndex, value);
 	}
 
 
 	@Override
     public void setDoubleValue(int index, double value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setDoubleValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setDoubleValue(localIndex, value);
 	}
 
 
 	@Override
     public void setStringValue(int index, String value)
 	{
-		var idx = selectBlock(index);
-		blockArray[idx.blockIndex].setStringValue(idx.localIndex, value);
+		selectBlock(index);
+		blockArray[blockIndex].setStringValue(localIndex, value);
 	}
 
 
     @Override
     public void setTimeStamp(int index, Instant value)
     {
-        var idx = selectBlock(index);
-        blockArray[idx.blockIndex].setTimeStamp(idx.localIndex, value);
+        selectBlock(index);
+        blockArray[blockIndex].setTimeStamp(localIndex, value);
     }
 
 
     @Override
     public void setDateTime(int index, OffsetDateTime value)
     {
-        var idx = selectBlock(index);
-        blockArray[idx.blockIndex].setDateTime(idx.localIndex, value);
+        selectBlock(index);
+        blockArray[blockIndex].setDateTime(localIndex, value);
     }
 }

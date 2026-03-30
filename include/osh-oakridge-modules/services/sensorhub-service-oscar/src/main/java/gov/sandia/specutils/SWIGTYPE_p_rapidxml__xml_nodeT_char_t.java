@@ -27,3 +27,4 @@ public class SWIGTYPE_p_rapidxml__xml_nodeT_char_t {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

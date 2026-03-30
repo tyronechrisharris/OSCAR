@@ -169,13 +169,10 @@ public class Vect3d
      */
     public final Vect3d normalize()
     {
-        if (!isZero()) {
-            double invNorm = 1.0 / norm();
-            this.x *= invNorm;
-            this.y *= invNorm;
-            this.z *= invNorm;
-        }
-        
+        double invNorm = 1.0 / norm();
+        this.x *= invNorm;
+        this.y *= invNorm;
+        this.z *= invNorm;
         return this;
     }
     
@@ -187,16 +184,10 @@ public class Vect3d
      */
     public final Vect3d normalize(final Vect3d v)
     {
-        if (!isZero()) {
-            double invNorm = 1.0 / v.norm();
-            this.x = v.x * invNorm;
-            this.y = v.y * invNorm;
-            this.z = v.z * invNorm;
-        } 
-        else {
-            this.x = this.y = this.z = 0.0;
-        }
-        
+        double invNorm = 1.0 / v.norm();
+        this.x = v.x * invNorm;
+        this.y = v.y * invNorm;
+        this.z = v.z * invNorm;
         return this;
     }
     
@@ -207,16 +198,12 @@ public class Vect3d
      */
     public final double normalizeAndGetNorm()
     {
-        if (!isZero()) {
-            double norm = norm();
-            double invNorm = 1.0 / norm;
-            this.x *= invNorm;
-            this.y *= invNorm;
-            this.z *= invNorm;
-            return norm;
-        }
-        
-        return 0.0;
+        double norm = norm();
+        double invNorm = 1.0 / norm;
+        this.x *= invNorm;
+        this.y *= invNorm;
+        this.z *= invNorm;
+        return norm;
     }
     
     
@@ -474,15 +461,6 @@ public class Vect3d
         a[0] = this.x;
         a[1] = this.y;
         a[2] = this.z;
-    }
-    
-    
-    /**
-     * @return true if this is a zero vector, false otherwise
-     */
-    public final boolean isZero()
-    {
-        return x == 0 && y == 0 && z == 0;
     }
     
     

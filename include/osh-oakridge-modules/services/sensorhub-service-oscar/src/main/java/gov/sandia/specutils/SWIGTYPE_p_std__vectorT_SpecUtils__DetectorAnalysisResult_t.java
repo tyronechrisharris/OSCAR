@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__vectorT_SpecUtils__DetectorAnalysisResult_t {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

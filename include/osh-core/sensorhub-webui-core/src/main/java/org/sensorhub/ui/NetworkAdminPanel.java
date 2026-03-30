@@ -77,7 +77,7 @@ public class NetworkAdminPanel extends DefaultModulePanel<ICommNetwork<?>> imple
         protected void addAvailableNetworks()
         {
             // section title
-            Label sectionLabel = new Label(I18N.get("availableNetworks1"));
+            Label sectionLabel = new Label("Available Networks");
             sectionLabel.addStyleName(STYLE_H3);
             sectionLabel.addStyleName(STYLE_COLORED);
             addComponent(sectionLabel);
@@ -112,13 +112,13 @@ public class NetworkAdminPanel extends DefaultModulePanel<ICommNetwork<?>> imple
         protected void addScannedDevicesTable()
         {
             // section title
-            Label sectionLabel = new Label(I18N.get("detectedDevices1"));
+            Label sectionLabel = new Label("Detected Devices");
             sectionLabel.addStyleName(STYLE_H3);
             sectionLabel.addStyleName(STYLE_COLORED);
             addComponent(sectionLabel);
             
             // scan button
-            scanButton = new Button(I18N.get("startScan1"));
+            scanButton = new Button("Start Scan");
             scanButton.setIcon(REFRESH_ICON);
             scanButton.addStyleName("scan-button");
             scanButton.setEnabled(module.isStarted());
@@ -145,7 +145,7 @@ public class NetworkAdminPanel extends DefaultModulePanel<ICommNetwork<?>> imple
                 {
                     if (!module.getDeviceScanner().isScanning())
                     {
-                        scanButton.setCaption(I18N.get("stopScan1"));
+                        scanButton.setCaption("Stop Scan");
                         deviceTable.removeAllItems();
                         
                         new Thread() {
@@ -240,7 +240,7 @@ public class NetworkAdminPanel extends DefaultModulePanel<ICommNetwork<?>> imple
                 ui.access(new Runnable() {
                     @Override
                     public void run() {
-                        scanButton.setCaption(I18N.get("startScan1"));
+                        scanButton.setCaption("Start Scan");
                         ui.push();
                     }
                 });

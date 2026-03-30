@@ -53,7 +53,7 @@ public class OccupancyOutput<SensorType extends ISensorModule<?>> extends VarRat
         var adjudicatedIds = radHelper.createAdjudicatedIdsArray();
         var videoPathCount = radHelper.createVideoPathCount();
         var videoPaths = radHelper.createVideoPathsArray();
-        var webIdObsIdsCount = radHelper.createWebIdObsIdsCount();
+        var webIdObsIdsCount = radHelper.createWebIdObsIdCount();
         var webIdObsIds = radHelper.createWebIdObsIdsArray();
 
         dataStruct = radHelper.createRecord()

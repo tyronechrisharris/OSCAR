@@ -138,10 +138,4 @@ public class Ellipsoid
         .setEquatorRadius(6378137.0)
         .setFlattening(1. / 298.257222101)
         .build();
-    
-    
-    public static Ellipsoid SPHERICAL = new Builder()
-        .setEquatorRadius(6371008.8)
-        .setFlattening(0.0)
-        .build();
 }
