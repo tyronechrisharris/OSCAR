@@ -1,8 +1,26 @@
 # Tailscale Security and Configuration for OSCAR Federation
 
-This document explains the requirements and security considerations for using Tailscale to provision API keys between OSCAR nodes.
+This document explains the requirements and security considerations for using Tailscale to secure the OSCAR proxy and provision API keys between OSCAR nodes.
 
-## 1. Tailscale Requirements
+## 1. Tailscale Sidecar Configuration
+
+OSCAR utilizes a dedicated Docker container (a "sidecar") running the Tailscale daemon to natively bridge the stack onto your Tailnet. This abstracts the complexity of host-level networking and provides reliable operation across macOS, Windows (WSL2), and Linux.
+
+### A. Authentication
+The `oscar-tailscale` sidecar requires an authentication key to join your Tailnet.
+1. Generate an **Auth Key** in the Tailscale Admin Console. It is recommended to use a reusable, non-expiring key tagged with a specific scope (e.g., `tag:oscar-node`).
+2. Provide this key in your `.env` file via the `TS_AUTHKEY` variable.
+
+### B. MagicDNS
+To allow Caddy to automatically fetch trusted Let's Encrypt certificates, MagicDNS must be enabled on your Tailnet.
+1. Determine the MagicDNS address of your node (e.g., `oscar-server.tailxxxxx.ts.net`).
+2. Provide this fully-qualified domain name in your `.env` file via the `TAILSCALE_DOMAIN` variable.
+
+### C. State Persistence
+The sidecar's machine identity and runtime state are persisted to the local host filesystem at `./tailscale/state` and `./tailscale/sock`. This ensures that if the container restarts, it retains its Tailscale IP and cryptographic identity without needing to re-authenticate with the coordination server.
+
+
+## 2. Federation Provisioning Requirements
 
 To use the automated provisioning scripts (`provision-node.sh` and `provision-node.bat`), the following Tailscale features must be configured on both the **Central Station** (Source) and the **Federated Node** (Target).
 

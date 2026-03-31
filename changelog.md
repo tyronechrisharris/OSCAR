@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 - Added Progressive Web App (PWA) capabilities, allowing the client to be installed as a local application with offline support.
 - Integrated Spectroscopic QR Code scanning for Adjudication workflows.
 - Added WebID analysis and result logging to the Adjudication Detail view.
+### Changed
+- Migrated Tailscale integration to a dedicated sidecar container to improve cross-platform compatibility (especially WSL2 on Windows).
+- Moved `TAILSCALE_DOMAIN` definition entirely into `.env` file instead of dynamically generating it.
+- Reverted launch scripts (`launch-all.sh`, `launch-all.bat`) back to pure `docker compose up -d` execution.
 
 ## 3.0.0 2026-02-04
 This is the official first release of 3.0.0

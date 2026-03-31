@@ -5,11 +5,12 @@ This document provides a comprehensive step-by-step detail of the initialization
 ## 1. Startup Timing and Service Delays
 
 ### Boot Process and Execution Order
-The current startup logic is driven by shell/batch scripts (e.g., `dist/release/launch-all.sh`, `launch-all.bat`), which manage the sequential initialization of components. The execution order is strictly enforced:
-1. **Pre-flight Checks & Credentials:** Generates the `.db_password` file if it doesn't exist.
-2. **PostGIS Initialization:** Builds the `oscar-postgis` Docker image and launches the database container.
-3. **Wait-State Logic:** Repeatedly checks if the database is fully ready before proceeding to backend launch.
-4. **Backend Launch:** Executes the backend startup script (`osh-node-oscar/launch.sh` or `launch.bat`).
+The startup sequence is managed through Docker Compose and standardizes the initialization of all components using `depends_on` conditions to enforce execution order:
+1. **Pre-flight Checks & Credentials (`init-secrets`):** An ephemeral container generates secure credentials (database password, keystore password) and seeds `.app_secrets` and `.db_password` into the shared `oscar_secrets` volume.
+2. **PostGIS Initialization:** Launches the database container. It depends on `init-secrets` completing successfully.
+3. **Backend Launch:** Starts the OSH backend. This container waits for the `osh-postgis` container's `pg_isready` health check to report `service_healthy`.
+4. **Tailscale Sidecar Initialization:** Starts a dedicated `tailscale` container. It reads the `TS_AUTHKEY` from the environment to register the node, and persists its machine identity to the `./tailscale/state` host bind mount. It also creates a unix socket at `./tailscale/sock/tailscaled.sock`.
+5. **Proxy Launch:** Starts the `osh-proxy` (Caddy) container. Because it shares the Tailscale network namespace (`network_mode: "service:tailscale"`), it explicitly waits for the `tailscale` container to be `service_started`. It also enforces a strict 60+ second startup delay by waiting for the `osh-backend` to finish the Setup Wizard/Certificate generation and report as `service_healthy`.
 
 ### Wait-State Logic for PostGIS
 The launch script uses an explicit loop to delay the backend startup until PostGIS has fully loaded its spatial extensions (`gis` and `template_postgis` databases).

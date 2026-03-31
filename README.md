@@ -55,20 +55,29 @@ After the build completes, it can be located in `build/distributions/`
     3. Select **Extract All..**
     4. Choose your destination, (or leave the default) and extract.
 1. Launch the Stack (Docker Compose):
-   The entire OSCAR stack (PostGIS, OSH Backend, and Caddy Reverse Proxy) is fully containerized. To launch the system from the repository root, ensure Docker is installed and run:
+   The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, and Caddy Reverse Proxy) is fully containerized.
+
+   **Tailscale Sidecar Setup:**
+   OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy to your Tailnet without requiring host-machine Tailscale daemons or complicated socket mounts.
+   - Before launching, copy `.env.example` to `.env`.
+   - Provide a reusable or ephemeral Tailscale auth key in `.env` as `TS_AUTHKEY`.
+   - Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates. The launch scripts no longer dynamically fetch this domain from the host.
+
+   To launch the system from the repository root, ensure Docker is installed and run:
 
    ```bash
    docker compose up -d
    ```
-   *Note: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for backward compatibility.*
+   *Note: The launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for convenience, and simply execute Docker Compose natively.*
 
 2. Access the OSCAR System
 - Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
+- Tailscale Access: **https://[your-tailscale-domain]**
 
 **Important Note on Localhost TLS Warnings:**
-When accessing `https://localhost` or a local IP (including Tailscale IPs without MagicDNS), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
-- **To resolve this warning:** You can install the generated Root CA certificate (`osh-root.crt`) into your system or browser's Trust Store. This file is generated automatically upon first boot and can be found in the persistent config directory (e.g., `./osh-node-oscar/osh-root.crt`).
-- **Tailscale Users:** If accessing via a raw Tailscale IP (`100.x.x.x`), you will also encounter this warning. For a fully trusted connection without warnings, it is recommended to configure Tailscale MagicDNS and pass your MagicDNS hostname to the container via the `TAILSCALE_DOMAIN` environment variable (e.g., `TAILSCALE_DOMAIN=my-node.tailscale.net`). This allows Caddy to fetch a trusted Let's Encrypt certificate automatically.
+When accessing `https://localhost` or a local IP (including raw Tailscale IPs without using your MagicDNS domain), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
+- **To resolve this warning locally:** You can install the generated Root CA certificate (`osh-root.crt`) into your system or browser's Trust Store. This file is generated automatically upon first boot and can be found in the persistent config directory (e.g., `./osh-node-oscar/osh-root.crt`).
+- **To resolve this warning over Tailscale:** Always access the system using your fully qualified `TAILSCALE_DOMAIN` (configured in `.env`). The sidecar architecture allows the Caddy proxy to automatically fetch and apply a trusted Let's Encrypt certificate for that domain.
 
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
