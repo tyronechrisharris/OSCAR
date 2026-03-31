@@ -14,6 +14,20 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **Client Web UI**: React/Frontend viewer.
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
 
+## Deployment Scenarios & Minimum System Requirements
+
+OSCAR is designed to scale from edge devices to enterprise environments. You can configure your deployment by selecting a scenario in the `.env` file.
+
+1. **Scenario A: "Edge Node" (1 Lane, All-in-One)**
+   *   **Hardware**: Raspberry Pi (4GB-8GB RAM)
+   *   **Setup**: Runs the complete stack (PostGIS, OSH, Proxy, Tailscale) locally.
+2. **Scenario B: "Tactical Hub" (10 Lanes / 20 Cameras, All-in-One)** - **Default**
+   *   **Hardware**: Powerful Laptop or Desktop (16GB RAM)
+   *   **Setup**: Runs the complete stack locally with increased JVM and database memory limits.
+3. **Scenario C: "Enterprise Central Hub" (50 Lanes / 100 Cameras, Distributed LAN)**
+   *   **Hardware**: Machine 1 (App Server, 16GB RAM), Machine 2 (DB Server, 16GB RAM)
+   *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below.
+
 ### Default Port Configuration:
 - **Caddy Reverse Proxy (within Tailscale namespace)**: Operates entirely inside the sidecar's networking context. It does not map ports to the host file directly, but dynamically secures ports `80` (HTTP) and `443` (HTTPS) over the mesh.
 - **OSH Backend API (HTTP)**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
@@ -31,8 +45,28 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 
 ### Main Launch Commands:
 The stack is fully containerized using Docker Compose. Launch from the repository root:
-- `docker compose up -d`: Starts the init-secrets, PostGIS, OSH Backend, and Caddy Proxy containers.
-Launch scripts in `dist/release/` (e.g., `launch-all.sh`, `launch-all-arm.sh`, `launch-all.bat`) still wrap this command to provide backward compatibility.
+- `docker compose up -d`: Starts the init-secrets, PostGIS, OSH Backend, Tailscale Sidecar, and Caddy Proxy containers.
+Launch scripts in `dist/release/` (e.g., `launch-all.sh`, `launch-all-arm.sh`, `launch-all.bat`) still wrap this command to provide convenience.
+
+### Distributed Enterprise Deployment (Scenario C)
+To deploy the Enterprise Central Hub profile, you must split the components across two distinct machines on the same local network (LAN). **Important Initialization Logic**: The system relies on a unified, randomly generated database password. Because the application and database will be on separate machines, you must manually sync this secret.
+
+**Machine 2 (Database Server)**
+1. Copy the repository release files.
+2. In `.env`, uncomment the **Scenario C: Database Server Profile**.
+3. Generate a secure database password and save it locally:
+   - Linux: `mkdir -p secrets && openssl rand -base64 32 > secrets/.db_password`
+4. Use the standalone Database script to launch the container:
+   - `cd dist/release/postgis`
+   - `./run-postgis.sh` (or `run-postgis.bat` for Windows).
+5. Ensure the machine's firewall allows incoming connections on port `5432` from Machine 1.
+
+**Machine 1 (Application Server)**
+1. Copy the repository release files.
+2. In `.env`, uncomment the **Scenario C: Application Server Profile**.
+3. Set the `DB_HOST` in `.env` to the IP address of Machine 2.
+4. Securely copy the `secrets/.db_password` file generated on Machine 2 and place it in the same `secrets/` path on Machine 1. *This guarantees the `init-secrets` pre-flight container will use the matching credentials instead of generating a conflicting random password.*
+5. Launch the application stack: `docker compose up -d`. This will start the OSH backend, Tailscale sidecar, and Caddy proxy without launching a local database.
 
 ### Automated Provisioning Utilities:
 Located in the repository root:

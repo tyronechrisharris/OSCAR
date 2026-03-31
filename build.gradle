@@ -101,6 +101,7 @@ distributions{
                 from('dist/release')
                 from('docker-compose.yml')
                 from('Dockerfile.osh')
+                from('.env.example')
             }
 
             into('caddy') {

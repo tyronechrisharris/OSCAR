@@ -12,7 +12,7 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository:
 
 ```bash
-git clone git@github.com:tyronechrisharris/oscar-flat.git
+git clone git@github.com:Botts-Innovative-Research/oscar-flat.git
 ```
 ## Build 
 Navigate to the project directory:
@@ -57,9 +57,11 @@ After the build completes, it can be located in `build/distributions/`
 1. Launch the Stack (Docker Compose):
    The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, and Caddy Reverse Proxy) is fully containerized.
 
+   **Environment Setup:**
+   Before launching, copy `.env.example` to `.env`. The `.env` file contains critical scaling profiles. The default is **Scenario B (Tactical Hub)**. If your system requires a different scale (like the Edge Node or Enterprise Central Hub), uncomment the appropriate profile block. For Enterprise deployments spanning multiple machines, see `SYSTEM_ARCHITECTURE.md` for specific initialization logic.
+
    **Tailscale Sidecar Setup:**
    OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy to your Tailnet without requiring host-machine Tailscale daemons or complicated socket mounts.
-   - Before launching, copy `.env.example` to `.env`.
    - Provide a reusable or ephemeral Tailscale auth key in `.env` as `TS_AUTHKEY`.
    - Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates. The launch scripts no longer dynamically fetch this domain from the host.
 
