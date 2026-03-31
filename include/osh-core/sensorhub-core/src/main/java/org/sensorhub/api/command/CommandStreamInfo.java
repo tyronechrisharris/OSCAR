@@ -40,8 +40,6 @@ public class CommandStreamInfo implements ICommandStreamInfo
     protected DataEncoding recordEncoding;
     protected DataComponent resultStruct;
     protected DataEncoding resultEncoding;
-    protected DataComponent feasibilityResultStruct;
-    protected DataEncoding feasibilityResultEncoding;
     
     
     @Override
@@ -120,14 +118,6 @@ public class CommandStreamInfo implements ICommandStreamInfo
         return resultEncoding;
     }
 
-    @Override
-    public DataComponent getFeasibilityResultStructure() {
-        return feasibilityResultStruct;
-    }
-
-    public DataEncoding getFeasibilityResultEncoding() {
-        return feasibilityResultEncoding;
-    }
 
     @Override
     public boolean hasResult()
@@ -228,16 +218,6 @@ public class CommandStreamInfo implements ICommandStreamInfo
         public B withValidTime(TimeExtent validTime)
         {
             instance.validTime = validTime;
-            return (B)this;
-        }
-
-        public B withFeasibilityResultDescription(DataComponent feasibilityResultStruct) {
-            instance.feasibilityResultStruct = feasibilityResultStruct;
-            return (B)this;
-        }
-
-        public B withFeasibilityResultEncoding(DataEncoding feasibilityResultEncoding) {
-            instance.feasibilityResultEncoding = feasibilityResultEncoding;
             return (B)this;
         }
 

@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  * Configuration parameters for Foscam camera
  * </p>
  * 
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 public class FoscamConfig extends SensorConfig {
