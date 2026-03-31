@@ -52,3 +52,5 @@ Cross-platform scripts are provided in the repository root for maintenance:
 - `restore.sh/bat`: Restores the database from a dump.
 
 These utilities respect the `DB_HOST` and `POSTGRES_PASSWORD_FILE` environment variables.
+
+For detailed information on the database architecture, performance tuning, and administration procedures, see [Database Administration Guide](docs/DATABASE_ADMINISTRATION.md).

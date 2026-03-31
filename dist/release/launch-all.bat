@@ -14,6 +14,22 @@ set IMAGE_NAME=oscar-postgis
 
 echo PROJECT_DIR is: %PROJECT_DIR%
 
+REM Load environment variables from .env if it exists
+if exist .env (
+    for /f "tokens=*" %%a in ('type .env ^| findstr /v "^#"') do (
+        set "%%a"
+    )
+)
+
+REM Default to edge profile if not set
+if "%DB_PERFORMANCE_PROFILE%"=="" (set DB_PERFORMANCE_PROFILE=edge)
+
+if "%DB_PERFORMANCE_PROFILE%"=="hub" (
+    set DB_OPTS=-c shared_buffers=1GB -c work_mem=32MB -c maintenance_work_mem=256MB -c wal_buffers=16MB -c checkpoint_timeout=10min -c max_wal_size=2GB -c max_connections=1000
+) else (
+    set DB_OPTS=-c shared_buffers=128MB -c work_mem=4MB -c maintenance_work_mem=64MB -c wal_buffers=4MB -c checkpoint_timeout=5min -c max_wal_size=1GB -c max_connections=100
+)
+
 REM Set up DB password secret
 if "%POSTGRES_PASSWORD_FILE%"=="" (set "POSTGRES_PASSWORD_FILE=%PROJECT_DIR%\.db_password")
 
@@ -76,7 +92,7 @@ if defined CONTAINER_EXISTS (
         -v "%PROJECT_DIR%\pgdata:/var/lib/postgresql/data" ^
         -v "%POSTGRES_PASSWORD_FILE%:/run/secrets/db_password" ^
         -d ^
-        %IMAGE_NAME%
+        %IMAGE_NAME% %DB_OPTS%
 
     if %errorlevel% neq 0 (
         echo ERROR: Failed to start PostGIS container.
