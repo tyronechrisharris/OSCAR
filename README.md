@@ -12,7 +12,7 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository:
 
 ```bash
-git clone git@github.com:Botts-Innovative-Research/oscar-flat.git
+git clone git@github.com:tyronechrisharris/oscar-flat.git
 ```
 ## Build 
 Navigate to the project directory:
