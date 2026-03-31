@@ -12,7 +12,7 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository:
 
 ```bash
-git clone git@github.com:Botts-Innovative-Research/oscar-flat.git
+git clone git@github.com:tyronechrisharris/oscar-flat.git
 ```
 ## Build 
 Navigate to the project directory:
@@ -41,20 +41,22 @@ After the build completes, it can be located in `build/distributions/`
     Option 1: Command Line
     ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    unzip build/distributions/osh-node-oscar-<version>.zip
-    cd osh-node-oscar-<version>/osh-node-oscar-<version>
+    unzip build/distributions/oscar-<version>.zip
+    cd oscar-<version>
     ```
    ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    tar -xf build/distributions/osh-node-oscar-<version>.zip
-    cd osh-node-oscar-<version>/osh-node-oscar-<version>
+    tar -xf build/distributions/oscar-<version>.zip
+    cd oscar-<version>
     ```
    Option 2: Use File Explorer
     1. Navigate to `path/to/oscar-flat/build/distributions/`
-    2. Right-click `osh-node-oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
+    2. Right-click `oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
     3. Select **Extract All..**
     4. Choose your destination, (or leave the default) and extract.
-1. Launch the Stack (Docker Compose):
+    5. Navigate into the extracted `oscar-<version>` folder.
+
+2. Launch the Stack (Docker Compose):
    The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, and Caddy Reverse Proxy) is fully containerized.
 
    **Environment Setup:**
