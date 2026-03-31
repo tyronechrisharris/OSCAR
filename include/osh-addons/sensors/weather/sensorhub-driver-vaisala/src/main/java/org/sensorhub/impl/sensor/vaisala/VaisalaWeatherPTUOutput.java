@@ -8,7 +8,7 @@ import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEHelper;
 
@@ -29,7 +29,14 @@ public class VaisalaWeatherPTUOutput extends AbstractSensorOutput<VaisalaWeather
     
     public VaisalaWeatherPTUOutput(VaisalaWeatherSensor parentSensor)
     {
-        super("ptu", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "ptu";
     }
 
 
@@ -168,7 +175,7 @@ public class VaisalaWeatherPTUOutput extends AbstractSensorOutput<VaisalaWeather
     	// Update Latest Record and Send Event
     	latestRecord = dataBlock;
     	latestRecordTime = System.currentTimeMillis();
-    	eventHandler.publish(new DataEvent(latestRecordTime, VaisalaWeatherPTUOutput.this, dataBlock));
+    	eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, VaisalaWeatherPTUOutput.this, dataBlock));
     	/********************************************************************************************************/
 	}
 

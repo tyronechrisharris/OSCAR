@@ -35,12 +35,10 @@ import org.sensorhub.impl.service.consys.resource.RequestContext;
 import org.sensorhub.impl.service.consys.resource.ResourceBindingJson;
 import org.sensorhub.impl.service.consys.resource.ResourceLink;
 import org.sensorhub.impl.service.consys.task.CommandHandler.CommandHandlerContextData;
-import org.sensorhub.utils.SWEDataUtils;
 import org.vast.cdm.common.DataStreamWriter;
 import org.vast.swe.BinaryDataWriter;
 import org.vast.swe.IComponentFilter;
 import org.vast.swe.SWEConstants;
-import org.vast.swe.ScalarIndexer;
 import org.vast.swe.fast.JsonDataParserGson;
 import org.vast.swe.fast.JsonDataWriterGson;
 import org.vast.util.ReaderException;
@@ -58,7 +56,6 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
     ICommandStore cmdStore;
     JsonDataParserGson paramsReader;
     Map<BigId, DataStreamWriter> paramsWriters;
-    ScalarIndexer timeStampIndexer;
     String userID;
 
     
@@ -70,8 +67,7 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
         
         if (forReading)
         {
-            this.paramsReader = getSweCommonParser(contextData.csInfo, reader);
-            this.timeStampIndexer = SWEDataUtils.getTimeStampIndexer(contextData.csInfo.getRecordStructure());
+            this.paramsReader = getSweCommonParser(contextData.dsInfo, reader);
             
             var user = ctx.getSecurityHandler().getCurrentUser();
             this.userID = user != null ? user.getId() : "api";
@@ -82,9 +78,9 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
             
             // init params writer only in case of single command stream
             // otherwise we'll do it later
-            if (contextData.csInfo != null)
+            if (contextData.dsInfo != null)
             {
-                var resultWriter = getSweCommonWriter(contextData.csInfo, writer, ctx.getPropertyFilter());
+                var resultWriter = getSweCommonWriter(contextData.dsInfo, writer, ctx.getPropertyFilter());
                 paramsWriters.put(ctx.getParentID(), resultWriter);
             }
         }
@@ -108,21 +104,16 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
         try
         {
             reader.beginObject();
-                        
+            
             while (reader.hasNext())
             {
                 var propName = reader.nextName();
                 
-                if ("issueTime".equals(propName)) {
-                    if (reader.peek() != JsonToken.NULL) {
-                        cmd.withIssueTime(OffsetDateTime.parse(reader.nextString()).toInstant());
-                    } else {
-                        reader.nextNull();
-                    }
-                }
+                if ("issueTime".equals(propName))
+                    cmd.withIssueTime(OffsetDateTime.parse(reader.nextString()).toInstant());
                 //else if ("foi".equals(propName))
                 //    obs.withFoi(id)
-                else if ("parameters".equals(propName))
+                else if ("params".equals(propName))
                 {
                     var result = paramsReader.parseNextBlock();
                     cmd.withParams(result);
@@ -142,18 +133,11 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
             throw new ResourceParseException(INVALID_JSON_ERROR_MSG + e.getMessage());
         }
         
-        if (contextData.foiId != null && contextData.foiId != BigId.NONE)
+        if (contextData.foiId != null)
             cmd.withFoi(contextData.foiId);
         
-        // set timestamp in params data if present in schema
-        var newCmd = cmd.build();
-        if (timeStampIndexer != null)
-        {
-            var issueTimeIdx = timeStampIndexer.getDataIndex(newCmd.getParams());
-            newCmd.getParams().setDoubleValue(issueTimeIdx, newCmd.getIssueTime().toEpochMilli() / 1000.0);
-        }
-        
-        return newCmd;
+        // also set timestamp
+        return cmd.build();
     }
 
 
@@ -170,18 +154,16 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
             writer.name("id").value(cmdId);
         }
         
-        writer.name("controlstream@id").value(controlId);
+        writer.name("control@id").value(controlId);
         
         if (cmd.hasFoi())
         {
             var foiId = idEncoders.getFoiIdEncoder().encodeID(cmd.getFoiID());
-            writer.name("samplingFeature@id").value(foiId);
+            writer.name("foi@id").value(foiId);
         }
-
-        // TODO: needs "procedure@link" referencing the associated procdure
         
         writer.name("issueTime").value(cmd.getIssueTime().toString());
-        writer.name("sender").value(cmd.getSenderID());
+        writer.name("userId").value(cmd.getSenderID());
         
         // print out current status
         if (key != null)
@@ -192,11 +174,11 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
                     .build())
                 .findFirst().orElse(null);
             if (status != null)
-                writer.name("currentStatus").value(status.getStatusCode().toString());
+                writer.name("status").value(status.getStatusCode().toString());
         }
         
         // create or reuse existing params writer and write param data
-        writer.name("parameters");
+        writer.name("params");
         var paramWriter = paramsWriters.computeIfAbsent(cmd.getCommandStreamID(),
             k -> getSweCommonWriter(k, writer, ctx.getPropertyFilter()) );
         
@@ -289,10 +271,7 @@ public class CommandBindingJson extends ResourceBindingJson<BigId, ICommandData>
     @Override
     public void startCollection() throws IOException
     {
-        if (reader != null)
-            startJsonCollection(reader);
-        else
-            startJsonCollection(writer);
+        startJsonCollection(writer);
     }
 
 

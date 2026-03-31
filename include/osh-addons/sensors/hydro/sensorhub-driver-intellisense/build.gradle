@@ -4,14 +4,15 @@ version = '0.1.0'
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedImpl 'org.apache.httpcomponents:httpclient:4.5.13'
+  implementation 'org.apache.httpcomponents:httpclient:4.3.6'
+  implementation 'org.apache.httpcomponents:httpcore:4.3.3'
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research, Inc.')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.sensor.intellisense.Activator')
+    attributes 'Bundle-Vendor': 'Botts Innovative Research, Inc.'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.sensor.usgswater.Activator'
   }
 }
 

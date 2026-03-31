@@ -22,7 +22,7 @@ import net.opengis.swe.v20.DataArray;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.data.DataBlockMixed;
 import org.vast.swe.SWEHelper;
@@ -44,7 +44,14 @@ public class PlumeOutput extends AbstractSensorOutput<PlumeSensor>
 
 	public PlumeOutput(PlumeSensor parentSensor)
 	{
-		super("plumeModel", parentSensor);
+		super(parentSensor);
+	}
+
+
+	@Override
+	public String getName()
+	{
+		return "plumeModel";
 	}
 
 
@@ -130,7 +137,7 @@ public class PlumeOutput extends AbstractSensorOutput<PlumeSensor>
         				
         				latestRecord = dataBlock;
         				latestRecordTime = System.currentTimeMillis();
-        				eventHandler.publish(new DataEvent(latestRecordTime, PlumeOutput.this, latestRecord));
+        				eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, PlumeOutput.this, latestRecord));
         			}
         		}
         		catch (Exception e)

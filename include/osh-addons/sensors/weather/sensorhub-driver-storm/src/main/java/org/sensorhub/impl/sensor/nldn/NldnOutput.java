@@ -16,7 +16,7 @@ package org.sensorhub.impl.sensor.nldn;
 
 import java.util.concurrent.TimeUnit;
 
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.data.DataBlockMixed;
 import org.vast.swe.SWEConstants;
@@ -47,7 +47,14 @@ public class NldnOutput extends AbstractSensorOutput<NldnSensor>
 	
 	public NldnOutput(NldnSensor parentSensor)
 	{
-		super("nldn", parentSensor);
+		super(parentSensor);
+	}
+
+
+	@Override
+	public String getName()
+	{
+		return "nldnData";
 	}
 	
 
@@ -124,7 +131,7 @@ public class NldnOutput extends AbstractSensorOutput<NldnSensor>
 		// update latest record and send event
 		latestRecord = dataBlock;
 		latestRecordTime = System.currentTimeMillis();
-		eventHandler.publish(new DataEvent(latestRecordTime, NldnOutput.this, dataBlock));        
+		eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, NldnOutput.this, dataBlock));        
 	}
 	
 

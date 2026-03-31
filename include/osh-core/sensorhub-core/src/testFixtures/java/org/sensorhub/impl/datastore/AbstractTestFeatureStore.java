@@ -860,8 +860,7 @@ public abstract class AbstractTestFeatureStore<StoreType extends IFeatureStoreBa
             .withValidTimeDuring(timeFilter)
             .build());
         System.out.println(count + " features removed");
-
-        forceReadBackFromStorage();
+        
         // generate truth by removing entries from allFeatures map
         var it = allFeatures.values().iterator();
         while (it.hasNext())
@@ -917,11 +916,8 @@ public abstract class AbstractTestFeatureStore<StoreType extends IFeatureStoreBa
     {
         useAdd = true;
         BigId group1Id = addFeatureCollection("col1", "collection 1");
-        forceReadBackFromStorage();
         BigId group2Id = addFeatureCollection("col2", "collection 2");
-        forceReadBackFromStorage();
         BigId group3Id = addFeatureCollection("col3", "collection 3");
-        forceReadBackFromStorage();
         addGeoFeaturesPoint2D(group1Id, 0, 20);
         addNonGeoFeatures(group2Id, 40, 35);
         forceReadBackFromStorage();
@@ -949,11 +945,8 @@ public abstract class AbstractTestFeatureStore<StoreType extends IFeatureStoreBa
     {
         useAdd = true;
         BigId group1Id = addFeatureCollection("col1", "collection 1");
-        forceReadBackFromStorage();
         BigId group2Id = addFeatureCollection("col2", "collection 2");
-        forceReadBackFromStorage();
         BigId group3Id = addFeatureCollection("col3", "collection 3");
-        forceReadBackFromStorage();
         addGeoFeaturesPoint2D(group1Id, 0, 20);
         addNonGeoFeatures(group2Id, 40, 35);
         addTemporalGeoFeatures(group3Id, 100, 46);
@@ -1089,11 +1082,8 @@ public abstract class AbstractTestFeatureStore<StoreType extends IFeatureStoreBa
     {
         useAdd = true;
         BigId group1Id = addFeatureCollection("col1", "collection 1");
-        forceReadBackFromStorage();
         BigId group2Id = addFeatureCollection("col2", "collection 2");
-        forceReadBackFromStorage();
         BigId group3Id = addFeatureCollection("col3", "collection 3");
-        forceReadBackFromStorage();
         addGeoFeaturesPoint2D(group1Id, 0, 20);
         addNonGeoFeatures(group2Id, 40, 35);
         addTemporalGeoFeatures(group3Id, 100, 46);

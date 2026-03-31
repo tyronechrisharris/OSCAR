@@ -6,12 +6,13 @@ import net.opengis.sensorml.v20.Term;
 import org.sensorhub.api.comm.ICommProvider;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
+import org.sensorhub.impl.sensor.uahweather.UAHweatherConfig;
+import org.sensorhub.impl.sensor.uahweather.UAHweatherOutput;
 import org.vast.sensorML.SMLFactory;
 import org.vast.swe.SWEHelper;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-
 
 public class UAHweatherSensor extends AbstractSensorModule<UAHweatherConfig>
 { 
@@ -27,9 +28,9 @@ public class UAHweatherSensor extends AbstractSensorModule<UAHweatherConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // init comm provider
         if (commProvider == null)
@@ -40,8 +41,7 @@ public class UAHweatherSensor extends AbstractSensorModule<UAHweatherConfig>
                 if (config.commSettings == null)
                     throw new SensorHubException("No communication settings specified");
                 
-                var moduleReg = getParentHub().getModuleRegistry();
-                commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+                commProvider = config.commSettings.getProvider();
                 commProvider.start();
             }
             catch (Exception e)
@@ -169,7 +169,7 @@ public class UAHweatherSensor extends AbstractSensorModule<UAHweatherConfig>
     }
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
     	if (started)
             return;
@@ -194,7 +194,7 @@ public class UAHweatherSensor extends AbstractSensorModule<UAHweatherConfig>
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
     	started = false;
         

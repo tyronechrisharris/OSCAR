@@ -16,12 +16,11 @@ package org.sensorhub.impl.sensor.v4l;
 
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.videocam.VideoCamHelper;
 import org.vast.data.DataBlockByte;
 import au.edu.jcu.v4l4j.CaptureCallback;
-import au.edu.jcu.v4l4j.DeviceInfo;
 import au.edu.jcu.v4l4j.V4L4JConstants;
 import au.edu.jcu.v4l4j.VideoFrame;
 import au.edu.jcu.v4l4j.exceptions.V4L4JException;
@@ -29,10 +28,10 @@ import au.edu.jcu.v4l4j.exceptions.V4L4JException;
 
 /**
  * <p>
- * Implementation of RGB video output for V4L sensor
+ * Implementation of data interface for V4L sensor
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Sep 5, 2013
  */
 public class V4LCameraOutputRGB extends V4LCameraOutput implements CaptureCallback
@@ -42,19 +41,26 @@ public class V4LCameraOutputRGB extends V4LCameraOutput implements CaptureCallba
     
     protected V4LCameraOutputRGB(V4LCameraDriver driver)
     {
-        super("camOutput_RGB", driver);
+        super(driver);
     }
     
     
     @Override
-    protected void init(DeviceInfo deviceInfo) throws SensorException
+    public String getName()
+    {
+        return "camOutput_RGB";
+    }
+    
+    
+    protected void init() throws SensorException
     {
         V4LCameraParams camParams = parentSensor.camParams;
         
-        // init frame grabber and output
+        // init frame grabber
         try
         {
-            initFrameGrabber(camParams);
+            frameGrabber = parentSensor.videoDevice.getRGBFrameGrabber(camParams.imgWidth, camParams.imgHeight, 0, V4L4JConstants.STANDARD_WEBCAM);
+            //frameGrabber.setFrameInterval(1, camParams.frameRate);
             
             // adjust params to what was actually set up by V4L
             camParams.imgWidth = frameGrabber.getWidth();
@@ -65,6 +71,11 @@ public class V4LCameraOutputRGB extends V4LCameraOutput implements CaptureCallba
             // create SWE output structure
             VideoCamHelper fac = new VideoCamHelper();
             dataStream = fac.newVideoOutputRGB(getName(), camParams.imgWidth, camParams.imgHeight);
+            
+            // start capture
+            frameGrabber.setCaptureCallback(this);
+            if (camParams.doCapture)
+                frameGrabber.startCapture();
         }
         catch (V4L4JException e)
         {
@@ -73,27 +84,36 @@ public class V4LCameraOutputRGB extends V4LCameraOutput implements CaptureCallba
     }
     
     
-    protected void initFrameGrabber(V4LCameraParams camParams) throws V4L4JException
-    {        
-        if (frameGrabber == null)
-            frameGrabber = parentSensor.videoDevice.getRGBFrameGrabber(camParams.imgWidth, camParams.imgHeight, 0, V4L4JConstants.STANDARD_WEBCAM);
+    @Override
+    public void exceptionReceived(V4L4JException e)
+    {
+        // TODO Auto-generated method stub        
     }
 
 
     @Override
-    public void processFrame(VideoFrame frame)
+    public void nextFrame(VideoFrame frame)
     {
-        //double samplingTime = frame.getCaptureTime() / 1000.;
-        DataBlock dataBlock;
-        if (latestRecord == null)
-            dataBlock = camDataStruct.createDataBlock();
-        else
-            dataBlock = latestRecord.renew();
-        ((DataBlockByte)dataBlock).setUnderlyingObject(frame.getBytes());
-        
-        // update latest record and send event
-        latestRecord = dataBlock;
-        latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, this, dataBlock));    
+        try
+        {
+            //double samplingTime = frame.getCaptureTime() / 1000.;
+            DataBlock dataBlock;
+            if (latestRecord == null)
+                dataBlock = camDataStruct.createDataBlock();
+            else
+                dataBlock = latestRecord.renew();
+            ((DataBlockByte)dataBlock).setUnderlyingObject(frame.getBytes());
+            
+            // update latest record and send event
+            latestRecord = dataBlock;
+            latestRecordTime = System.currentTimeMillis();
+            eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, this, dataBlock));
+            
+            frame.recycle();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }    
     }
 }

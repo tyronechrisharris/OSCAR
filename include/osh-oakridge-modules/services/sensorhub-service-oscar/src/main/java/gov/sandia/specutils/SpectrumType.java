@@ -52,3 +52,4 @@ public final class SpectrumType {
   private final int swigValue;
   private final String swigName;
 }
+

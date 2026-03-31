@@ -15,7 +15,7 @@
 package org.sensorhub.impl.sensor.simulatedcbrn;
 
 import net.opengis.swe.v20.*;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 
 import java.util.Random;
@@ -124,15 +124,15 @@ public class SimCBRNOutputReadings extends AbstractSensorOutput<SimCBRNSensor>
 	// will need to do some of the simulation here save for later
 	private void sendMeasurement()
 	{
-		/*getParentProducer().simData.update(getParentProducer().getConfiguration());
+		/*getParentModule().simData.update(getParentModule().getConfiguration());
 		double time = System.currentTimeMillis()/1000;
 
 		// Temperature sim (copied from FakeWeatherOutput)
 		temp += variation(temp, tempRef, 0.001, 0.1);
-		agentClassStatus = getParentProducer().simData.getDetectedAgent().getAgentClass();
-		agentIDStatus = getParentProducer().simData.getDetectedAgent().getAgentID();
-		numericalLevel = getParentProducer().simData.findThreatLevel();
-		stringLevel = getParentProducer().simData.findThreatString();*/
+		agentClassStatus = getParentModule().simData.getDetectedAgent().getAgentClass();
+		agentIDStatus = getParentModule().simData.getDetectedAgent().getAgentID();
+		numericalLevel = getParentModule().simData.findThreatLevel();
+		stringLevel = getParentModule().simData.findThreatString();*/
 
 		// Build DataBlock
 		DataBlock dataBlock = cbrnReadingData.createDataBlock();
@@ -147,7 +147,7 @@ public class SimCBRNOutputReadings extends AbstractSensorOutput<SimCBRNSensor>
 		//this method call is required to push data
 		latestRecord = dataBlock;
 		latestRecordTime = System.currentTimeMillis();
-		eventHandler.publish(new DataEvent(latestRecordTime, SimCBRNOutputReadings.this, dataBlock));
+		eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, SimCBRNOutputReadings.this, dataBlock));
 	}
 
 

@@ -1,0 +1,31 @@
+description = 'SOS Extensions for Video'
+ext.details = 'Sensor Observation Service extensions for supporting video'
+version = '1.2.0'
+
+
+dependencies {
+  implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
+  implementation 'org.sensorhub:sensorhub-service-swe:' + oshCoreVersion
+  implementation 'org.bytedeco:ffmpeg-platform:4.2.2-1.5.3'
+}
+
+// add info to OSGi manifest
+jar {
+  manifest {
+    attributes 'Bundle-Vendor': 'Sensia Software LLC'
+    attributes 'Bundle-Activator': 'org.sensorhub.process.math.Activator'
+  }
+}
+
+// add info to maven pom
+ext.pom >>= {
+  developers {
+    developer {
+      id 'alexrobin'
+      name 'Alex Robin'
+      organization 'Sensia Software LLC'
+      organizationUrl 'http://www.sensiasoftware.com' 
+    }
+  }
+}
+

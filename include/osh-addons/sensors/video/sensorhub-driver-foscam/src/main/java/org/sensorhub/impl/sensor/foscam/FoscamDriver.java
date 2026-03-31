@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * on Foscam v1.0.4 API.
  * </p>
  *
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 public class FoscamDriver extends AbstractSensorModule<FoscamConfig> {
@@ -52,9 +52,9 @@ public class FoscamDriver extends AbstractSensorModule<FoscamConfig> {
 	}	
 
 	@Override
-    protected void doInit() throws SensorHubException {
+	public void init() throws SensorHubException {
 		// reset internal state in case init() was already called
-		super.doInit();
+		super.init();
 		videoDataInterface = null;
 		ptzControlInterface = null;
 		ptzSupported = false;
@@ -85,7 +85,7 @@ public class FoscamDriver extends AbstractSensorModule<FoscamConfig> {
 	}
 
 	@Override
-	protected synchronized void doStart() throws SensorHubException {
+	public synchronized void start() throws SensorHubException {
 		// wait for valid connection to camera
 		connection.waitForConnection();
 
@@ -99,7 +99,7 @@ public class FoscamDriver extends AbstractSensorModule<FoscamConfig> {
 	}
 
 	@Override
-	protected synchronized void doStop() {
+	public synchronized void stop() {
 
 		if (connection != null)
 			connection.cancel();

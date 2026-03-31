@@ -54,3 +54,4 @@ public final class SourceType {
   private final int swigValue;
   private final String swigName;
 }
+

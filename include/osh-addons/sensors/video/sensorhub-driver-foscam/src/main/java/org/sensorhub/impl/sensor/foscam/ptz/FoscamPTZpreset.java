@@ -20,7 +20,7 @@ package org.sensorhub.impl.sensor.foscam.ptz;
  * PtzPreset bean used in config
  * </p>
  *
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 public class FoscamPTZpreset
