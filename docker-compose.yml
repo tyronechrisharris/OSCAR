@@ -79,7 +79,7 @@ services:
       - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
       # JVM Tuning from .env
-      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
+      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055
     volumes:
       # Use named volumes or bind mounts for persistent backend state
       - ./osh-node-oscar:/app/config
@@ -118,6 +118,8 @@ services:
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_STATE_DIR=/var/lib/tailscale
+      # Start a SOCKS5 server on port 1055 to route outbound traffic for other internal containers
+      - TS_SOCKS5_SERVER=:1055
     volumes:
       - ./tailscale/state:/var/lib/tailscale
       - ./tailscale/sock:/var/run/tailscale
