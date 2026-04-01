@@ -9,7 +9,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.vast.swe.SWEHelper;
 
@@ -38,7 +38,14 @@ public class SimWeatherStationOutput extends AbstractSensorOutput<SimWeatherStat
     
     public SimWeatherStationOutput(SimWeatherStationSensor parentSensor)
     {
-        super("weather", parentSensor);
+        super(parentSensor);
+    }
+
+
+    @Override
+    public String getName()
+    {
+        return "Sim Weather";
     }
 
 
@@ -126,7 +133,7 @@ public class SimWeatherStationOutput extends AbstractSensorOutput<SimWeatherStat
     	// update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = System.currentTimeMillis();
-        eventHandler.publish(new DataEvent(latestRecordTime, SimWeatherStationOutput.this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, SimWeatherStationOutput.this, dataBlock));
     }
     
     protected void start()

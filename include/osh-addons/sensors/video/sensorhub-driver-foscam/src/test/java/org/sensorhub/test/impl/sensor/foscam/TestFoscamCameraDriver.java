@@ -22,12 +22,11 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.command.CommandData;
-import org.sensorhub.api.command.IStreamingControlInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorControlInterface;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.foscam.FoscamConfig;
 import org.sensorhub.impl.sensor.foscam.FoscamConfig.ResolutionEnum;
 import org.sensorhub.impl.sensor.foscam.FoscamDriver;
@@ -45,7 +44,7 @@ import net.opengis.swe.v20.DataComponent;
  * Implementation of sensor interface for generic Axis Cameras using IP protocol
  * </p>
  * 
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * 
  */
 
@@ -81,7 +80,7 @@ public class TestFoscamCameraDriver implements IEventListener {
 
 	@Test
 	public void testGetOutputDesc() throws Exception {
-		for (IStreamingDataInterface di : driver.getObservationOutputs().values()) {
+		for (ISensorDataInterface di : driver.getObservationOutputs().values()) {
 			System.out.println();
 			DataComponent dataMsg = di.getRecordDescription();
 			new SWEUtils(SWEUtils.V2_0).writeComponent(System.out, dataMsg, false, true);
@@ -97,7 +96,7 @@ public class TestFoscamCameraDriver implements IEventListener {
 
 	@Test
 	public void testVideoOutput() throws Exception {
-		IStreamingDataInterface camOutput = driver.getObservationOutputs().get("video");
+		ISensorDataInterface camOutput = driver.getObservationOutputs().get("video");
 		camOutput.registerListener(this);
 
 		driver.start();
@@ -114,7 +113,7 @@ public class TestFoscamCameraDriver implements IEventListener {
 	@Test
 	public void testRelPTZCommand() throws Exception {
 		// get ptz control interface
-		IStreamingControlInterface ci = driver.getCommandInputs().get("ptzControl");
+		ISensorControlInterface ci = driver.getCommandInputs().get("ptzControl");
 		DataComponent commandDesc = ci.getCommandDescription().copy();
 		DataBlock commandData;
 
@@ -122,29 +121,29 @@ public class TestFoscamCameraDriver implements IEventListener {
 		((DataChoiceImpl) commandDesc).setSelectedItem("relMove");
 		commandData = commandDesc.createDataBlock();
 		commandData.setStringValue(1, "Right");
-		ci.submitCommand(new CommandData(1, commandData));
+		ci.execCommand(commandData);
 
 		((DataChoiceImpl) commandDesc).setSelectedItem("relMove");
 		commandData = commandDesc.createDataBlock();
 		commandData.setStringValue(1, "Left");
-		ci.submitCommand(new CommandData(1, commandData));
+		ci.execCommand(commandData);
 
 		((DataChoiceImpl) commandDesc).setSelectedItem("relMove");
 		commandData = commandDesc.createDataBlock();
 		commandData.setStringValue(1, "Up");
-		ci.submitCommand(new CommandData(1, commandData));
+		ci.execCommand(commandData);
 
 		((DataChoiceImpl) commandDesc).setSelectedItem("relMove");
 		commandData = commandDesc.createDataBlock();
 		commandData.setStringValue(1, "Down");
-		ci.submitCommand(new CommandData(1, commandData));
+		ci.execCommand(commandData);
 		driver.stop();
 	}
 
 	@Override
-	public void handleEvent(Event e) {
-		assertTrue(e instanceof DataEvent);
-		DataEvent newDataEvent = (DataEvent) e;
+	public void handleEvent(Event<?> e) {
+		assertTrue(e instanceof SensorDataEvent);
+		SensorDataEvent newDataEvent = (SensorDataEvent) e;
 
 		double timeStamp = newDataEvent.getRecords()[0].getDoubleValue(0);
 		System.out.println("Frame received on " + new DateTimeFormat().formatIso(timeStamp, 0) + " ("
@@ -157,7 +156,7 @@ public class TestFoscamCameraDriver implements IEventListener {
 	}
 
 	@After
-	public void cleanup() throws Exception {
+	public void cleanup() {
 		driver.stop();
 	}
 }

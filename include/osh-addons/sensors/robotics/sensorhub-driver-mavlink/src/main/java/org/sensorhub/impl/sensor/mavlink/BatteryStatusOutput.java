@@ -28,7 +28,7 @@ import com.MAVLink.common.msg_battery_status;
  * Output for MAVLink BATTERY_STATUS messages
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Jul 4, 2016
  */
 public class BatteryStatusOutput extends MavlinkOutput
@@ -37,8 +37,15 @@ public class BatteryStatusOutput extends MavlinkOutput
     
     public BatteryStatusOutput(MavlinkDriver parentSensor)
     {
-        super("batteryStatus", parentSensor);
+        super(parentSensor);
         this.samplingPeriod = 0.1; // default to 10Hz on startup        
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "batteryStatus";
     }
     
     

@@ -7,11 +7,13 @@ import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasou
 import {randomUUID} from "osh-js/source/core/utils/Utils";
 import System from "osh-js/source/core/consysapi/system/System.js";
 import DataStream from "osh-js/source/core/consysapi/datastream/DataStream.js";
+import ControlStream from "osh-js/source/core/consysapi/controlstream/ControlStream";
 import {INode} from "@/lib/data/osh/Node";
 import {Mode} from "osh-js/source/core/datasource/Mode";
 import {EventType} from "osh-js/source/core/event/EventType";
 
 import {
+    isAdjudicationControlStream,
     isConnectionDataStream,
     isGammaDataStream,
     isNeutronDataStream,
@@ -48,13 +50,13 @@ export class LaneMeta implements ILaneMeta {
 export class LaneMapEntry {
     systems: typeof System[];
     datastreams: typeof DataStream[];
-    datasources: any[];
-    datasourcesBatch: any[];
-    datasourcesRealtime: any[];
+    datasources: typeof ConSysApi[];
+    datasourcesBatch: typeof ConSysApi[];
+    datasourcesRealtime: typeof ConSysApi[];
     parentNode: INode;
     laneSystem: typeof System;
     laneName: string;
-    controlStreams: any[]
+    controlStreams: typeof ControlStream[]
 
     constructor(node: INode) {
         this.systems = [];
@@ -79,19 +81,19 @@ export class LaneMapEntry {
         this.systems.push(...systems);
     }
 
-    addDataStream(datastream: any) {
+    addDataStream(datastream: typeof DataStream) {
         this.datastreams.push(datastream);
     }
 
-    addDataStreams(datastreams: any[]) {
+    addDataStreams(datastreams: typeof DataStream[]) {
         this.datastreams.push(...datastreams);
     }
 
-    addDataSource(datasource: any) {
+    addDataSource(datasource: typeof ConSysApi) {
         this.datasources.push(datasource);
     }
 
-    addDataSources(datasources: any[]) {
+    addDataSources(datasources: typeof ConSysApi[]) {
         this.datasources.push(...datasources);
     }
 
@@ -99,11 +101,11 @@ export class LaneMapEntry {
         this.laneName = name;
     }
 
-    addControlStream(controlStream: any[]) {
+    addControlStream(controlStream: typeof ControlStream[]) {
         this.controlStreams.push(controlStream);
     }
 
-    addControlStreams(controlStreams: any[]) {
+    addControlStreams(controlStreams: typeof ControlStream[]) {
         this.controlStreams.push(...controlStreams)
     }
 
@@ -133,29 +135,12 @@ export class LaneMapEntry {
             let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
 
-            let endpointUrl = mqttOptUrl;
-            let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-            let useProxyToken = !this.parentNode.auth?.username;
-
-            if (useProxyToken) {
-                // osh-js will automatically append '/mqtt' to the endpoint.
-                // Using a fragment '#' prevents the appended string from corrupting the query string.
-                endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-            }
-
-            let mqttOpts: any = {
+            let mqttOpts = {
                 shared: true,
                 prefix: this.parentNode.csAPIEndpoint,
-                endpointUrl: endpointUrl
-            }
-            if (useProxyToken) {
-                mqttOpts.username = "__proxy_token__";
-                mqttOpts.password = token;
-            } else {
-                mqttOpts.username = this.parentNode.auth.username;
-                if (this.parentNode.auth?.password) {
-                    mqttOpts.password = this.parentNode.auth.password;
-                }
+                endpointUrl: mqttOptUrl,
+                username: this.parentNode.auth.username,
+                password: this.parentNode.auth.password,
             }
 
             try {
@@ -195,35 +180,39 @@ export class LaneMapEntry {
         this.datasourcesBatch = batchArray;
     }
 
+    createRealTimeConSysApi(stream: typeof DataStream | typeof ControlStream) {
+        let mqttOptUrlArray = (stream.networkProperties.endpointUrl).split("/");
+        let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
+
+        let mqttOpts = {
+            shared: true,
+            prefix: this.parentNode.csAPIEndpoint,
+            endpointUrl: mqttOptUrl,
+            username: this.parentNode.auth.username,
+            password: this.parentNode.auth.password,
+        }
+        return new ConSysApi(`rtds - ${stream.properties.name}`, {
+            endpointUrl: stream.networkProperties.endpointUrl,
+            resource:  typeof stream == DataStream ? `/datastreams/${stream.properties.id}/observations` : `/controlstreams/${stream.properties.id}/status`,
+            tls: stream.networkProperties.tls,
+            protocol: 'mqtt',
+            mode: Mode.REAL_TIME,
+            responseFormat: 'application/json',
+            mqttOpts: mqttOpts,
+        });
+    }
+
     createReplayConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
         let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
         let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
-        let endpointUrl = mqttOptUrl;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.parentNode.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
+        let mqttOpts = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl
+            endpointUrl: mqttOptUrl,
+            username: this.parentNode.auth.username,
+            password: this.parentNode.auth.password,
         }
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.parentNode.auth.username;
-            if (this.parentNode.auth?.password) {
-                mqttOpts.password = this.parentNode.auth.password;
-            }
-        }
-
         return new ConSysApi(`rtds-${datastream.properties.id}`, {
             protocol: 'mqtt',
             mqttOpts: mqttOpts,
@@ -242,29 +231,12 @@ export class LaneMapEntry {
         let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
         let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
 
-        let endpointUrl = mqttOptUrl;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.parentNode.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
+        let mqttOpts = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl
-        }
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.parentNode.auth.username;
-            if (this.parentNode.auth?.password) {
-                mqttOpts.password = this.parentNode.auth.password;
-            }
+            endpointUrl: mqttOptUrl,
+            username: this.parentNode.auth.username,
+            password: this.parentNode.auth.password,
         }
 
         return new ConSysApi(`batchds-${datastream.properties.id}`, {
@@ -296,6 +268,11 @@ export class LaneMapEntry {
             let hasProp = ds.properties.observedProperties.some((prop: any) => prop.definition === obsProperty)
             return hasProp;
         });
+        return stream;
+    }
+
+    findControlStreamByProperty() {
+        let stream: typeof ControlStream = this.controlStreams.find((cs) => isAdjudicationControlStream(cs));
         return stream;
     }
 
@@ -373,6 +350,8 @@ export class LaneDSColl {
     adjBatch: typeof ConSysApi[];
     connectionRT: typeof ConSysApi[];
     connectionBatch: typeof ConSysApi[];
+    webIdBatch: typeof ConSysApi[];
+    webIdRT: typeof ConSysApi[];
 
 
     constructor() {
@@ -393,6 +372,8 @@ export class LaneDSColl {
         this.adjBatch = [];
         this.connectionBatch = [];
         this.connectionRT = [];
+        this.webIdRT = [];
+        this.webIdBatch = [];
     }
 
     getDSArray(propName: string): typeof ConSysApi[] {
@@ -410,6 +391,7 @@ export class LaneDSColl {
             'gammaTrshldBatch',
             'adjBatch',
             'connectionBatch',
+            'webIdBatch',
             'occRT',
             'gammaRT',
             'neutronRT',
@@ -417,7 +399,8 @@ export class LaneDSColl {
             'locRT',
             'gammaTrshldRT',
             'connectionRT',
-            'adjRT'
+            'adjRT',
+            'webIdRT'
         ]
     }
 
@@ -431,6 +414,7 @@ export class LaneDSColl {
             'gammaTrshldBatch',
             'adjBatch',
             'connectionBatch',
+            'webIdBatch',
         ]
     }
 
@@ -443,7 +427,8 @@ export class LaneDSColl {
             'locRT',
             'gammaTrshldRT',
             'connectionRT',
-            'adjRT'
+            'adjRT',
+            'webIdRT'
         ];
     }
 
@@ -530,3 +515,4 @@ export class LaneDSColl {
         await this.disconnectToDS(this.getBatchDSArrayNames());
     }
 }
+

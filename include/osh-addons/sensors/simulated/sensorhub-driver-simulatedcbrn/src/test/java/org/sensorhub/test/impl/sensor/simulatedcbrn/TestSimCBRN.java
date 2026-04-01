@@ -20,11 +20,11 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.simulatedcbrn.SimCBRNConfig;
 import org.sensorhub.impl.sensor.simulatedcbrn.SimCBRNSensor;
 import org.vast.data.TextEncodingImpl;
@@ -67,7 +67,7 @@ public class TestSimCBRN implements IEventListener
 	@Test
 	public void testGetOutputDesc() throws Exception
 	{
-		for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+		for (ISensorDataInterface di: driver.getObservationOutputs().values())
 		{
 			System.out.println();
 			DataComponent dataMsg = di.getRecordDescription();
@@ -89,11 +89,11 @@ public class TestSimCBRN implements IEventListener
 	public void testSendMeasurements() throws Exception
 	{
 		System.out.println();
-		IStreamingDataInterface idOutput = driver.getObservationOutputs().get("ID");
-		IStreamingDataInterface alertOutput = driver.getObservationOutputs().get("ALERTS");
-		//IStreamingDataInterface readingsOutput = driver.getObservationOutputs().get("READGS");
-		IStreamingDataInterface maintOutput = driver.getObservationOutputs().get("MAINT");
-		IStreamingDataInterface statusOutput = driver.getObservationOutputs().get("STATUS");
+		ISensorDataInterface idOutput = driver.getObservationOutputs().get("ID");
+		ISensorDataInterface alertOutput = driver.getObservationOutputs().get("ALERTS");
+		//ISensorDataInterface readingsOutput = driver.getObservationOutputs().get("READGS");
+		ISensorDataInterface maintOutput = driver.getObservationOutputs().get("MAINT");
+		ISensorDataInterface statusOutput = driver.getObservationOutputs().get("STATUS");
 
 
 		writer = new AsciiDataWriter();
@@ -142,10 +142,10 @@ public class TestSimCBRN implements IEventListener
 
 
 	@Override
-	public void handleEvent(Event e)
+	public void handleEvent(Event<?> e)
 	{
-		assertTrue(e instanceof DataEvent);
-		DataEvent newDataEvent = (DataEvent)e;
+		assertTrue(e instanceof SensorDataEvent);
+		SensorDataEvent newDataEvent = (SensorDataEvent)e;
 
 		try
 		{
