@@ -24,7 +24,7 @@ import org.sensorhub.impl.sensor.AbstractSensorModule;
  * static video file in loop.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Jan 10, 2015
  */
 public class FakeCamSensor extends AbstractSensorModule<FakeCamConfig>
@@ -39,9 +39,9 @@ public class FakeCamSensor extends AbstractSensorModule<FakeCamConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate IDs
         generateUniqueID("urn:osh:sensor:simcam:", config.cameraID);
@@ -66,14 +66,14 @@ public class FakeCamSensor extends AbstractSensorModule<FakeCamConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         dataInterface.start();        
     }
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         dataInterface.stop();
     }

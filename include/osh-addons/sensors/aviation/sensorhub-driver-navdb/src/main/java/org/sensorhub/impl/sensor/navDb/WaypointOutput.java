@@ -16,18 +16,23 @@ package org.sensorhub.impl.sensor.navDb;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.data.IMultiSourceDataInterface;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
-import org.sensorhub.utils.aero.AeroHelper;
-import org.sensorhub.utils.aero.INavDatabase.INavDbWaypoint;
 import org.vast.swe.SWEHelper;
 
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataRecord;
+import net.opengis.swe.v20.DataType;
+import net.opengis.swe.v20.Quantity;
+import net.opengis.swe.v20.Text;
 
 
 /**
@@ -35,80 +40,150 @@ import net.opengis.swe.v20.DataRecord;
  * @author Tony Cook
  *
  */
-public class WaypointOutput extends AbstractSensorOutput<NavDriver>
+public class WaypointOutput extends AbstractSensorOutput<NavDriver> implements IMultiSourceDataInterface 
 {
-    private static final int AVERAGE_SAMPLING_PERIOD = 1;
+	private static final int AVERAGE_SAMPLING_PERIOD = 1;
 
-	DataRecord dataStruct;
-	DataEncoding encoding;
+	DataRecord struct;
+	DataEncoding encoding;	
+	Map<String, DataBlock> records = new TreeMap<>();  // key is navDbEntry uid
 
-	
 	public WaypointOutput(NavDriver parentSensor) throws IOException
 	{
-		super("waypoints", parentSensor);
+		super(parentSensor);
 	}
 
 
-    protected void init()
-    {
-        var fac = new AeroHelper();
+	@Override
+	public String getName()
+	{
+		return "WayptOutput";
+	}
 
-        // SWE Common data structure
-        dataStruct = fac.createRecord()
-            .name(getName())
-            .definition(AeroHelper.AERO_RECORD_URI_PREFIX + "Waypoint")
-            .addField("code", fac.createWaypointCode())
-            .addField("name", fac.createText()
-                .definition(SWEHelper.getPropertyUri("EntityName"))
-                .label("Long Name"))
-            .addField("lat", fac.createLatitude())
-            .addField("lon", fac.createLongitude())
-            .build();
+	protected void init()
+	{
+		SWEHelper fac = new SWEHelper();
 
-        // default encoding is text
-        encoding = fac.newTextEncoding(",", "\n");
-    }
+		// Structure is {id, name, lat, lon}
 
-    public void start() throws SensorHubException {
-        // Nothing to do 
-    }
+		// SWE Common data structure
+		struct = fac.newDataRecord(4);
+		struct.setName(getName());
+		struct.setDefinition(SWEHelper.getPropertyUri("aero/Waypoint"));
+
+		Text id = fac.newText(SWEHelper.getPropertyUri("aero/ICAO/Code"), "Waypoint Code", "Waypoint ICAO identification code");
+		struct.addComponent("code", id);
+		Text name = fac.newText(SWEHelper.getPropertyUri("Name"), "Name", null);
+		struct.addComponent("name", name);
+		Quantity latQuant = fac.newQuantity(SWEHelper.getPropertyUri("GeodeticLatitude"), "Latitude", null, "deg", DataType.DOUBLE);
+		struct.addComponent("lat", latQuant);
+		Quantity lonQuant = fac.newQuantity(SWEHelper.getPropertyUri("Longitude"), "Longitude", null, "deg", DataType.DOUBLE);
+		struct.addComponent("lon", lonQuant);
+
+		// default encoding is text
+		encoding = fac.newTextEncoding(",", "\n");
+	}
+
+	public void start() throws SensorHubException {
+		// Nothing to do 
+	}
+
+	public double[] getLons (List<NavDbEntry> recs) {
+		double [] lons = new double[recs.size()];
+		int i=0;
+		for (NavDbEntry rec: recs) {
+			lons[i++] = rec.lon;
+		}
+		return lons;
+	}
+
+	public double[] getLats (List<NavDbEntry> recs) {
+		double [] lats = new double[recs.size()];
+		int i=0;
+		for (NavDbEntry rec: recs) {
+			lats[i++] = rec.lat;
+		}
+		return lats;
+	}
+
+	public String[] getNames (List<NavDbEntry> recs) {
+		String [] names = new String[recs.size()];
+		int i=0;
+		for (NavDbEntry rec: recs) {
+			names[i++] = rec.name;
+		}
+		return names;
+	}
+
+	public String[] getIds (List<NavDbEntry> recs) {
+		String [] ids = new String[recs.size()];
+		int i=0;
+		for (NavDbEntry rec: recs) {
+			ids[i++] = rec.id;
+		}
+		return ids;
+	}
+
+	public void sendEntries(List<NavDbEntry> recs)
+	{
+	    Map<String, DataBlock> newRecords = new TreeMap<>();
+        
+        for(NavDbEntry rec: recs) {
+			DataBlock dataBlock = struct.createDataBlock();
+
+			dataBlock.setStringValue(0, rec.id);
+			dataBlock.setStringValue(1, rec.name);
+			dataBlock.setDoubleValue(2, rec.lat);
+			dataBlock.setDoubleValue(3, rec.lon);
+			
+			newRecords.put(rec.id, dataBlock);   
+			//long time = System.currentTimeMillis();
+			//eventHandler.publishEvent(new SensorDataEvent(time, uid, WaypointOutput.this, dataBlock));
+		}
+        
+        // switch to new records atomically
+        records = newRecords;
+	}
 	
 
-	public void sendEntries(Collection<INavDbWaypoint> recs)
+	public double getAverageSamplingPeriod()
 	{
-	    long time = System.currentTimeMillis();
-        
-        for (var rec: recs) {
-            DataBlock dataBlock = dataStruct.createDataBlock();
-
-            dataBlock.setStringValue(0, rec.getCode());
-            dataBlock.setStringValue(1, rec.getName());
-            dataBlock.setDoubleValue(2, rec.getLatitude());
-            dataBlock.setDoubleValue(3, rec.getLongitude());
-			
-			// TODO send as a single ObsEvent w/ multiple IObsData
-			eventHandler.publish(new DataEvent(time, WaypointOutput.this, dataBlock));
-		}
+		return AVERAGE_SAMPLING_PERIOD;
 	}
 
 
-    public double getAverageSamplingPeriod()
-    {
-        return AVERAGE_SAMPLING_PERIOD;
-    }
-
-
-    @Override 
-    public DataComponent getRecordDescription()
-    {
-        return dataStruct;
-    }
+	@Override 
+	public DataComponent getRecordDescription()
+	{
+		return struct;
+	}
 
 
 	@Override
 	public DataEncoding getRecommendedEncoding()
 	{
 		return encoding;
+	}
+	
+
+	@Override
+	public Collection<String> getEntityIDs()
+	{
+	    return parentSensor.getEntityIDs();
+	}
+
+
+	@Override
+	public Map<String, DataBlock> getLatestRecords()
+	{
+	    return Collections.unmodifiableMap(records);
+	}
+
+
+	@Override
+	public DataBlock getLatestRecord(String entityID)
+	{
+	    return records.get(entityID);
 	}
     
     

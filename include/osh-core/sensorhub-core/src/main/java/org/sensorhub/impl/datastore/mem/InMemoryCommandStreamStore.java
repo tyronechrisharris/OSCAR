@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Stream;
-
-import net.opengis.swe.v20.DataComponent;
 import org.sensorhub.api.command.ICommandStreamInfo;
 import org.sensorhub.api.common.BigId;
 import org.sensorhub.api.datastore.DataStoreException;

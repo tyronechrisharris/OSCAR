@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import java.util.Timer;
 import org.sensorhub.api.comm.ICommProvider;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
+import org.sensorhub.api.sensor.ISensorDataInterface;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.sensorhub.impl.sensor.mavlink.MavlinkConfig.MsgTypes;
@@ -31,13 +31,13 @@ import com.MAVLink.Parser;
 import com.MAVLink.Messages.MAVLinkMessage;
 import com.MAVLink.common.msg_command_ack;
 import com.MAVLink.common.msg_command_long;
+import com.MAVLink.common.msg_heartbeat;
 import com.MAVLink.common.msg_param_set;
 import com.MAVLink.common.msg_position_target_global_int;
 import com.MAVLink.common.msg_set_mode;
 import com.MAVLink.enums.MAV_CMD;
 import com.MAVLink.enums.MAV_MODE_FLAG;
 import com.MAVLink.enums.MAV_PARAM_TYPE;
-import com.MAVLink.minimal.msg_heartbeat;
 
 
 /**
@@ -47,7 +47,7 @@ import com.MAVLink.minimal.msg_heartbeat;
  * be extended.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 12, 2015
  */
 public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
@@ -89,7 +89,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
         // generate identifiers
         generateUniqueID("urn:osh:sensor:mavlink:", config.vehicleID);
@@ -146,7 +146,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
 
 
     @Override
-    protected synchronized void doStart() throws SensorHubException
+    public synchronized void start() throws SensorHubException
     {
         if (started)
             return;        
@@ -160,8 +160,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
                 if (config.commSettings == null)
                     throw new SensorHubException("No communication settings specified");
                 
-                var moduleReg = getParentHub().getModuleRegistry();
-                commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+                commProvider = config.commSettings.getProvider();
                 commProvider.start();
             }
             catch (Exception e)
@@ -317,7 +316,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
         synchronized (cmdOut)
         {
             pkt.compid = 0;
-            pkt.generateCRC(pkt.len);
+            pkt.generateCRC();
             byte[] cmdData = pkt.encodePacket();
             cmdOut.write(cmdData);
             cmdOut.flush();
@@ -392,7 +391,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
             }*/
             
             // let each registered output handle this message
-            for (IStreamingDataInterface output: this.getOutputs().values())
+            for (ISensorDataInterface output: this.getAllOutputs().values())
             {
                 MavlinkOutput nmeaOut = (MavlinkOutput)output;
                 nmeaOut.handleMessage(lastMsgTime, msg);
@@ -415,7 +414,7 @@ public class MavlinkDriver extends AbstractSensorModule<MavlinkConfig>
 
 
     @Override
-    protected synchronized void doStop() throws SensorHubException
+    public synchronized void stop() throws SensorHubException
     {
         started = false;
         

@@ -8,7 +8,7 @@ dependencies {
 
 task packageTests(type: Jar) {
   from sourceSets.test.output
-  archiveClassifier = 'tests'
+  classifier = 'tests'
 }
 
 configurations {

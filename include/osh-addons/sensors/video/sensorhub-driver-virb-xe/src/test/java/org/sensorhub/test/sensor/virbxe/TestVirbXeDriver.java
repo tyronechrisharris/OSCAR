@@ -22,10 +22,10 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.security.ClientAuth;
 import org.sensorhub.impl.sensor.virbxe.VirbXeConfig;
 import org.sensorhub.impl.sensor.virbxe.VirbXeDriver;
@@ -64,7 +64,7 @@ public class TestVirbXeDriver implements IEventListener
     {
         driver.start();
         
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -90,7 +90,7 @@ public class TestVirbXeDriver implements IEventListener
         System.out.println();
         
         driver.start();
-        IStreamingDataInterface output = driver.getObservationOutputs().get("navData");
+        ISensorDataInterface output = driver.getObservationOutputs().get("navData");
         assertTrue("No nav output", (output != null));
         output.registerListener(this);
         
@@ -115,7 +115,7 @@ public class TestVirbXeDriver implements IEventListener
         System.out.println();
         
         driver.start();
-        IStreamingDataInterface output = driver.getObservationOutputs().get("healthSensors");
+        ISensorDataInterface output = driver.getObservationOutputs().get("healthSensors");
         assertTrue("No healthSensors output", (output != null));
         output.registerListener(this);
         
@@ -140,7 +140,7 @@ public class TestVirbXeDriver implements IEventListener
         System.out.println();
         
         driver.start();
-        IStreamingDataInterface output = driver.getObservationOutputs().get("video");
+        ISensorDataInterface output = driver.getObservationOutputs().get("video");
         assertTrue("No video output", (output != null));
         output.registerListener(this);
         
@@ -160,10 +160,10 @@ public class TestVirbXeDriver implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         try
         {            
