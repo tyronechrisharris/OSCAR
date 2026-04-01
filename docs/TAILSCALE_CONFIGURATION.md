@@ -7,11 +7,23 @@ This document explains the requirements and security considerations for using Ta
 OSCAR utilizes a dedicated Docker container (a "sidecar") running the Tailscale daemon to natively bridge the stack onto your Tailnet. This abstracts the complexity of host-level networking and provides reliable operation across macOS, Windows (WSL2), and Linux.
 
 ### A. Authentication
-The `oscar-tailscale` sidecar requires an authentication key to join your Tailnet.
-1. Generate an **Auth Key** in the Tailscale Admin Console. It is recommended to use a reusable, non-expiring key tagged with a specific scope (e.g., `tag:oscar-node`).
-2. Provide this key in your `.env` file via the `TS_AUTHKEY` variable.
+The `oscar-tailscale` sidecar requires an authentication key to join your Tailnet automatically.
+1. Log in to the **Tailscale Admin Console** (login.tailscale.com).
+2. On the left sidebar, click **Settings**.
+3. Under the *Personal Settings* (or *Tailnet Settings*), click **Keys**.
+4. Click **Generate auth key**. Since the system uses a `tailscale_state` volume to save your login, a standard, one-time use key is perfectly fine. Optionally, you can assign it a Tag (like `tag:server`) for tighter security if you use Tailscale ACLs.
+5. Click **Generate** and copy the key (it starts with `tskey-auth-`). Paste this into your `.env` file as `TS_AUTHKEY`.
 
-### B. MagicDNS and HTTPS Certificates
+### B. Node Name & MagicDNS and HTTPS Certificates
+To prevent network collisions when deploying multiple OSCAR nodes, each node must have a unique `NODE_NAME` defined in `.env` (e.g., `oscar-alpha`). This parameter sets the Tailscale machine name.
+
+Your full `TAILSCALE_DOMAIN` is a combination of this **hostname** and your network's **Tailnet name**.
+1. In the Admin Console, go to the **DNS** tab on the left sidebar.
+2. Under the **MagicDNS** section, locate your **Tailnet name** (e.g., `tail09415d.ts.net` or `flying-fox.ts.net`).
+3. Combine this with your `NODE_NAME`. For example, if `NODE_NAME=oscar-alpha`, your domain is:
+   `oscar-alpha.YOUR_TAILNET_NAME.ts.net`
+
+**Enable HTTPS Certificates:**
 To allow Caddy's `get_certificate tailscale` directive to automatically fetch trusted Let's Encrypt certificates, your Tailnet must have permission to generate them. If this feature is turned off in the admin console, your Tailscale sidecar will be denied when it asks for the certificate, and Caddy will throw an SSL error.
 
 Here is exactly what you need to do in the Tailscale Admin Console (this is a one-time toggle for your entire network):

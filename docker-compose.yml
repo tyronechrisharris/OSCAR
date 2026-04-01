@@ -114,7 +114,7 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     container_name: oscar-tailscale
-    hostname: oscar-server
+    hostname: ${NODE_NAME:-oscar-server}
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_ROUTES=${TS_ROUTES:-}
@@ -145,7 +145,6 @@ services:
       # preventing Caddy from throwing a "server block without any key is global configuration"
       # error due to an empty string address block.
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
-      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
       - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
     volumes:
       - ./caddy:/etc/caddy
