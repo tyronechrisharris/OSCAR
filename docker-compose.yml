@@ -117,6 +117,7 @@ services:
     hostname: oscar-server
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_ROUTES=${TS_ROUTES:-}
       - TS_STATE_DIR=/var/lib/tailscale
       # Start a SOCKS5 server on port 1055 to route outbound traffic for other internal containers
       - TS_SOCKS5_SERVER=:1055
