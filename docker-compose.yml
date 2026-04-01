@@ -121,6 +121,8 @@ services:
       - TS_STATE_DIR=/var/lib/tailscale
       # Start a SOCKS5 server on port 1055 to route outbound traffic for other internal containers
       - TS_SOCKS5_SERVER=:1055
+      # Force the socket into the shared volume so Caddy can communicate with Tailscale
+      - TS_SOCKET=/var/run/tailscale/tailscaled.sock
     volumes:
       - ./tailscale/state:/var/lib/tailscale
       - ./tailscale/sock:/var/run/tailscale
