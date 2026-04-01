@@ -11,8 +11,23 @@ The `oscar-tailscale` sidecar requires an authentication key to join your Tailne
 1. Generate an **Auth Key** in the Tailscale Admin Console. It is recommended to use a reusable, non-expiring key tagged with a specific scope (e.g., `tag:oscar-node`).
 2. Provide this key in your `.env` file via the `TS_AUTHKEY` variable.
 
-### B. MagicDNS
-To allow Caddy to automatically fetch trusted Let's Encrypt certificates, MagicDNS must be enabled on your Tailnet.
+### B. MagicDNS and HTTPS Certificates
+To allow Caddy's `get_certificate tailscale` directive to automatically fetch trusted Let's Encrypt certificates, your Tailnet must have permission to generate them. If this feature is turned off in the admin console, your Tailscale sidecar will be denied when it asks for the certificate, and Caddy will throw an SSL error.
+
+Here is exactly what you need to do in the Tailscale Admin Console (this is a one-time toggle for your entire network):
+1. Log in to the [Tailscale Admin Console](https://login.tailscale.com/admin/machines).
+2. Navigate to the **DNS** tab on the left-hand menu.
+3. Scroll down to the **MagicDNS** section and ensure it is **Enabled** (it usually is by default).
+4. Scroll down further to the **HTTPS Certificates** section and click **Enable HTTPS**.
+
+**Why this is required:**
+When you enable this, Tailscale provisions a unique `*.ts.net` domain for your network and sets up the DNS challenge routing with Let's Encrypt. Now, when your Docker stack boots up:
+- Caddy wakes up and asks the Tailscale sidecar for a certificate.
+- The sidecar reaches out to the Tailscale control plane.
+- Because you flipped that switch, the control plane says "Yes," automatically handles the Let's Encrypt DNS verification in the background, and drops a fully trusted, valid TLS certificate right into your sidecar.
+- Caddy grabs it, and your browser gives you the green padlock.
+
+Once configured:
 1. Determine the MagicDNS address of your node (e.g., `oscar-server.tailxxxxx.ts.net`).
 2. Provide this fully-qualified domain name in your `.env` file via the `TAILSCALE_DOMAIN` variable.
 
