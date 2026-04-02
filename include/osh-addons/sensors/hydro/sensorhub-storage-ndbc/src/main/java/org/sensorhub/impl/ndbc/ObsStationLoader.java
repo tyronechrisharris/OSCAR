@@ -23,7 +23,7 @@ import net.opengis.gml.v32.impl.GMLFactory;
  * See <a href="http://sdf.ndbc.noaa.gov/"> web service documentation</a>
  * </p>
  *
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since Jan 27, 2018
  */
 public class ObsStationLoader {

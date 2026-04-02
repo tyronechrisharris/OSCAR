@@ -40,6 +40,8 @@ public class DataBlockList extends AbstractDataBlock
     protected List<DataBlock> blockList; // either ArrayList or LinkedList so it's serializable
 	protected int blockAtomCount = -1;
 	protected boolean equalBlockSize;
+	transient protected int blockIndex;
+	transient protected int localIndex;
 	transient ThreadLocal<CachedIndex> cachedIndex = new ThreadLocal<>();
 	
 	static class CachedIndex
@@ -47,7 +49,6 @@ public class DataBlockList extends AbstractDataBlock
 	    int lastIndex; // last requested index
 	    int cumulIndex;
 	    int blockIndex;
-	    int localIndex;
 	}
     
     
@@ -153,8 +154,8 @@ public class DataBlockList extends AbstractDataBlock
     @Override
     public DataType getDataType(int index)
 	{
-		var cachedIndex = selectBlock(index);
-		return blockList.get(cachedIndex.blockIndex).getDataType();
+		selectBlock(index);
+		return blockList.get(blockIndex).getDataType();
 	}
 	
 	
@@ -189,38 +190,30 @@ public class DataBlockList extends AbstractDataBlock
     }
 
     
-	protected final CachedIndex selectBlock(int index)
+	protected final void selectBlock(int index)
 	{
 		int desiredIndex = index + startIndex;
 		
-		// use thread local index so we can read concurrently from multiple threads
-        CachedIndex cachedIdx = cachedIndex.get();
-        if (cachedIdx == null) {
-            cachedIdx = new CachedIndex();
-            cachedIndex.set(cachedIdx);
-        }
-        
 		if (equalBlockSize)
 		{
-		    cachedIdx.blockIndex = desiredIndex / blockAtomCount;
-		    cachedIdx.localIndex = desiredIndex % blockAtomCount;
+			blockIndex = desiredIndex / blockAtomCount;
+	        localIndex = desiredIndex % blockAtomCount;
 		}
 		else
 		{
-		    // speed up sequential scans by restarting from previous index
-	        // but reset if desired index is going back down
-			if (index <= cachedIdx.lastIndex) {
-			    cachedIdx.lastIndex = 0;
-			    cachedIdx.cumulIndex = 0;
-                cachedIdx.blockIndex = 0;
-                cachedIdx.localIndex = 0;
+	    	// use thread local cached index to speed up sequential scans
+			CachedIndex cachedIdx = cachedIndex.get();
+			if (cachedIdx == null || index <= cachedIdx.lastIndex)
+			{
+			    cachedIdx = new CachedIndex();
+			    cachedIndex.set(cachedIdx);
 			}
 			
 			int size = 0;
             int cumul = cachedIdx.cumulIndex;
             int i = cachedIdx.blockIndex;
 	
-            while (desiredIndex >= cumul)
+			while (desiredIndex >= cumul)
 			{
 				size = blockList.get(i).getAtomCount();
 				cumul += size;
@@ -229,15 +222,14 @@ public class DataBlockList extends AbstractDataBlock
 	
 			// actually use previous block because we went one block too far
 			cumul -= size;
-			cachedIdx.blockIndex = i - 1;
-			cachedIdx.localIndex = desiredIndex - cumul;
+			blockIndex = i - 1;
+			localIndex = desiredIndex - cumul;
 			
 			// save indexing variables in cache for next call
 			cachedIdx.lastIndex = index;
 			cachedIdx.cumulIndex = cumul;
+			cachedIdx.blockIndex = blockIndex;
 		}
-		
-		return cachedIdx;
 	}
     
     
@@ -321,159 +313,159 @@ public class DataBlockList extends AbstractDataBlock
 	@Override
     public boolean getBooleanValue(int index)
 	{
-	    var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getBooleanValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getBooleanValue(localIndex);
 	}
 
 
 	@Override
     public byte getByteValue(int index)
 	{
-	    var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getByteValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getByteValue(localIndex);
 	}
 
 
 	@Override
     public short getShortValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getShortValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getShortValue(localIndex);
 	}
 
 
 	@Override
 	public int getIntValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getIntValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getIntValue(localIndex);
 	}
 
 
 	@Override
     public long getLongValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getLongValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getLongValue(localIndex);
 	}
 
 
 	@Override
     public float getFloatValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getFloatValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getFloatValue(localIndex);
 	}
 
 
 	@Override
     public double getDoubleValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getDoubleValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getDoubleValue(localIndex);
 	}
 
 
 	@Override
     public String getStringValue(int index)
 	{
-		var idx = selectBlock(index);
-		return blockList.get(idx.blockIndex).getStringValue(idx.localIndex);
+		selectBlock(index);
+		return blockList.get(blockIndex).getStringValue(localIndex);
 	}
     
 
     @Override
     public Instant getTimeStamp(int index)
     {
-        var idx = selectBlock(index);
-        return blockList.get(idx.blockIndex).getTimeStamp(idx.localIndex);
+        selectBlock(index);
+        return blockList.get(blockIndex).getTimeStamp(localIndex);
     }
 
 
     @Override
     public OffsetDateTime getDateTime(int index)
     {
-        var idx = selectBlock(index);
-        return blockList.get(idx.blockIndex).getDateTime(idx.localIndex);
+        selectBlock(index);
+        return blockList.get(blockIndex).getDateTime(localIndex);
     }
 
 
 	@Override
     public void setBooleanValue(int index, boolean value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setBooleanValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setBooleanValue(localIndex, value);
 	}
 
 
 	@Override
     public void setByteValue(int index, byte value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setByteValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setByteValue(localIndex, value);
 	}
 
 
 	@Override
     public void setShortValue(int index, short value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setShortValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setShortValue(localIndex, value);
 	}
 
 
 	@Override
     public void setIntValue(int index, int value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setIntValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setIntValue(localIndex, value);
 	}
 
 
 	@Override
     public void setLongValue(int index, long value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setLongValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setLongValue(localIndex, value);
 	}
 
 
 	@Override
     public void setFloatValue(int index, float value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setFloatValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setFloatValue(localIndex, value);
 	}
 
 
 	@Override
     public void setDoubleValue(int index, double value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setDoubleValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setDoubleValue(localIndex, value);
 	}
 
 
 	@Override
     public void setStringValue(int index, String value)
 	{
-		var idx = selectBlock(index);
-		blockList.get(idx.blockIndex).setStringValue(idx.localIndex, value);
+		selectBlock(index);
+		blockList.get(blockIndex).setStringValue(localIndex, value);
 	}
 
 
     @Override
     public void setTimeStamp(int index, Instant value)
     {
-        var idx = selectBlock(index);
-        blockList.get(idx.blockIndex).setTimeStamp(idx.localIndex, value);
+        selectBlock(index);
+        blockList.get(blockIndex).setTimeStamp(localIndex, value);
     }
 
 
     @Override
     public void setDateTime(int index, OffsetDateTime value)
     {
-        var idx = selectBlock(index);
-        blockList.get(idx.blockIndex).setDateTime(idx.localIndex, value);
+        selectBlock(index);
+        blockList.get(blockIndex).setDateTime(localIndex, value);
     }
 }

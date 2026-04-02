@@ -23,13 +23,11 @@ import net.opengis.swe.v20.DataType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.command.CommandData;
-import org.sensorhub.api.command.IStreamingControlInterface;
-import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorControlInterface;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.v4l.V4LCameraDriver;
 import org.sensorhub.impl.sensor.v4l.V4LCameraConfig;
 import org.sensorhub.test.sensor.videocam.VideoTestHelper;
@@ -59,20 +57,23 @@ public class TestV4LCameraDriver implements IEventListener
         
         driver = new V4LCameraDriver();
         driver.setConfiguration(config);
-        driver.init();        
+        driver.requestInit(false);
+        driver.requestStart();
     }
     
     
     private void startCapture() throws Exception
     {
-        driver.start();
+        // update config to start capture
+        config.defaultParams.doCapture = true;
+        driver.updateConfig(config);
     }
     
     
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             DataComponent dataMsg = di.getRecordDescription();
             new SWEUtils(SWEUtils.V2_0).writeComponent(System.out, dataMsg, false, true);
@@ -86,7 +87,7 @@ public class TestV4LCameraDriver implements IEventListener
     @Test
     public void testGetCommandDesc() throws Exception
     {
-        for (IStreamingControlInterface ci: driver.getCommandInputs().values())
+        for (ISensorControlInterface ci: driver.getCommandInputs().values())
         {
             DataComponent commandMsg = ci.getCommandDescription();
             new SWEUtils(SWEUtils.V2_0).writeComponent(System.out, commandMsg, false, true);
@@ -106,7 +107,7 @@ public class TestV4LCameraDriver implements IEventListener
     public void testCaptureAtDefaultRes() throws Exception
     {
         // register listener on data interface
-        IStreamingDataInterface di = driver.getObservationOutputs().values().iterator().next();
+        ISensorDataInterface di = driver.getObservationOutputs().values().iterator().next();
         assertTrue("No video output", di != null);
         di.registerListener(this);
         videoTestHelper.initWindow(di);
@@ -119,8 +120,8 @@ public class TestV4LCameraDriver implements IEventListener
                 this.wait();
         }
         
-        assertEquals(config.defaultParams.imgWidth, actualWidth);
-        assertEquals(config.defaultParams.imgHeight, actualHeight);
+        assertTrue(actualWidth == config.defaultParams.imgWidth);
+        assertTrue(actualHeight == config.defaultParams.imgHeight);
     }
     
     
@@ -128,11 +129,11 @@ public class TestV4LCameraDriver implements IEventListener
     public void testChangeParams() throws Exception
     {
         // register listener on data interface
-        IStreamingDataInterface di = driver.getObservationOutputs().values().iterator().next();
+        ISensorDataInterface di = driver.getObservationOutputs().values().iterator().next();
         di.registerListener(this);
         
-        int expectedWidth = config.defaultParams.imgWidth = 800;
-        int expectedHeight = config.defaultParams.imgHeight = 600;
+        int expectedWidth = config.defaultParams.imgWidth = 320;
+        int expectedHeight = config.defaultParams.imgHeight = 240;
         
         // start capture and wait until we receive the first frame
         synchronized (this)
@@ -141,8 +142,8 @@ public class TestV4LCameraDriver implements IEventListener
             this.wait();
         }
         
-        assertEquals(expectedWidth, actualWidth);
-        assertEquals(expectedHeight, actualHeight);
+        assertTrue(actualWidth == expectedWidth);
+        assertTrue(actualHeight == expectedHeight);
     }
     
     
@@ -150,7 +151,7 @@ public class TestV4LCameraDriver implements IEventListener
     public void testSendCommand() throws Exception
     {
         // register listener on data interface
-        IStreamingDataInterface di = driver.getObservationOutputs().values().iterator().next();
+        ISensorDataInterface di = driver.getObservationOutputs().values().iterator().next();
         di.registerListener(this);
         
         // start capture and wait until we receive the first frame
@@ -160,10 +161,10 @@ public class TestV4LCameraDriver implements IEventListener
             this.wait();
         }        
         
-        int expectedWidth = 640;
-        int expectedHeight = 480;
+        int expectedWidth = 160;
+        int expectedHeight = 120;
         
-        IStreamingControlInterface ci = driver.getCommandInputs().values().iterator().next();
+        ISensorControlInterface ci = driver.getCommandInputs().values().iterator().next();
         DataBlock commandData = ci.getCommandDescription().createDataBlock();
         int fieldIndex = 0;
         commandData.setStringValue(fieldIndex++, "YUYV");
@@ -179,7 +180,7 @@ public class TestV4LCameraDriver implements IEventListener
         commandData.setIntValue(fieldIndex++, 10);
         
         // send command to control interface
-        ci.submitCommand(new CommandData(1, commandData));
+        ci.execCommand(commandData);
         
         // start capture and wait until we receive the first frame
         // after we changed settings
@@ -188,16 +189,16 @@ public class TestV4LCameraDriver implements IEventListener
             this.wait();
         }
         
-        assertEquals(expectedWidth, actualWidth);
-        assertEquals(expectedHeight, actualHeight);
+        assertTrue(actualWidth == expectedWidth);
+        assertTrue(actualHeight == expectedHeight);
     }
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         DataComponent camDataStruct = newDataEvent.getSource().getRecordDescription();
         
         actualWidth = camDataStruct.getComponent(1).getComponent(0).getComponentCount();
@@ -218,14 +219,7 @@ public class TestV4LCameraDriver implements IEventListener
     {
         videoTestHelper.dispose();
         
-        try
-        {
-            if (driver != null)
-                driver.stop();
-        }
-        catch (SensorHubException e)
-        {
-            e.printStackTrace();
-        }
+        if (driver != null)
+            driver.stop();
     }
 }

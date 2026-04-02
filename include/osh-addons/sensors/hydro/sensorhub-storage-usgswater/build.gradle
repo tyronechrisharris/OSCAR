@@ -4,14 +4,13 @@ version = '0.1.0'
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  implementation 'org.sensorhub:sensorhub-datastore-h2:' + oshCoreVersion
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Sensia Software LLC')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.usgs.water.Activator')
+    attributes 'Bundle-Vendor': 'Sensia Software LLC'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.storage.usgs.water.Activator'
   }
 }
 

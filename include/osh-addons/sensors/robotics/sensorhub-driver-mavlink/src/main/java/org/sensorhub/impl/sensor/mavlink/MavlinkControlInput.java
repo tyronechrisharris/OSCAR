@@ -24,9 +24,9 @@ public abstract class MavlinkControlInput extends AbstractSensorControl<MavlinkD
     DataChoice commandData;
 
 
-    public MavlinkControlInput(String name, MavlinkDriver parentSensor)
+    public MavlinkControlInput(MavlinkDriver parentSensor)
     {
-        super(name, parentSensor);
+        super(parentSensor);
     }
     
     

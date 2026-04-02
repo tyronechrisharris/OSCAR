@@ -6,10 +6,10 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.vast.data.TextEncodingImpl;
 import org.vast.sensorML.SMLUtils;
 import org.vast.swe.AsciiDataWriter;
@@ -45,7 +45,7 @@ public class TestHttpWeatherDriver extends HttpWeatherTestUtils implements IEven
      */
     @Test
 	public void testOutputDescMatchesConfig() throws Exception {
-		for (IStreamingDataInterface di: driver.getObservationOutputs().values()) {
+		for (ISensorDataInterface di: driver.getObservationOutputs().values()) {
             DataComponent dataMsg = di.getRecordDescription();
             if(DEBUG) {
 	            System.out.println();
@@ -63,7 +63,7 @@ public class TestHttpWeatherDriver extends HttpWeatherTestUtils implements IEven
      */
     @Test
 	public void testDisabledComponentNotInOutputDesc() throws Exception {
-		for (IStreamingDataInterface di: driver.getObservationOutputs().values()) {
+		for (ISensorDataInterface di: driver.getObservationOutputs().values()) {
             DataComponent dataMsg = di.getRecordDescription();
             assertTrue(!config.exposeSunrise);
             assertTrue(dataMsg.getComponent("sunrise") == null);
@@ -96,7 +96,7 @@ public class TestHttpWeatherDriver extends HttpWeatherTestUtils implements IEven
      */
     @Test
     public void testReceiveSendMeasurements() throws Exception {
-        IStreamingDataInterface weatherOutput = driver.getObservationOutputs().get("httpweather");        
+        ISensorDataInterface weatherOutput = driver.getObservationOutputs().get("httpweather");        
         String testValues = "?intemp=" + String.valueOf(IN_TEMP) + "&outtemp=" + String.valueOf(OUT_TEMP);
         if(DEBUG) {
         	System.out.println();
@@ -120,9 +120,9 @@ public class TestHttpWeatherDriver extends HttpWeatherTestUtils implements IEven
      * Checks the output from OSH to ensure it matches what we sent to the HTTP Endpoint.
      */
 	@Override
-	public void handleEvent(Event e) {
-		assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+	public void handleEvent(Event<?> e) {
+		assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         DataBlock record = newDataEvent.getRecords()[0];
        
         assertValueMatch(record, "intemp", IN_TEMP);

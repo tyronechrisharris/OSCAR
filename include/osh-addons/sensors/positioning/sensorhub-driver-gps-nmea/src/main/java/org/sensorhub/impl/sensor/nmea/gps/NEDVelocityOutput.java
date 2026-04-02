@@ -27,7 +27,7 @@ import org.vast.swe.SWEHelper;
  * UTC time of each output sample is obtained from previous position fix.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Aug 27, 2015
  */
 public class NEDVelocityOutput extends NMEAGpsOutput
@@ -39,9 +39,16 @@ public class NEDVelocityOutput extends NMEAGpsOutput
     
     public NEDVelocityOutput(NMEAGpsSensor parentSensor)
     {
-        super("gpsTrack", parentSensor);
+        super(parentSensor);
         this.samplingPeriod = 1.0; // default to 1Hz on startup
         this.log = parentSensor.getLogger();
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "gpsTrack";
     }
 
     
