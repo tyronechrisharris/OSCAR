@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file.
 - Added Progressive Web App (PWA) capabilities, allowing the client to be installed as a local application with offline support.
 - Integrated Spectroscopic QR Code scanning for Adjudication workflows.
 - Added WebID analysis and result logging to the Adjudication Detail view.
+- Added `bluenviron/mediamtx:latest` as a dedicated sidecar container in `docker-compose.yml` to stabilize RTSP IP Camera streams.
 ### Changed
+- Upgraded the OSH backend `LaneSystem.java` initialization flow. When cameras are configured via the Admin UI, the backend now automatically intercepts the raw RTSP URI and dynamically provisions it through the MediaMTX sidecar REST API prior to FFmpeg connection.
 - Migrated Tailscale integration to a dedicated sidecar container to improve cross-platform compatibility (especially WSL2 on Windows).
 - Moved `TAILSCALE_DOMAIN` definition entirely into `.env` file instead of dynamically generating it.
 - Reverted launch scripts (`launch-all.sh`, `launch-all.bat`) back to pure `docker compose up -d` execution.

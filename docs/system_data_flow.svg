@@ -30,6 +30,11 @@
   <text x="60" y="195">(Video/MJPEG/RTSP)</text>
   <text x="60" y="215">Protocol: HTTP/RTSP</text>
 
+  <rect x="50" y="250" width="180" height="80" rx="10" class="ext" />
+  <text x="60" y="275" class="title">MediaMTX Sidecar</text>
+  <text x="60" y="295">RTSP Video Proxy</text>
+  <text x="60" y="315">REST API Control</text>
+
   <!-- OSH Backend -->
   <rect x="280" y="50" width="220" height="400" rx="10" class="core" />
   <text x="290" y="75" class="title">OSH Backend (Java)</text>
@@ -94,9 +99,12 @@
   <text x="700" y="435">Auth: Tailscale</text>
 
   <!-- Arrows -->
-  <!-- Sensors to Drivers -->
+  <!-- Sensors to Drivers/Proxy -->
   <path d="M 230 90 L 280 90" class="arrow" />
-  <path d="M 230 190 L 300 150" class="arrow" />
+
+  <!-- Cameras -> MediaMTX Proxy -> OSH Processing Modules -->
+  <path d="M 140 230 L 140 250" class="arrow" /> <!-- Cam to MediaMTX -->
+  <path d="M 230 290 L 300 220" class="arrow" /> <!-- MediaMTX to FFmpeg -->
 
   <!-- Drivers to Processing -->
   <path d="M 390 160 L 390 180" class="arrow" />

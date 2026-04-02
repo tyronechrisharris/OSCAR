@@ -28,6 +28,7 @@ The system uses Docker Secrets (via bind mounts) to manage database passwords.
 - **DB Host**: The database host is configurable via the `DB_HOST` environment variable (default: `localhost`), enabling secure deployment on separate LAN machines.
 - **TLS Enforcement**: All connections from the OSH backend to PostGIS are secured over TLS. This is enforced by using `sslmode=require` in the JDBC connection string in the `ConnectionManager`.
 - **Tailscale Sidecar network Isolation**: To prevent host-based socket leakage, especially on Windows WSL2 distributions, the `osh-proxy` proxy is entirely isolated using Docker's `network_mode: service:tailscale`. Port blocks have been removed entirely. Tailscale operates its own namespace with local bind mounts (`./tailscale/sock` and `./tailscale/state`) to persist the machine key and share the internal socket strictly with Caddy, securing inbound mesh ingress.
+- **MediaMTX Host Network Proxy**: To provide stable, low-latency RTSP streaming and avoid docker bridge network bottlenecks, the `mediamtx` sidecar operates with `network_mode: "host"`. The OSH backend internally commands this proxy by sending automated HTTP REST payload commands to the Docker bridge gateway (`172.17.0.1:9997`). This internal automated workflow restricts the necessity of exposing MediaMTX stream paths publicly, limiting video routing to authorized internal FFmpeg sensors.
 
 ## Application-Level Security Hardening
 
