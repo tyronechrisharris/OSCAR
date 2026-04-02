@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * Communication provider for UART serial ports using JDK Device I/O
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Aug 27, 2015
  */
 public class JdkDioSerialCommProvider extends AbstractModule<JdkDioSerialCommProviderConfig> implements ICommProvider<JdkDioSerialCommProviderConfig>
@@ -54,7 +54,7 @@ public class JdkDioSerialCommProvider extends AbstractModule<JdkDioSerialCommPro
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         org.sensorhub.impl.comm.UARTConfig config = this.config.protocol;
         
@@ -154,7 +154,7 @@ public class JdkDioSerialCommProvider extends AbstractModule<JdkDioSerialCommPro
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (uart != null)
         {

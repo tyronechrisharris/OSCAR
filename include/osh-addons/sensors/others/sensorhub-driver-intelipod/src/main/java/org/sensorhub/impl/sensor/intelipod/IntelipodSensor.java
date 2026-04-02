@@ -35,7 +35,7 @@ import org.vast.swe.SWEHelper;
  * TruPulse sensor, one can calculate the geospatial position of the target.
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since June 8, 2015
  */
 public class IntelipodSensor extends AbstractSensorModule<IntelipodConfig>
@@ -60,10 +60,10 @@ public class IntelipodSensor extends AbstractSensorModule<IntelipodConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
     	//System.out.println("Initializing...");
-        super.doInit();
+        super.init();
         
         // init main data interface
         intelipodOut = new IntelipodOutput(this);
@@ -75,9 +75,7 @@ public class IntelipodSensor extends AbstractSensorModule<IntelipodConfig>
             // we need to recreate comm provider here because it can be changed by UI
             if (config.commSettings == null)
                 throw new SensorHubException("No communication settings specified");
-            
-            var moduleReg = getParentHub().getModuleRegistry();
-            commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+            commProvider = config.commSettings.getProvider();
             commProvider.start();
             
             // connect to comm data streams
@@ -126,7 +124,7 @@ public class IntelipodSensor extends AbstractSensorModule<IntelipodConfig>
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
     	//System.out.println("Starting...");
 
@@ -150,7 +148,7 @@ public class IntelipodSensor extends AbstractSensorModule<IntelipodConfig>
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
     	//close();
     	started = false;

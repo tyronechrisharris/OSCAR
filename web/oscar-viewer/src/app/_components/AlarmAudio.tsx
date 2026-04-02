@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import {Alert} from "@mui/material";
 import { selectAlarmAudioVolume } from "@/lib/state/OSCARClientSlice";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 let alarmAudio: HTMLAudioElement | null = null;
 
@@ -18,7 +17,6 @@ export function getAlarmAudio() {
 }
 
 export default function AlarmAudio() {
-    const { t } = useLanguage();
     const dispatch = useDispatch();
     const savedVolume = useSelector(selectAlarmAudioVolume);
     const triggerAlarm = useSelector((state: RootState) => selectTriggeredAlarm(state));
@@ -63,7 +61,7 @@ export default function AlarmAudio() {
 
             {soundLocked && (
                 <Alert severity="info" sx={{ mb: 2, fontSize: "0.8rem" }}>
-                    {t('clickAnywhereToEnableAlarmSound')}
+                    Click anywhere to enable alarm sound
                 </Alert>
             )}
 

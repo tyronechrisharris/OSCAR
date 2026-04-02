@@ -2,23 +2,27 @@
 
 import {
     Box,
+    Grid,
     Paper,
     Typography
 } from "@mui/material"
 import React from "react";
 import Report from "@/app/_components/reportgen/Report";
-import {useLanguage} from "@/contexts/LanguageContext";
+import {useLanguage} from "@/app/contexts/LanguageContext";
 
 export default function ReportViewPage() {
     const { t } = useLanguage();
 
     return (
-        <Box sx={{margin: 2, width: '100%', height: "100%", padding: 2}}>
-            <Typography variant="h4" sx={{padding: 2}}>
-                { t('reportGenerator') }
-            </Typography>
-            <br />
-            <Report/>
-        </Box>
+        <Grid container spacing={2} width={"100%"}>
+            <Grid item xs={12}>
+                <Typography variant="h4">
+                    { t('reportGenerator') }
+                </Typography>
+            </Grid>
+            <Grid item xs={12} width={"100%"} minWidth={0}>
+                <Report/>
+            </Grid>
+        </Grid>
     )
 }
