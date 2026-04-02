@@ -1,24 +1,24 @@
 # 1. Local HTTP Block
 http://localhost {
-    # Forward headers to the backend
+    # Route through Docker's internal network
     reverse_proxy http://osh-backend:8282
 }
 
-# 2. Local HTTPS Block (Including Tailscale IP Fallback)
-https://localhost, 127.0.0.1, https://{$TAILSCALE_IP} {
-    # Forward headers to the backend
+# 2. Local HTTPS Block
+https://localhost, 127.0.0.1 {
+    # Route through Docker's internal network
     reverse_proxy http://osh-backend:8282
 
     # Use local Java certificates for LAN encryption
-    # (Since Tailscale IPs can't use MagicDNS Let's Encrypt certs, they fall back to this)
     tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
 }
 
 # 3. Tailscale Block (Conditional Federated Access via MagicDNS)
 {$TAILSCALE_DOMAIN} {
-    # Forward headers to the backend
+    # Route through Docker's internal network
     reverse_proxy http://osh-backend:8282
 
+    # Request the official Let's Encrypt certificate directly from the Tailscale socket
     tls {
         get_certificate tailscale
     }
