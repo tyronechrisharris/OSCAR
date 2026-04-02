@@ -20,20 +20,20 @@
   </defs>
 
   <!-- External Sensors -->
-  <rect x="50" y="50" width="180" height="80" rx="10" class="sensor" />
-  <text x="60" y="75" class="title">Radiation Portal Monitors</text>
-  <text x="60" y="95">(RPMs: G/N Alarms)</text>
-  <text x="60" y="115">Protocol: TCP/UDP/CSV</text>
+  <rect x="30" y="50" width="200" height="80" rx="10" class="sensor" />
+  <text x="40" y="75" class="title">Radiation Portal Monitors</text>
+  <text x="40" y="95">(RPMs: G/N Alarms)</text>
+  <text x="40" y="115">Protocol: TCP/UDP/CSV</text>
 
-  <rect x="50" y="150" width="180" height="80" rx="10" class="sensor" />
-  <text x="60" y="175" class="title">IP Cameras</text>
-  <text x="60" y="195">(Video/MJPEG/RTSP)</text>
-  <text x="60" y="215">Protocol: HTTP/RTSP</text>
+  <rect x="30" y="150" width="200" height="80" rx="10" class="sensor" />
+  <text x="40" y="175" class="title">IP Cameras</text>
+  <text x="40" y="195">(Video/MJPEG/RTSP)</text>
+  <text x="40" y="215">Protocol: HTTP/RTSP</text>
 
-  <rect x="50" y="240" width="180" height="80" rx="10" class="ext" />
-  <text x="60" y="265" class="title">MediaMTX Sidecar</text>
-  <text x="60" y="285">RTSP Video Proxy</text>
-  <text x="60" y="305">REST API Control</text>
+  <rect x="30" y="240" width="200" height="80" rx="10" class="ext" />
+  <text x="40" y="265" class="title">MediaMTX Sidecar</text>
+  <text x="40" y="285">RTSP Video Proxy</text>
+  <text x="40" y="305">REST API Control</text>
 
   <!-- OSH Backend -->
   <rect x="280" y="50" width="220" height="400" rx="10" class="core" />
@@ -57,27 +57,27 @@
   <text x="310" y="410">Auth (Bifurcated)</text>
 
   <!-- PostGIS Database -->
-  <rect x="50" y="340" width="180" height="100" rx="10" class="db" />
-  <text x="60" y="365" class="title">PostGIS Database</text>
-  <text x="60" y="385">Persistent Storage</text>
-  <text x="60" y="405">G/N Alarms, Events</text>
-  <text x="60" y="425">TLS + SCRAM-SHA-256</text>
+  <rect x="30" y="340" width="200" height="100" rx="10" class="db" />
+  <text x="40" y="365" class="title">PostGIS Database</text>
+  <text x="40" y="385">Persistent Storage</text>
+  <text x="40" y="405">G/N Alarms, Events</text>
+  <text x="40" y="425">TLS + SCRAM-SHA-256</text>
 
   <!-- Network Namespace Boundary (Tailscale Sidecar) -->
-  <rect x="515" y="40" width="150" height="320" rx="10" class="ext" style="fill:#e0f7fa; stroke:#00838f; stroke-width:3" />
-  <text x="530" y="65" class="title">Tailscale Sidecar</text>
-  <text x="530" y="85">Namespace</text>
+  <rect x="510" y="40" width="160" height="320" rx="10" class="ext" style="fill:#e0f7fa; stroke:#00838f; stroke-width:3" />
+  <text x="520" y="65" class="title">Tailscale Sidecar</text>
+  <text x="520" y="85">Namespace</text>
 
-  <rect x="530" y="100" width="120" height="130" rx="5" class="ui" style="stroke:#00acc1; fill:#ffffff" />
-  <text x="540" y="125" class="title">Caddy Proxy</text>
-  <text x="540" y="145">Port 80/443</text>
-  <text x="540" y="165">TLS Termination</text>
-  <text x="540" y="185">MQTT Upgrade</text>
-  <text x="540" y="215">(Via TS Sock)</text>
+  <rect x="520" y="100" width="140" height="130" rx="5" class="ui" style="stroke:#00acc1; fill:#ffffff" />
+  <text x="530" y="125" class="title">Caddy Proxy</text>
+  <text x="530" y="145">Port 80/443</text>
+  <text x="530" y="165">TLS Termination</text>
+  <text x="530" y="185">MQTT Upgrade</text>
+  <text x="530" y="215">(Via TS Sock)</text>
 
-  <rect x="530" y="250" width="120" height="60" rx="5" class="ui" style="stroke:#00acc1; fill:#ffffff" />
-  <text x="540" y="275" class="title">Tailscale</text>
-  <text x="540" y="295">Mesh Egress</text>
+  <rect x="520" y="250" width="140" height="60" rx="5" class="ui" style="stroke:#00acc1; fill:#ffffff" />
+  <text x="530" y="275" class="title">Tailscale</text>
+  <text x="530" y="295">Mesh Egress</text>
 
 
   <!-- Client Interfaces -->
