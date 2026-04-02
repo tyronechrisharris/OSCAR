@@ -52,6 +52,14 @@ import org.sensorhub.impl.system.SystemDatabaseTransactionHandler;
 import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -72,6 +80,12 @@ public class LaneSystem extends SensorSystem {
     private static final String PROCESS_URI = URN_PREFIX + "osh:process:occupancy";
     private static final String VIDEO_CLIPS_DIRECTORY = "clips/";
     private static final String VIDEO_STREAMING_DIRECTORY = "streaming/";
+    private static final String MEDIA_MTX_ADD_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/add/";
+    private static final String MEDIA_MTX_PATCH_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/";
+    private static final String MEDIA_MTX_RTSP_BASE = "rtsp://172.17.0.1:8554/";
+    private static final HttpClient MEDIA_MTX_HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     AbstractSensorModule<?> existingRPMModule = null;
     Flow.Subscription subscription = null;
@@ -130,6 +144,7 @@ public class LaneSystem extends SensorSystem {
             if (ffmpegConfigList != null) {
                 for (var simpleConfig : ffmpegConfigList) {
                     FFMPEGConfig config = createFFmpegConfig(simpleConfig, ffmpegConfigList.indexOf(simpleConfig));
+                    configureMediaMtxProxy(config, buildMediaMtxPathName(config, ffmpegConfigList.indexOf(simpleConfig)));
                     var ffmpegModule = createFFmpegModule(config);
                     if (occupancyWrapper != null) {
                         //occupancyWrapper.addFFmpegSensor(ffmpegModule);
@@ -184,6 +199,95 @@ public class LaneSystem extends SensorSystem {
                 subscription.request(Long.MAX_VALUE);
                 getLogger().info("Started module subscription to {}", getLocalID());
             });
+    }
+
+    private void configureMediaMtxProxy(FFMPEGConfig ffmpegConfig, String pathName) throws SensorHubException {
+        if (ffmpegConfig == null || ffmpegConfig.connection == null) {
+            throw new SensorHubException("Cannot configure MediaMTX proxy because FFmpeg connection config is missing");
+        }
+
+        String rawUri = ffmpegConfig.connection.connectionString;
+        if (rawUri == null || rawUri.isBlank()) {
+            throw new SensorHubException("Cannot configure MediaMTX proxy because the raw RTSP URI is blank");
+        }
+
+        String payload = "{\"source\":\"" + jsonEscape(rawUri) + "\",\"sourceOnDemand\":true}";
+        String encodedPathName = encodePathSegment(pathName);
+
+        try {
+            HttpResponse<String> response = sendMediaMtxRequest(
+                    "POST",
+                    MEDIA_MTX_ADD_PATHS_API_BASE + encodedPathName,
+                    payload);
+
+            if (response.statusCode() >= 400 && response.statusCode() < 500) {
+                getLogger().info("MediaMTX add failed for path {} with HTTP {}. Attempting PATCH update.",
+                        pathName, response.statusCode());
+
+                response = sendMediaMtxRequest(
+                        "PATCH",
+                        MEDIA_MTX_PATCH_PATHS_API_BASE + encodedPathName,
+                        payload);
+            }
+
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new SensorHubException(
+                        "MediaMTX path configuration failed for " + pathName +
+                                " with HTTP " + response.statusCode() + ": " + response.body());
+            }
+
+            ffmpegConfig.connection.transportStreamPath = null;
+            ffmpegConfig.connection.connectionString = MEDIA_MTX_RTSP_BASE + pathName;
+            ffmpegConfig.connection.useTCP = true;
+        } catch (IOException e) {
+            throw new SensorHubException("Failed to call MediaMTX while configuring camera proxy for " + pathName, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new SensorHubException("Interrupted while configuring MediaMTX camera proxy for " + pathName, e);
+        }
+    }
+
+    private HttpResponse<String> sendMediaMtxRequest(String method, String url, String payload)
+            throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/json")
+                .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+                .build();
+
+        return MEDIA_MTX_HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+    }
+
+    private String buildMediaMtxPathName(FFMPEGConfig ffmpegConfig, int index) {
+        String laneName = "lane";
+        if (getConfiguration() != null && getConfiguration().name != null && !getConfiguration().name.isBlank()) {
+            laneName = getConfiguration().name;
+        }
+
+        String serial = "camera-" + index;
+        if (ffmpegConfig != null && ffmpegConfig.serialNumber != null && !ffmpegConfig.serialNumber.isBlank()) {
+            serial = ffmpegConfig.serialNumber;
+        }
+
+        String base = (laneName + "-" + serial)
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9._-]", "-")
+                .replaceAll("-{2,}", "-")
+                .replaceAll("^-|-$", "");
+
+        return base.isBlank() ? "camera-" + index : base;
+    }
+
+    private String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8)
+                .replace("+", "%20");
+    }
+
+    private String jsonEscape(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 
     private FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
