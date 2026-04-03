@@ -142,7 +142,15 @@ jobs:
           if [ "$ITEM_COUNT" -eq 1 ]; then
             # Zip contains a single root folder (e.g., oscar-3.0.0/)
             EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d)
-            mv "$EXTRACTED_DIR" ./osh-node-oscar
+
+            # The inner folder is what actually contains the config, lib, web directories we need
+            # But the zip itself might have oscar-3.0.0/osh-node-oscar/
+            # So let's check if there is an inner osh-node-oscar and move THAT
+            if [ -d "$EXTRACTED_DIR/osh-node-oscar" ]; then
+              mv "$EXTRACTED_DIR/osh-node-oscar" ./osh-node-oscar
+            else
+              mv "$EXTRACTED_DIR" ./osh-node-oscar
+            fi
           else
             # Zip contents are loose at the root
             mv ./docker_temp ./osh-node-oscar

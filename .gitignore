@@ -28,3 +28,4 @@ build/
 web/oscar-viewer/node_modules
 web/oscar-viewer/.next
 web/oscar-viewer/web
+docker_temp
