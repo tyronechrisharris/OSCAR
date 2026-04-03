@@ -39,8 +39,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.sensorhub.api.comm.ICommProvider;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.impl.module.AbstractModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -50,12 +48,11 @@ import org.slf4j.LoggerFactory;
  * detected and processed.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Sep 15, 2015
  */
 public class MultipleFilesProvider extends AbstractModule<MultipleFilesProviderConfig> implements ICommProvider<MultipleFilesProviderConfig>
 {
-    static Logger log = LoggerFactory.getLogger(MultipleFilesProvider.class);
     WatchService watcher;
     BlockingQueue<File> files;
     InputStream multiFileInputStream;
@@ -153,7 +150,7 @@ public class MultipleFilesProvider extends AbstractModule<MultipleFilesProviderC
         try
         {
             File nextFile = files.take();
-            log.debug("Next data file: " + nextFile);
+            AVLDriver.log.debug("Next data file: " + nextFile);
             return new FileInputStream(nextFile);
         }
         catch (InterruptedException e)
@@ -168,10 +165,10 @@ public class MultipleFilesProvider extends AbstractModule<MultipleFilesProviderC
     {
         return null;
     }
-    
-    
+
+
     @Override
-    public void start() throws SensorHubException
+    public synchronized void start() throws SensorHubException
     {
         final Path dir = Paths.get(config.dataFolder);
 
@@ -233,7 +230,7 @@ public class MultipleFilesProvider extends AbstractModule<MultipleFilesProviderC
                             Path newFile = (Path)event.context();
                             if (newFile.toString().endsWith(".trk"))
                             {
-                                log.debug("New AVL file detected: " + newFile);
+                                AVLDriver.log.debug("New AVL file detected: " + newFile);
                                 files.add(dir.resolve(newFile).toFile());
                             }
                         }
@@ -256,8 +253,8 @@ public class MultipleFilesProvider extends AbstractModule<MultipleFilesProviderC
         {
             if (watcher != null)
                 watcher.close();
-            if (multiFileInputStream != null)
-                multiFileInputStream.close();
+            
+            multiFileInputStream.close();
             files.clear();
         }
         catch (IOException e)

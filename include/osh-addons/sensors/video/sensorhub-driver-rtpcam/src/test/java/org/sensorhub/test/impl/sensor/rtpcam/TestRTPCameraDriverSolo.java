@@ -20,10 +20,10 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.rtpcam.RTPCameraConfig;
 import org.sensorhub.impl.sensor.rtpcam.RTPCameraDriver;
 import org.vast.sensorML.SMLUtils;
@@ -61,7 +61,7 @@ public class TestRTPCameraDriverSolo implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -82,7 +82,7 @@ public class TestRTPCameraDriverSolo implements IEventListener
     @Test
     public void testSendMeasurements() throws Exception
     {        
-        IStreamingDataInterface camOutput = driver.getObservationOutputs().get("video");
+        ISensorDataInterface camOutput = driver.getObservationOutputs().get("video");
         camOutput.registerListener(this);
         
         driver.start();
@@ -98,10 +98,10 @@ public class TestRTPCameraDriverSolo implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         double timeStamp = newDataEvent.getRecords()[0].getDoubleValue(0);
         System.out.println("Frame received on " + new DateTimeFormat().formatIso(timeStamp, 0));
@@ -112,7 +112,7 @@ public class TestRTPCameraDriverSolo implements IEventListener
     
     
     @After
-    public void cleanup() throws Exception
+    public void cleanup()
     {
         driver.stop();
     }
