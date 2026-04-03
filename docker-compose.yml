@@ -117,8 +117,9 @@ services:
     image: bluenviron/mediamtx:latest
     container_name: oscar-mediamtx
     network_mode: "host"
-    volumes:
-      - ./config/mediamtx.yml:/mediamtx.yml
+    environment:
+      - MTX_API=yes
+      - MTX_APIADDRESS=:9997
     restart: unless-stopped
 
   tailscale:
