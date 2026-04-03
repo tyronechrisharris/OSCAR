@@ -134,10 +134,22 @@ jobs:
           # Extract the zip to a temporary folder
           unzip -q "$ZIP_FILE" -d ./docker_temp
 
-          # The zip contains a versioned root folder (e.g., oscar-3.0.0).
-          # Move that folder to ./osh-node-oscar so the Dockerfile COPY commands succeed.
-          EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d | head -n 1)
-          mv "$EXTRACTED_DIR" ./osh-node-oscar
+          # Safely handle the zip structure (whether it has a root wrapper folder or not)
+          ITEM_COUNT=$(find ./docker_temp -mindepth 1 -maxdepth 1 | wc -l)
+          if [ "$ITEM_COUNT" -eq 1 ]; then
+            # Zip contains a single root folder (e.g., oscar-3.0.0/)
+            EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d)
+            mv "$EXTRACTED_DIR" ./osh-node-oscar
+          else
+            # Zip contents are loose at the root
+            mv ./docker_temp ./osh-node-oscar
+          fi
+
+          # CRITICAL FIX: Remove the folder from .dockerignore so the daemon can see it
+          if [ -f .dockerignore ]; then
+            echo "Removing osh-node-oscar from .dockerignore..."
+            sed -i '/osh-node-oscar/d' .dockerignore
+          fi
 
           if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
             # Production Release (Manual or Merged PR)
