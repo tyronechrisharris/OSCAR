@@ -134,6 +134,9 @@ jobs:
           # Extract the zip to a temporary folder
           unzip -q "$ZIP_FILE" -d ./docker_temp
 
+          # CRITICAL FIX: Delete the existing source folder so 'mv' doesn't nest the directory
+          rm -rf ./osh-node-oscar
+
           # Safely handle the zip structure (whether it has a root wrapper folder or not)
           ITEM_COUNT=$(find ./docker_temp -mindepth 1 -maxdepth 1 | wc -l)
           if [ "$ITEM_COUNT" -eq 1 ]; then
