@@ -176,7 +176,7 @@ services:
       - sh
       - -c
       - |
-        cat << 'EOF' > /etc/caddy/Caddyfile
+        cat << EOF > /etc/caddy/Caddyfile
         # 1. Local HTTP Block
         http://localhost {
             reverse_proxy http://osh-backend:8282
@@ -189,7 +189,7 @@ services:
         }
 
         # 3. Tailscale Block (Conditional Federated Access via MagicDNS)
-        {$TAILSCALE_DOMAIN} {
+        ${TAILSCALE_DOMAIN} {
             reverse_proxy http://osh-backend:8282
             tls {
                 get_certificate tailscale
