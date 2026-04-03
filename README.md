@@ -36,45 +36,54 @@ Run the build script (Windows):
 After the build completes, it can be located in `build/distributions/` 
 
 ## Deploy and Start OSH Node
-1. Unzip the distribution using the command line or File Explorer:
+
+There are two primary methods to deploy OSCAR depending on your internet connectivity and preference.
+
+### Method 1: Online Deployment (Docker Hub)
+For connected environments, you can run the stack directly using our pre-built Docker images hosted on Docker Hub. This is the fastest method.
+1. Download `docker-compose.yml` and `.env.example` from the [Latest Release](https://github.com/tyronechrisharris/oscar-flat/releases).
+2. Place both files in a new directory (e.g., `oscar-deployment/`).
+3. Proceed to **Environment Setup** below.
+
+### Method 2: Offline / Source Deployment
+For air-gapped environments or local builds, you can use the complete distribution archive containing the Dockerfiles and launch scripts.
+1. Unzip the distribution archive (`oscar-<version>.zip`) downloaded from the Releases page or built locally:
 
     Option 1: Command Line
     ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    unzip build/distributions/oscar-<version>.zip
+    unzip oscar-<version>.zip
     cd oscar-<version>
     ```
    ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    tar -xf build/distributions/oscar-<version>.zip
+    tar -xf oscar-<version>.zip
     cd oscar-<version>
     ```
    Option 2: Use File Explorer
-    1. Navigate to `path/to/oscar-flat/build/distributions/`
-    2. Right-click `oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
-    3. Select **Extract All..**
-    4. Choose your destination, (or leave the default) and extract.
-    5. Navigate into the extracted `oscar-<version>` folder.
+    1. Right-click `oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
+    2. Select **Extract All..**
+    3. Choose your destination, (or leave the default) and extract.
+    4. Navigate into the extracted `oscar-<version>` folder.
+2. Proceed to **Environment Setup** below.
 
-2. Launch the Stack (Docker Compose):
-   The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, and Caddy Reverse Proxy) is fully containerized.
+### Environment Setup
+Before launching, copy `.env.example` to `.env`. The `.env` file contains critical scaling profiles. The default is **Scenario B (Tactical Hub)**. If your system requires a different scale (like the Edge Node or Enterprise Central Hub), uncomment the appropriate profile block. For Enterprise deployments spanning multiple machines, see `SYSTEM_ARCHITECTURE.md` for specific initialization logic.
 
-   **Environment Setup:**
-   Before launching, copy `.env.example` to `.env`. The `.env` file contains critical scaling profiles. The default is **Scenario B (Tactical Hub)**. If your system requires a different scale (like the Edge Node or Enterprise Central Hub), uncomment the appropriate profile block. For Enterprise deployments spanning multiple machines, see `SYSTEM_ARCHITECTURE.md` for specific initialization logic.
+### Tailscale Sidecar Setup
+OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy to your Tailnet without requiring host-machine Tailscale daemons or complicated socket mounts.
+- Provide a reusable or ephemeral Tailscale auth key in `.env` as `TS_AUTHKEY`.
+- Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates.
 
-   **Tailscale Sidecar Setup:**
-   OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy to your Tailnet without requiring host-machine Tailscale daemons or complicated socket mounts.
-   - Provide a reusable or ephemeral Tailscale auth key in `.env` as `TS_AUTHKEY`.
-   - Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates. The launch scripts no longer dynamically fetch this domain from the host.
+### Launch the Stack
+The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, MediaMTX, and Caddy Reverse Proxy) is fully containerized. Ensure Docker is installed and run:
 
-   To launch the system from the repository root, ensure Docker is installed and run:
+```bash
+docker compose up -d
+```
+*Note for Offline Deployments: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) are still available inside the `dist/release/` directory of the zip archive for convenience.*
 
-   ```bash
-   docker compose up -d
-   ```
-   *Note: The launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for convenience, and simply execute Docker Compose natively.*
-
-2. Access the OSCAR System
+### Access the OSCAR System
 - Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
 - Tailscale Access: **https://[your-tailscale-domain]**
 
