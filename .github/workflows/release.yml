@@ -171,11 +171,6 @@ jobs:
             docker push ${DOCKER_USER}/oscar-backend:latest
             docker push ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }}
 
-            # PostGIS
-            docker build -t ${DOCKER_USER}/oscar-postgis:latest -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }} -f postgis/Dockerfile ./postgis
-            docker push ${DOCKER_USER}/oscar-postgis:latest
-            docker push ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }}
-
           else
             # Dev Release (PR Opened or Synchronized)
             LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
@@ -186,10 +181,6 @@ jobs:
               # OSH Backend
               docker build -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} -f Dockerfile.osh .
               docker push ${DOCKER_USER}/oscar-backend:${DEV_TAG}
-
-              # PostGIS
-              docker build -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} -f postgis/Dockerfile ./postgis
-              docker push ${DOCKER_USER}/oscar-postgis:${DEV_TAG}
             else
               echo "Skipping Docker image build for PR. 'build-dev-image' label not found."
             fi
