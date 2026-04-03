@@ -134,32 +134,23 @@ jobs:
           # Extract the zip to a temporary folder
           unzip -q "$ZIP_FILE" -d ./docker_temp
 
-          # CRITICAL FIX: Delete the existing source folder so 'mv' doesn't nest the directory
-          rm -rf ./osh-node-oscar
-
-          # Safely handle the zip structure (whether it has a root wrapper folder or not)
-          ITEM_COUNT=$(find ./docker_temp -mindepth 1 -maxdepth 1 | wc -l)
-          if [ "$ITEM_COUNT" -eq 1 ]; then
-            # Zip contains a single root folder (e.g., oscar-3.0.0/)
-            EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d)
-
-            # The inner folder is what actually contains the config, lib, web directories we need
-            # But the zip itself might have oscar-3.0.0/osh-node-oscar/
-            # So let's check if there is an inner osh-node-oscar and move THAT
-            if [ -d "$EXTRACTED_DIR/osh-node-oscar" ]; then
-              mv "$EXTRACTED_DIR/osh-node-oscar" ./osh-node-oscar
-            else
-              mv "$EXTRACTED_DIR" ./osh-node-oscar
-            fi
+          # Move ALL contents from the extracted wrapper folder directly to the workspace root
+          EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          if [ -n "$EXTRACTED_DIR" ]; then
+            cp -r "$EXTRACTED_DIR"/* ./
           else
-            # Zip contents are loose at the root
-            mv ./docker_temp ./osh-node-oscar
+            cp -r ./docker_temp/* ./
           fi
+          rm -rf ./docker_temp
 
-          # CRITICAL FIX: Remove the folder from .dockerignore so the daemon can see it
+          # CRITICAL FIX: Forcefully whitelist the necessary folders in .dockerignore
           if [ -f .dockerignore ]; then
-            echo "Removing osh-node-oscar from .dockerignore..."
-            sed -i '/osh-node-oscar/d' .dockerignore
+            echo "" >> .dockerignore
+            echo "!osh-node-oscar/" >> .dockerignore
+            echo "!osh-node-oscar/**" >> .dockerignore
+            echo "!postgis/" >> .dockerignore
+            echo "!postgis/**" >> .dockerignore
+            echo "Forcefully whitelisted directories in .dockerignore"
           fi
 
           if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
@@ -171,6 +162,11 @@ jobs:
             docker push ${DOCKER_USER}/oscar-backend:latest
             docker push ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }}
 
+            # PostGIS
+            docker build -t ${DOCKER_USER}/oscar-postgis:latest -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }} -f ./postgis/Dockerfile ./postgis
+            docker push ${DOCKER_USER}/oscar-postgis:latest
+            docker push ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }}
+
           else
             # Dev Release (PR Opened or Synchronized)
             LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
@@ -181,6 +177,10 @@ jobs:
               # OSH Backend
               docker build -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} -f Dockerfile.osh .
               docker push ${DOCKER_USER}/oscar-backend:${DEV_TAG}
+
+              # PostGIS
+              docker build -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} -f ./postgis/Dockerfile ./postgis
+              docker push ${DOCKER_USER}/oscar-postgis:${DEV_TAG}
             else
               echo "Skipping Docker image build for PR. 'build-dev-image' label not found."
             fi

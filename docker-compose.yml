@@ -148,29 +148,54 @@ services:
     restart: unless-stopped
 
   osh-proxy:
-    image: caddy:2-alpine
+    image: caddy:latest
+    container_name: oscar-proxy
+    network_mode: "service:tailscale"
     depends_on:
-      osh-backend:
-        condition: service_healthy
       tailscale:
         condition: service_started
-    container_name: oscar-proxy-container
-    network_mode: "service:tailscale"
+      osh-backend:
+        condition: service_healthy
     environment:
-      # We use 'invalid.local' as a hard fallback if TAILSCALE_DOMAIN is empty,
-      # preventing Caddy from throwing a "server block without any key is global configuration"
-      # error due to an empty string address block.
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
-      - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
+      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
     volumes:
-      - ./caddy:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
       # Mount the directory containing the socket, not the socket file itself, to avoid Docker creating a directory
-      - ./tailscale/sock:/var/run/tailscale
+      - ./tailscale/sock:/var/run/tailscale:ro
       # Mount the generated certificates from the backend's persistent config volume
       - ./osh-node-oscar:/etc/caddy/certs:ro
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    command:
+      - sh
+      - -c
+      - |
+        cat << 'EOF' > /etc/caddy/Caddyfile
+        # 1. Local HTTP Block
+        http://localhost {
+            reverse_proxy http://osh-backend:8282
+        }
+
+        # 2. Local HTTPS Block
+        https://localhost, 127.0.0.1 {
+            reverse_proxy http://osh-backend:8282
+            tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
+        }
+
+        # 3. Tailscale Block (Conditional Federated Access via MagicDNS)
+        {$TAILSCALE_DOMAIN} {
+            reverse_proxy http://osh-backend:8282
+            tls {
+                get_certificate tailscale
+            }
+        }
+        EOF
+        caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 networks:
   osh-internal:
