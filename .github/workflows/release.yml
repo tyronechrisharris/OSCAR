@@ -127,6 +127,18 @@ jobs:
         run: |
           DOCKER_USER="${{ secrets.DOCKER_USERNAME }}"
 
+          # Find the generated zip artifact
+          ZIP_FILE=$(ls build/distributions/*.zip | head -n 1)
+          echo "Extracting $ZIP_FILE for Docker build context..."
+
+          # Extract the zip to a temporary folder
+          unzip -q "$ZIP_FILE" -d ./docker_temp
+
+          # The zip contains a versioned root folder (e.g., oscar-3.0.0).
+          # Move that folder to ./osh-node-oscar so the Dockerfile COPY commands succeed.
+          EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          mv "$EXTRACTED_DIR" ./osh-node-oscar
+
           if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
             # Production Release (Manual or Merged PR)
             echo "Building and pushing Production images with tags: latest and ${{ env.TAG_NAME }}"
