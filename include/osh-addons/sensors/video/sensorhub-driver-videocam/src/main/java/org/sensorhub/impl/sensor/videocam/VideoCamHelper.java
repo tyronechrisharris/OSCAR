@@ -16,7 +16,9 @@ Developer are Copyright (C) 2016 the Initial Developer. All Rights Reserved.
 package org.sensorhub.impl.sensor.videocam;
 
 import java.util.Collection;
+
 import org.vast.cdm.common.CDMException;
+import org.vast.swe.SWEConstants;
 import org.vast.swe.SWEHelper;
 import org.vast.swe.helper.RasterHelper;
 import net.opengis.swe.v20.AllowedTokens;
@@ -42,7 +44,7 @@ import net.opengis.swe.v20.Time;
  * Pan-Tilt-Zoom (PTZ) control
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since March 2016
  */
 public class VideoCamHelper extends RasterHelper

@@ -1,1 +1,2 @@
 org.sensorhub.impl.sensor.trupulse.TruPulseDescriptor
+org.sensorhub.impl.process.trupulse.TargetGeolocDescriptor

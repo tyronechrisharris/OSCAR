@@ -22,11 +22,11 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.plume.PlumeConfig;
 import org.sensorhub.impl.sensor.plume.PlumeSensor;
 import org.vast.data.TextEncodingImpl;
@@ -59,7 +59,7 @@ public class TestPlumeDriver implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -81,7 +81,7 @@ public class TestPlumeDriver implements IEventListener
     public void testSendMeasurements() throws Exception
     {
         System.out.println();
-        IStreamingDataInterface output = driver.getObservationOutputs().get("plumeModel");
+        ISensorDataInterface output = driver.getObservationOutputs().get("plumeModel");
         
         writer = new AsciiDataWriter();
         writer.setDataEncoding(new TextEncodingImpl(",", "\n"));
@@ -102,10 +102,10 @@ public class TestPlumeDriver implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         try
         {
