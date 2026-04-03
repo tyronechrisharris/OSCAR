@@ -33,7 +33,8 @@ services:
     build:
       context: ./postgis
       dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
-    image: oscar-postgis:latest
+    # UPDATED: Points to Docker Hub with fallback versioning
+    image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
     environment:
       - POSTGRES_DB=gis
@@ -68,7 +69,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.osh
-    image: oscar-backend:latest
+    # UPDATED: Points to Docker Hub with fallback versioning
+    image: harristc825/oscar-backend:${OSCAR_VERSION:-latest}
     container_name: oscar-backend-container
     environment:
       - DB_HOST=${DB_HOST:-osh-postgis}
