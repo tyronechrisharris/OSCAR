@@ -117,6 +117,12 @@ jobs:
             fi
           fi
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -158,14 +164,16 @@ jobs:
             echo "Building and pushing Production images with tags: latest and ${{ env.TAG_NAME }}"
 
             # OSH Backend
-            docker build -t ${DOCKER_USER}/oscar-backend:latest -t ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }} -f Dockerfile.osh .
-            docker push ${DOCKER_USER}/oscar-backend:latest
-            docker push ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }}
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-backend:latest \
+              -t ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }} \
+              -f Dockerfile.osh .
 
-            # PostGIS
-            docker build -t ${DOCKER_USER}/oscar-postgis:latest -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }} -f ./postgis/Dockerfile ./postgis
-            docker push ${DOCKER_USER}/oscar-postgis:latest
-            docker push ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }}
+            # PostGIS (Using the standard Dockerfile for both architectures)
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-postgis:latest \
+              -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }} \
+              -f ./postgis/Dockerfile ./postgis
 
           else
             # Dev Release (PR Opened or Synchronized)
@@ -175,12 +183,14 @@ jobs:
               echo "Building and pushing Dev images with tag: ${DEV_TAG}"
 
               # OSH Backend
-              docker build -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} -f Dockerfile.osh .
-              docker push ${DOCKER_USER}/oscar-backend:${DEV_TAG}
+              docker buildx build --platform linux/amd64,linux/arm64 --push \
+                -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} \
+                -f Dockerfile.osh .
 
               # PostGIS
-              docker build -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} -f ./postgis/Dockerfile ./postgis
-              docker push ${DOCKER_USER}/oscar-postgis:${DEV_TAG}
+              docker buildx build --platform linux/amd64,linux/arm64 --push \
+                -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} \
+                -f ./postgis/Dockerfile ./postgis
             else
               echo "Skipping Docker image build for PR. 'build-dev-image' label not found."
             fi
