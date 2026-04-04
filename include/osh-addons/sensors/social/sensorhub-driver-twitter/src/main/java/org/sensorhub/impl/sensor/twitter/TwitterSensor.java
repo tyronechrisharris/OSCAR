@@ -28,9 +28,9 @@ public class TwitterSensor extends AbstractSensorModule<TwitterConfig>
 	}
 
 	@Override
-    protected void doInit() throws SensorHubException
+	public void init() throws SensorHubException
 	{
-		super.doInit();
+		super.init();
 		
 		// generate identifiers
 		generateUniqueID(urn, config.streamID);
@@ -54,7 +54,7 @@ public class TwitterSensor extends AbstractSensorModule<TwitterConfig>
 	}
 	
 	@Override
-	protected void doStart() throws SensorHubException
+	public void start() throws SensorHubException
 	{
 		try {
 			dataInterface.start(config);
@@ -65,7 +65,7 @@ public class TwitterSensor extends AbstractSensorModule<TwitterConfig>
 	}
 
 	@Override
-	protected void doStop()
+	public void stop()
 	{
 		dataInterface.stop();
 	}

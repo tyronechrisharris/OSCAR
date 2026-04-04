@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * to the I2C bus. This driver is based no JDK Device I/O.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Aug 29, 2015
  */
 public class JdkDioI2CCommProvider extends AbstractModule<JdkDioI2CCommProviderConfig> implements ICommProvider<JdkDioI2CCommProviderConfig>
@@ -57,7 +57,7 @@ public class JdkDioI2CCommProvider extends AbstractModule<JdkDioI2CCommProviderC
     
     
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {        
         I2CConfig config = this.config.protocol;
         String deviceString = String.format("I2C device (Bus %d, Addr %H)", config.busNumber, config.deviceAddress);
@@ -117,7 +117,7 @@ public class JdkDioI2CCommProvider extends AbstractModule<JdkDioI2CCommProviderC
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (i2c != null)
         {

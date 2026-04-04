@@ -21,7 +21,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
-import org.sensorhub.api.command.CommandException;
+
+import org.sensorhub.api.common.CommandStatus;
+import org.sensorhub.api.common.CommandStatus.StatusCode;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorControl;
 import org.sensorhub.impl.sensor.foscam.ptz.FoscamPTZpreset;
@@ -42,7 +44,7 @@ import net.opengis.swe.v20.DataComponent;
  * particular class provides control of the Pan-Tilt-Zoom (PTZ) capabilities.
  * </p>
  *
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 public class FoscamPtzControl extends AbstractSensorControl<FoscamDriver> {
@@ -54,7 +56,12 @@ public class FoscamPtzControl extends AbstractSensorControl<FoscamDriver> {
 	FoscamPTZrelMoveHandler relMoveHandler;
 
 	protected FoscamPtzControl(FoscamDriver driver) {
-		super("ptzControl", driver);
+		super(driver);
+	}
+
+	@Override
+	public String getName() {
+		return "ptzControl";
 	}
 
 	protected void init() throws SensorException {
@@ -82,15 +89,7 @@ public class FoscamPtzControl extends AbstractSensorControl<FoscamDriver> {
 		DataBlock initCmd;
 		commandData.setSelectedItem(7);
 		initCmd = commandData.createDataBlock();
-		
-		try
-        {
-            execCommand(initCmd);
-        }
-        catch (CommandException e)
-        {
-            throw new SensorException("Init command failed", e);
-        }
+		execCommand(initCmd);
 	}
 
 	protected void stop() {
@@ -102,7 +101,7 @@ public class FoscamPtzControl extends AbstractSensorControl<FoscamDriver> {
 	}
 
 	@Override
-	protected boolean execCommand(DataBlock command) throws CommandException {
+	public CommandStatus execCommand(DataBlock command) throws SensorException {
 		// associate command data to msg structure definition
 		DataChoice commandMsg = (DataChoice) commandData.copy();
 		commandMsg.setData(command);
@@ -187,9 +186,12 @@ public class FoscamPtzControl extends AbstractSensorControl<FoscamDriver> {
 			}
 
 		} catch (Exception e) {
-			throw new CommandException("Error connecting to Foscam PTZ control", e);
+			throw new SensorException("Error connecting to Foscam PTZ control", e);
 		}
 
-		return true;
+		CommandStatus cmdStatus = new CommandStatus();
+		cmdStatus.status = StatusCode.COMPLETED;
+		logger.info("cmdStatus = " + cmdStatus.status);
+		return cmdStatus;
 	}
 }

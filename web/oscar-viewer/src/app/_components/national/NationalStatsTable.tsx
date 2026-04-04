@@ -5,11 +5,9 @@ import { NationalTableDataCollection} from "@/lib/data/oscar/TableHelpers";
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
 import {Box} from "@mui/material";
 import CustomToolbar from "@/app/_components/CustomToolbar";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 
 export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCounts: INationalTableData[]}){
-    const { t } = useLanguage();
     const natlTableRef = useRef<NationalTableDataCollection>(new NationalTableDataCollection());
 
     useEffect(() => {
@@ -23,14 +21,14 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
     const columns: GridColDef<INationalTableData>[] = [
         {
             field: 'site',
-            headerName: t('nodeId'),
+            headerName: 'Node ID',
             type: 'string',
             minWidth: 150,
             flex: 1,
         },
         {
             field: 'numGammaAlarms',
-            headerName: t('alarm.gamma'),
+            headerName: 'G Alarm',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -39,7 +37,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numNeutronAlarms',
-            headerName: t('alarm.neutron'),
+            headerName: 'N Alarm',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -48,7 +46,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numGammaNeutronAlarms',
-            headerName: t('alarm.gammaNeutron'),
+            headerName: 'G-N Alarm',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -57,7 +55,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numOccupancies',
-            headerName: t('occupancies'),
+            headerName: 'Occupancies',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -66,7 +64,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numTampers',
-            headerName: t('tamper'),
+            headerName: 'Tamper',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -75,7 +73,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numGammaFaults',
-            headerName: t('faults.gamma'),
+            headerName: 'G Faults',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -84,7 +82,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numNeutronFaults',
-            headerName: t('faults.neutron'),
+            headerName: 'N Faults',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -93,7 +91,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
         },
         {
             field: 'numFaults',
-            headerName: t('faults'),
+            headerName: 'Faults',
             valueFormatter: (value) => {
                 return typeof value === 'number' ? value : 0;
             },
@@ -103,7 +101,7 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
     ]
 
     return (
-        <Box sx={{height: 800, width: '100%'}}>
+        <Box sx={{height: 800, width: '100%', overflowX: 'auto'}}>
             <DataGrid
                 rows={natlTableRef.current.data}
                 columns={columns}
@@ -121,6 +119,10 @@ export default function StatTable(selectedTimeRangeCounts: {selectedTimeRangeCou
                     expand: true,
                     includeOutliers: true,
                     includeHeaders: false,
+                }}
+                sx={{
+                    border: "none",
+                    width: "100%"
                 }}
             />
         </Box>

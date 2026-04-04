@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__string {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+
