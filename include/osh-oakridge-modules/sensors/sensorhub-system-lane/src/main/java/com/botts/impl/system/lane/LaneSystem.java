@@ -83,9 +83,9 @@ public class LaneSystem extends SensorSystem {
     private static final String MEDIA_MTX_ADD_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/add/";
     private static final String MEDIA_MTX_PATCH_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/";
     private static final String MEDIA_MTX_RTSP_BASE = "rtsp://172.17.0.1:8554/";
-    private static final HttpClient MEDIA_MTX_HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
+    private HttpClient getMediaMtxClient() {
+        return HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    }
 
     AbstractSensorModule<?> existingRPMModule = null;
     Flow.Subscription subscription = null;
@@ -256,7 +256,7 @@ public class LaneSystem extends SensorSystem {
                 .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
                 .build();
 
-        return MEDIA_MTX_HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        return getMediaMtxClient().send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
     }
 
     private String buildMediaMtxPathName(FFMPEGConfig ffmpegConfig, int index) {
