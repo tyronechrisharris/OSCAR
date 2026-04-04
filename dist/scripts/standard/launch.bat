@@ -7,14 +7,17 @@ REM If keystore doesn't exist, this will generate it and create .app_secrets.
 REM If it does exist, it will check for auto-renewal of the leaf certificate.
 java -cp "lib/*" com.botts.impl.security.LocalCAUtility
 
-if exist ".app_secrets" (
-    set /p KEYSTORE_PASSWORD=<.app_secrets
+set PASS_FILE=%KEYSTORE_PASSWORD_FILE%
+if "%PASS_FILE%"=="" set PASS_FILE=.app_secrets
+
+if exist "%PASS_FILE%" (
+    set /p KEYSTORE_PASSWORD=<%PASS_FILE%
     REM Use the same auto-generated secret for the truststore if not provided
     if "%TRUSTSTORE_PASSWORD%"=="" (
-        set "TRUSTSTORE_PASSWORD=%KEYSTORE_PASSWORD%"
+        set "TRUSTSTORE_PASSWORD=!KEYSTORE_PASSWORD!"
     )
 ) else (
-    echo CRITICAL ERROR: .app_secrets not found. Cannot load keystore password. Halting startup.
+    echo CRITICAL ERROR: %PASS_FILE% not found. Cannot load keystore password. Halting startup.
     exit /b 1
 )
 

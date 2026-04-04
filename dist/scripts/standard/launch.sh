@@ -7,14 +7,16 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # If it does exist, it will check for auto-renewal of the leaf certificate.
 java -cp "lib/*" com.botts.impl.security.LocalCAUtility
 
-if [ -f ".app_secrets" ]; then
-    export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets)
+PASS_FILE=${KEYSTORE_PASSWORD_FILE:-.app_secrets}
+
+if [ -f "$PASS_FILE" ]; then
+    export KEYSTORE_PASSWORD=$(head -n 1 "$PASS_FILE")
     # Use the same auto-generated secret for the truststore if not provided
     if [ -z "$TRUSTSTORE_PASSWORD" ]; then
         export TRUSTSTORE_PASSWORD="$KEYSTORE_PASSWORD"
     fi
 else
-    echo "CRITICAL ERROR: .app_secrets not found. Cannot load keystore password. Halting startup."
+    echo "CRITICAL ERROR: $PASS_FILE not found. Cannot load keystore password. Halting startup."
     exit 1
 fi
 
