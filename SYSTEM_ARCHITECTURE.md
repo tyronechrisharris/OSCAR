@@ -15,6 +15,11 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
 - **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors.
 
+## Hybrid Volume Architecture
+To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
+1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon.
+2. **Bind Mounts (Persistent Configuration & Data)**: Non-sensitive persistent data (like the PostGIS database records in `./pgdata`, the backend's configuration in `./osh-node-oscar/config`, Tailscale state in `./tailscale`, and generated certificates mapped to the proxy) are bound to the host filesystem. This ensures administrators have direct access to back up databases, manually tweak configuration files, and manage certificates locally.
+
 ## Deployment Scenarios & Minimum System Requirements
 
 OSCAR is designed to scale from edge devices to enterprise environments. You can configure your deployment by selecting a scenario in the `.env` file.
