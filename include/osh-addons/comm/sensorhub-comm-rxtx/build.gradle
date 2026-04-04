@@ -10,14 +10,7 @@ rootProject.allprojects {
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedImpl 'gnu.io:rxtx:2.2-pre1'
-}
-
-osgi {
-  manifest {
-    attributes('Bundle-Vendor': 'Sensia Software LLC')
-    attributes('Bundle-Activator': 'org.sensorhub.impl.comm.rxtx.Activator')
-  }
+  embedded 'gnu.io:rxtx:2.2-pre1'
 }
 
 test {

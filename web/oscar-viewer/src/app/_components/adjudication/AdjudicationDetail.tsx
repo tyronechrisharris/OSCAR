@@ -48,8 +48,7 @@ import {useSelector} from "react-redux";
 import {RootState} from "@/lib/state/Store";
 import {selectLaneMap} from "@/lib/state/OSCARLaneSlice";
 import {randomUUID} from "osh-js/source/core/utils/Utils";
-
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useBreakpoint } from "@/app/providers";
 
 interface FileWithWebId {
     file: File;
@@ -70,8 +69,7 @@ interface ScannedDataWithWebId {
 }
 
 export default function AdjudicationDetail(props: { event: EventTableData }) {
-    const { t } = useLanguage();
-
+    const { isMobile, isSmallTablet } = useBreakpoint();
     const dispatch = useAppDispatch();
 
     const [uploadedFiles, setUploadedFiles] = useState<FileWithWebId[]>([])
@@ -607,8 +605,8 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                 <Typography
                     variant="h4"
                 >
-                {t('adjudicationTitle')}
-            </Typography>
+                    Adjudication
+                </Typography>
             </Grid>
 
             <Grid item xs={12}>
@@ -650,7 +648,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                 <Grid item xs={12}>
                     <TextField
                         id="outlined-multiline-static"
-                        label={t('notes')}
+                        label="Notes"
                         name="notes"
                         multiline
                         rows={4}
@@ -845,7 +843,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                                 color: "secondary.main"
                             }}
                         >
-                            {t('uploadFiles')}
+                            Upload Files
                             <input
                                 type="file"
                                 multiple
@@ -871,7 +869,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                             }}
                             onClick={handleQrCode}
                         >
-                            {t('qrStartScan')}
+                            QR Scanner
                         </Button>
                     </Stack>
                 </Grid>
@@ -887,7 +885,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                             color={"success"}
                             onClick={sendAdjudicationData}
                         >
-                            {t('submit')}
+                            Submit
                         </Button>
                     </Stack>
                 </Grid>
@@ -911,7 +909,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                     <CloseIcon/>
                 </IconButton>
                 <DialogTitle sx={{textAlign: 'center', pb: 1}}>
-                    {t('webIdQrAnalysis')}
+                    Spectroscopic QR Code Scanner
                 </DialogTitle>
                 <Box
                     sx={{
@@ -991,7 +989,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                             onClick={handleCloseQrCodeDialog}
                             sx={{minWidth: 120}}
                         >
-                            {t('doneScanning') || "Done Scanning"}
+                            Done Scanning
                         </Button>
                     </Stack>
                 </Box>

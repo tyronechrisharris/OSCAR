@@ -87,7 +87,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
         if (!module.getLocalID().startsWith("$$"))
         {
             // apply changes button
-            Button applyButton = new Button(I18N.get("applyChanges1"));
+            Button applyButton = new Button("Apply Changes");
             applyButton.setIcon(APPLY_ICON);
             applyButton.addStyleName(STYLE_SMALL);
             applyButton.addStyleName("apply-button");
@@ -99,7 +99,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
             configTabs = tabbedConfigForm.configTabs;
             try {
 
-                configTabs.addTab(new ReadmePanel(beanItem), I18N.get("tab.readme"));
+                configTabs.addTab(new ReadmePanel(beanItem), "README");
                 addComponent(tabbedConfigForm);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -244,7 +244,7 @@ public class DefaultModulePanel<ModuleType extends IModule<? extends ModuleConfi
     protected IModuleConfigForm getConfigForm(MyBeanItem<ModuleConfig> beanItem)
     {
         IModuleConfigForm form = getParentProducer().generateForm(beanItem.getBean().getClass());
-        form.build(I18N.get("tab.general"), "General module configuration", (MyBeanItem)beanItem, false);
+        form.build(GenericConfigForm.MAIN_CONFIG, "General module configuration", (MyBeanItem)beanItem, false);
         return form;
     }
 

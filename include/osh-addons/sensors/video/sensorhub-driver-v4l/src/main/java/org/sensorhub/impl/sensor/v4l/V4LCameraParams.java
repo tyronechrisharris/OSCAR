@@ -17,6 +17,7 @@ package org.sensorhub.impl.sensor.v4l;
 
 public class V4LCameraParams implements Cloneable
 {
+    public boolean doCapture;
     public String imgFormat = "YUYV";
     public int imgWidth = 640;
     public int imgHeight = 480;
@@ -32,7 +33,7 @@ public class V4LCameraParams implements Cloneable
         }
         catch (CloneNotSupportedException e)
         {
-            throw new IllegalStateException("Superclass clone failed", e);
+            return null;
         }
     }
 }

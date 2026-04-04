@@ -28,7 +28,7 @@ import org.sensorhub.api.comm.ble.IGattField;
  * Implementation of GATT descriptor wrapping DBus GattDescriptor1
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 15, 2016
  */
 public class GattDescriptorImpl implements IGattDescriptor

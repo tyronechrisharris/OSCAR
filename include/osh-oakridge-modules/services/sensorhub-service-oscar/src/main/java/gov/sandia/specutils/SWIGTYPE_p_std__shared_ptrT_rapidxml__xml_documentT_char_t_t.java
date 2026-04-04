@@ -27,3 +27,4 @@ public class SWIGTYPE_p_std__shared_ptrT_rapidxml__xml_documentT_char_t_t {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 }
+

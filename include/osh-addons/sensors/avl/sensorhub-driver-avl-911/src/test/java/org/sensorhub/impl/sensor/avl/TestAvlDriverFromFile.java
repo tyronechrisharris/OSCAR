@@ -21,11 +21,11 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.vast.data.TextEncodingImpl;
 import org.vast.sensorML.SMLUtils;
 import org.vast.swe.AsciiDataWriter;
@@ -60,7 +60,7 @@ public class TestAvlDriverFromFile implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -87,7 +87,7 @@ public class TestAvlDriverFromFile implements IEventListener
         writer.setDataEncoding(new TextEncodingImpl(",", "\n"));
         writer.setOutput(System.out);
         
-        IStreamingDataInterface locOutput = driver.getObservationOutputs().get("avlData");
+        ISensorDataInterface locOutput = driver.getObservationOutputs().get("avlData");
         locOutput.registerListener(this);
         
         driver.start();
@@ -103,18 +103,17 @@ public class TestAvlDriverFromFile implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent dataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         try
         {
             //System.out.print("\nNew data received from sensor " + newDataEvent.getSensorId());
-            IStreamingDataInterface output = driver.getObservationOutputs().get(dataEvent.getOutputName());
-            writer.setDataComponents(output.getRecordDescription().copy());
+            writer.setDataComponents(newDataEvent.getRecordDescription());
             writer.reset();
-            writer.write(dataEvent.getRecords()[0]);
+            writer.write(newDataEvent.getRecords()[0]);
             writer.flush();
             
             sampleCount++;

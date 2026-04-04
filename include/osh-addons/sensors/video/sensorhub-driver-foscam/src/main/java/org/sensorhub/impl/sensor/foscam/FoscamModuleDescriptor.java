@@ -31,7 +31,7 @@ import org.sensorhub.impl.module.JarModuleProvider;
  * Copyright (c) 2016
  * </p>
  * 
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since September 2016
  */
 
