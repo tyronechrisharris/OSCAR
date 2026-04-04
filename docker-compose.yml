@@ -1,5 +1,4 @@
 services:
-  # Pre-flight container to generate secrets exactly like launch-all.sh
   init-secrets:
     image: eclipse-temurin:21-jre-alpine
     container_name: oscar-init-secrets
@@ -20,7 +19,6 @@ services:
         cp $$JAVA_HOME/lib/security/cacerts /secrets/truststore.jks;
         chmod 644 /secrets/truststore.jks;
 
-        # Change the default 'changeit' password to the secure generated password
         NEW_PASS=$$(cat /secrets/.app_secrets);
         keytool -storepasswd -new $$NEW_PASS -keystore /secrets/truststore.jks -storepass changeit;
       fi;
@@ -30,17 +28,12 @@ services:
     depends_on:
       init-secrets:
         condition: service_completed_successfully
-    build:
-      context: ./postgis
-      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
-    # UPDATED: Points to Docker Hub with fallback versioning
     image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
-      # Performance Tuning from .env
       - POSTGRES_SHARED_BUFFERS=${DB_SHARED_BUFFERS:-128MB}
       - POSTGRES_EFFECTIVE_CACHE_SIZE=${DB_EFFECTIVE_CACHE_SIZE:-512MB}
       - POSTGRES_WORK_MEM=${DB_WORK_MEM:-4MB}
@@ -66,10 +59,6 @@ services:
       retries: 5
 
   osh-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.osh
-    # UPDATED: Points to Docker Hub with fallback versioning
     image: harristc825/oscar-backend:${OSCAR_VERSION:-latest}
     container_name: oscar-backend-container
     environment:
@@ -80,14 +69,14 @@ services:
       - TRUSTSTORE=/secrets/truststore.jks
       - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
-      # JVM Tuning from .env
+      # CRITICAL FIX 1: Forces backend to use the shared secrets volume
+      - KEYSTORE_PASSWORD_FILE=/secrets/.app_secrets
+      - TRUSTSTORE_PASSWORD_FILE=/secrets/.app_secrets
       - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055
     volumes:
-      # Use named volumes or bind mounts for persistent backend state
-      - ./osh-node-oscar:/app/config
+      - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
-      # The secrets volume guarantees persistence for the CA and database passwords
       - oscar_secrets:/secrets:ro
     networks:
       - osh-internal
@@ -99,14 +88,9 @@ services:
         limits:
           memory: ${BACKEND_MEM_LIMIT:-2G}
     restart: unless-stopped
-    # Port 8282 is not exposed to the host network to ensure it's only accessible via the proxy
-    # For local debugging, it can be bound to 127.0.0.1:8282
     ports:
       - "127.0.0.1:8282:8282"
     healthcheck:
-      # Wait-State Logic: The backend takes significant time to generate certificates,
-      # process the Setup Wizard, and validate TOTP/Admin states before it is ready.
-      # We test against the base API root to ensure it accepts connections.
       test: ["CMD-SHELL", "curl -s -I http://localhost:8282/sensorhub/api | grep -q 'HTTP/1.1' || exit 1"]
       interval: 15s
       timeout: 10s
@@ -131,9 +115,7 @@ services:
       - TS_ROUTES=${TS_ROUTES:-}
       - TS_EXTRA_ARGS=${TS_EXTRA_ARGS:-}
       - TS_STATE_DIR=/var/lib/tailscale
-      # Start a SOCKS5 server on port 1055 to route outbound traffic for other internal containers
       - TS_SOCKS5_SERVER=:1055
-      # Force the socket into the shared volume so Caddy can communicate with Tailscale
       - TS_SOCKET=/var/run/tailscale/tailscaled.sock
     ports:
       - "127.0.0.1:80:80"
@@ -163,10 +145,9 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
-      # Mount the directory containing the socket, not the socket file itself, to avoid Docker creating a directory
       - ./tailscale/sock:/var/run/tailscale:ro
-      # Mount the generated certificates from the backend's persistent config volume
-      - ./osh-node-oscar:/etc/caddy/certs:ro
+      # CRITICAL FIX 2: Appends /config to the host path so Caddy finds the certs
+      - ./osh-node-oscar/config:/etc/caddy/certs:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -177,18 +158,13 @@ services:
       - -c
       - |
         cat << EOF > /etc/caddy/Caddyfile
-        # 1. Local HTTP Block
         http://localhost {
             reverse_proxy http://osh-backend:8282
         }
-
-        # 2. Local HTTPS Block
         https://localhost, 127.0.0.1 {
             reverse_proxy http://osh-backend:8282
             tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
         }
-
-        # 3. Tailscale Block (Conditional Federated Access via MagicDNS)
         ${TAILSCALE_DOMAIN} {
             reverse_proxy http://osh-backend:8282
             tls {
