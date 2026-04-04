@@ -83,6 +83,58 @@ docker compose up -d
 ```
 *Note for Offline Deployments: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) are still available inside the `dist/release/` directory of the zip archive for convenience.*
 
+### Shutdown and Restart Procedures
+
+To properly shut down and restart your OSCAR stack, you have a few different options depending on whether you just want to pause the system, rebuild it, or completely wipe it.
+
+These exact terminal commands should be run from inside your `oscar` directory, regardless of whether you are using Windows PowerShell, Mac Terminal, or Linux Bash.
+
+**Option 1: The "Soft" Stop and Start (Recommended for pausing)**
+This is the fastest way to bring the system down and back up. It stops the containers exactly where they are without deleting them or removing them from Docker's internal network.
+
+* **To shut down:**
+    ```bash
+    docker compose stop
+    ```
+* **To start back up:**
+    ```bash
+    docker compose start
+    ```
+
+**Option 2: The "Clean" Restart (Recommended for applying updates)**
+If you make changes to your `docker-compose.yml` file, your `.env` file, or if you download a new version of your backend image, you must use this method. It safely deletes the containers and networks, but **keeps your data and certificates perfectly safe** in their volumes.
+
+* **To shut down:**
+    ```bash
+    docker compose down
+    ```
+* **To start back up:**
+    ```bash
+    docker compose up -d
+    ```
+
+**Option 3: The "Nuclear" Reset (Data Wipe)**
+Only use this if you want to completely factory reset the system. **This permanently deletes your database history, your saved passwords, and your generated SSL certificates.**
+
+* **To wipe everything:**
+    ```bash
+    docker compose down -v
+    ```
+* **To boot fresh:**
+    ```bash
+    docker compose up -d
+    ```
+
+---
+
+**A Pro-Tip for Monitoring the Restart:**
+Whenever you run `docker compose up -d`, the `-d` flag runs everything in the background so you can keep using your terminal. If you want to watch the system boot up to make sure everything connects smoothly, run this command right after:
+
+```bash
+docker compose logs -f
+```
+*(Press `Ctrl + C` when you are done watching to exit the log view).*
+
 ### Access the OSCAR System
 - Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
 - Tailscale Access: **https://[your-tailscale-domain]**
