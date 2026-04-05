@@ -28,10 +28,6 @@ fi
 # Make sure all the necessary certificates are trusted by the system.
 "$SCRIPT_DIR/load_trusted_certs.sh"
 
-export KEYSTORE="./osh-keystore.p12"
-export KEYSTORE_TYPE=PKCS12
-export TRUSTSTORE="./truststore.jks"
-export TRUSTSTORE_TYPE=JKS
 
   if [ -f "./.initial_admin_password" ]; then
       export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"

@@ -31,10 +31,6 @@ if exist "%PASS_FILE%" (
 REM Make sure all the necessary certificates are trusted by the system.
 CALL %~dp0load_trusted_certs.bat
 
-set KEYSTORE=.\osh-keystore.p12
-set KEYSTORE_TYPE=PKCS12
-set TRUSTSTORE=.\truststore.jks
-set TRUSTSTORE_TYPE=JKS
 
 if exist ".\.initial_admin_password" (
     set INITIAL_ADMIN_PASSWORD_FILE=.\.initial_admin_password
