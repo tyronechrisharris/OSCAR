@@ -18,8 +18,6 @@ COPY ./osh-node-oscar/logback.xml /app/logback.xml
 COPY ./osh-node-oscar/config.json /app/config.json
 COPY ./osh-node-oscar/config /app/config
 
-# The ENTRYPOINT ensures pre-launch checks (Local CA generation and fail-secure secret loading) run before the JVM starts.
-# It implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
-# It dynamically copies the Alpine JRE cacerts to build a valid truststore for federation, using the default 'changeit' password.
-# JAVA_OPTS is used to pass memory limits from the .env file.
-ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; if [ ! -f .app_secrets ]; then cp /secrets/.app_secrets .; fi; java -cp './lib/*' com.botts.impl.security.LocalCAUtility && export KEYSTORE_PASSWORD=$(head -n 1 .app_secrets) && export TRUSTSTORE_PASSWORD=$KEYSTORE_PASSWORD && java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]
+# The ENTRYPOINT implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
+# JAVA_OPTS is used to pass memory limits from the .env file and route outbound traffic through Tailscale.
+ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]
