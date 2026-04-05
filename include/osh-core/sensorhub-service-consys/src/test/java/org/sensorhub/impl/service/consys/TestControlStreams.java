@@ -109,7 +109,7 @@ public class TestControlStreams extends AbstractTestApiBase
         {
             var sweBindings = new SWEJsonBindings();
             writer.name("schema").beginObject();
-            writer.name("parametersSchema");
+            writer.name("paramsSchema");
             sweBindings.writeDataComponent(writer, paramStruct, false);
             
             writer.endObject();

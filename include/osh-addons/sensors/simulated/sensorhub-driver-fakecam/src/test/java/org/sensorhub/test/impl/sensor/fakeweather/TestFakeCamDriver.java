@@ -20,11 +20,11 @@ import net.opengis.swe.v20.DataComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sensorhub.api.event.Event;
-import org.sensorhub.api.event.IEventListener;
+import org.sensorhub.api.common.Event;
+import org.sensorhub.api.common.IEventListener;
 import org.sensorhub.api.common.SensorHubException;
-import org.sensorhub.api.data.IStreamingDataInterface;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.ISensorDataInterface;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.fakecam.FakeCamConfig;
 import org.sensorhub.impl.sensor.fakecam.FakeCamSensor;
 import org.vast.sensorML.SMLUtils;
@@ -54,7 +54,7 @@ public class TestFakeCamDriver implements IEventListener
     @Test
     public void testGetOutputDesc() throws Exception
     {
-        for (IStreamingDataInterface di: driver.getObservationOutputs().values())
+        for (ISensorDataInterface di: driver.getObservationOutputs().values())
         {
             System.out.println();
             DataComponent dataMsg = di.getRecordDescription();
@@ -77,7 +77,7 @@ public class TestFakeCamDriver implements IEventListener
     {
         System.out.println();
         
-        IStreamingDataInterface camOutput = driver.getObservationOutputs().get("videoOut");        
+        ISensorDataInterface camOutput = driver.getObservationOutputs().get("videoOut");        
         camOutput.registerListener(this);
         
         driver.start();
@@ -93,10 +93,10 @@ public class TestFakeCamDriver implements IEventListener
     
     
     @Override
-    public void handleEvent(Event e)
+    public void handleEvent(Event<?> e)
     {
-        assertTrue(e instanceof DataEvent);
-        DataEvent newDataEvent = (DataEvent)e;
+        assertTrue(e instanceof SensorDataEvent);
+        SensorDataEvent newDataEvent = (SensorDataEvent)e;
         
         @SuppressWarnings("unused")
         byte[] videoFrameData = (byte[])newDataEvent.getRecords()[0].getUnderlyingObject();

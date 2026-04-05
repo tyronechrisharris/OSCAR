@@ -30,9 +30,9 @@ public class AHRSSensor extends AbstractSensorModule<AHRSConfig>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate IDs
         generateUniqueID("urn:osh:sensor:ahrs:", null);
@@ -82,7 +82,7 @@ public class AHRSSensor extends AbstractSensorModule<AHRSConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         if (commProvider == null)
         {
@@ -92,8 +92,7 @@ public class AHRSSensor extends AbstractSensorModule<AHRSConfig>
                 if (config.commSettings == null)
                     throw new SensorHubException("No communication settings specified");
 
-                var moduleReg = getParentHub().getModuleRegistry();
-                commProvider = (ICommProvider<?>)moduleReg.loadSubModule(config.commSettings, true);
+                commProvider = config.commSettings.getProvider();
                 commProvider.start();
             }
             catch (Exception e)
@@ -109,7 +108,7 @@ public class AHRSSensor extends AbstractSensorModule<AHRSConfig>
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (dataInterface != null)
             dataInterface.stop();

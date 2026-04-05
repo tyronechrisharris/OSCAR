@@ -24,7 +24,7 @@ import java.util.UUID;
  * <i>This interface was originally modeled on Android's Bluetooth LE API.</i>
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Feb 28, 2016
  */
 public interface IGattService

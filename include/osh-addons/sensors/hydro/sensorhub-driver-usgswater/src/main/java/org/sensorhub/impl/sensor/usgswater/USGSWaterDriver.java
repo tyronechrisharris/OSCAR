@@ -56,7 +56,7 @@ import org.vast.sensorML.SMLHelper;
  * protocol. This particular class stores configuration parameters.
  * </p>
  * 
- * @author Lee Butler
+ * @author Lee Butler <labutler10@gmail.com>
  * @since March 22, 2017
  */
 
@@ -108,10 +108,10 @@ public class USGSWaterDriver extends AbstractSensorModule <USGSWaterConfig> impl
     };
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
         // reset internal state in case init() was already called
-        super.doInit();
+        super.init();
         
     	this.countyCode = new LinkedHashSet<CountyCode>();
 
@@ -207,7 +207,7 @@ public class USGSWaterDriver extends AbstractSensorModule <USGSWaterConfig> impl
     }
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
 	    
     	SMLHelper sml = new SMLHelper();
@@ -627,7 +627,7 @@ public class USGSWaterDriver extends AbstractSensorModule <USGSWaterConfig> impl
 
 
     @Override
-    protected void doStop() {
+    public void stop() {
 	    if (timer != null)
         {
             timer.cancel();

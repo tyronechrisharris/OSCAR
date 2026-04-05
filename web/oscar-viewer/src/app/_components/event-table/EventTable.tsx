@@ -30,13 +30,16 @@ import { useRouter } from "next/dist/client/components/navigation";
 import { getObservations } from "@/app/utils/ChartUtils";
 import { isOccupancyDataStream, isThresholdDataStream } from "@/lib/data/oscar/Utilities";
 import { convertToMap, hashString } from "@/app/utils/Utils";
+import { OCCUPANCY_PILLAR_DEF } from "@/lib/data/Constants";
 import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasource";
 import { selectNodes } from "@/lib/state/OSHSlice";
 import { EventType } from "osh-js/source/core/event/EventType";
 import {INode} from "@/lib/data/osh/Node";
 import Observations from "osh-js/source/core/consysapi/observation/Observations";
 import { GridFilterModel } from "@mui/x-data-grid"
-import { useLanguage } from '@/contexts/LanguageContext';
+
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import {NotificationService, NotificationTemplates} from "../notifications/NotificationService";
 
 
 interface TableProps {
@@ -86,7 +89,13 @@ export default function EventTable({
             type: 'string',
             minWidth: 100,
             flex: 1,
-            filterable: false
+            filterable: false,
+            renderCell: (params) => (
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 0.5 }}>
+                    <span style={{ lineHeight: 1.25 }}>{params.row.laneId}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'gray', lineHeight: 1.25 }}>{params.row.parentNode}</span>
+                </Box>
+            )
         },
         {
             field: 'occupancyCount',
@@ -154,21 +163,7 @@ export default function EventTable({
             minWidth: 125,
             flex: 1.2,
             type: 'singleSelect',
-            valueOptions: [
-                { value: 'None', label: t('statusNone') },
-                { value: 'Gamma', label: t('statusGamma') },
-                { value: 'Neutron', label: t('statusNeutron') },
-                { value: 'Gamma & Neutron', label: t('statusGammaNeutron') }
-            ],
-            valueFormatter: (params) => {
-                 switch(params) {
-                     case 'Gamma': return t('statusGamma');
-                     case 'Neutron': return t('statusNeutron');
-                     case 'Gamma & Neutron': return t('statusGammaNeutron');
-                     case 'None': return t('statusNone');
-                     default: return params;
-                 }
-            },
+            valueOptions: ['None', 'Gamma', 'Neutron', 'Gamma & Neutron'],
             filterOperators: getGridSingleSelectOperators().filter(
                 (op) => ['is'].includes(op.value)
                 // (op) => ['is', 'not'].includes(op.value)
@@ -177,15 +172,12 @@ export default function EventTable({
         {
             field: 'adjudicatedIds',
             headerName: t('adjudicated'),
-            valueFormatter: (params: any) => params.length > 0 ? t('yes') : t('no'),
+            valueFormatter: (params: any) => params.length > 0 ? "Yes" : "No",
             minWidth: 100,
             flex: 1,
             filterable: viewAdjudicated,
             type: 'singleSelect',
-            valueOptions: [
-                { value: 'Yes', label: t('yes') },
-                { value: 'No', label: t('no') }
-            ],
+            valueOptions: ['Yes', 'No'],
             filterOperators: getGridSingleSelectOperators().filter(
                 (op) => ['is', 'equal'].includes(op.value)
             )
@@ -201,7 +193,7 @@ export default function EventTable({
                     <GridActionsCellItem
                         key="details"
                         icon={<VisibilityRoundedIcon />}
-                        label={t('details')}
+                        label="Details"
                         onClick={() => handleEventPreview()}
                         showInMenu
                     />
@@ -230,7 +222,7 @@ export default function EventTable({
                 return;
 
 
-            const occStreams = entry.datastreams?.filter((ds: typeof DataStream) => isOccupancyDataStream(ds)) || [];
+            const occStreams = entry.datastreams.filter((ds: typeof DataStream) => isOccupancyDataStream(ds));
             for (const ds of occStreams) {
                 datastreamIds.push(ds.properties.id);
             }
@@ -240,7 +232,7 @@ export default function EventTable({
                 if (entry.parentNode.id !== node.id)
                     return;
 
-                const occStreams = entry.datastreams?.filter((ds: typeof DataStream) => isOccupancyDataStream(ds)) || [];
+                const occStreams = entry.datastreams.filter((ds: typeof DataStream) => isOccupancyDataStream(ds));
                 for (const ds of occStreams) {
                     datastreamIds.push(ds.properties.id);
                 }
@@ -335,8 +327,7 @@ export default function EventTable({
 
                 const obsApi: typeof Observations = await node.getObservationsApi();
                 const obsCollection = await obsApi.searchObservations(observationFilter, pageSize, pageOffset);
-
-                const results = await obsCollection.fetchData();
+                const results = await obsCollection.fetchData(pageOffset);
 
                 for (const obs of results) {
                     const laneEntry = findLaneByDataStreamId(stableLaneMap, obs.properties["datastream@id"]);
@@ -368,7 +359,7 @@ export default function EventTable({
 
     function findLaneByDataStreamId(laneMap: Map<string, LaneMapEntry>, datastreamId: string): LaneMapEntry | null {
         for (const entry of laneMap.values()) {
-            if (entry.datastreams?.some(ds => ds.properties.id === datastreamId)) {
+            if (entry.datastreams.some(ds => ds.properties.id === datastreamId)) {
                 return entry;
             }
         }
@@ -410,6 +401,29 @@ export default function EventTable({
         }
     }
 
+    const notificationServiceRef = useRef<NotificationService | null>(null);
+
+    useEffect(() => {
+        if (!notificationServiceRef.current) {
+            notificationServiceRef.current = new NotificationService();
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then((registration) => {
+                notificationServiceRef.current?.init(registration);
+            });
+        }
+    }, []);
+
+    function sendNotification(alarmData: { laneName: string, status: string, eventData?: any }) {
+        const notificationService = notificationServiceRef.current;
+        if (notificationService?.isReady()) {
+            notificationService.showNotification(
+                NotificationTemplates.newAlarm(alarmData.laneName, alarmData.status, alarmData.eventData)
+            )
+        }
+    }
+
     function eventFromObservation(obs: any, laneEntry: LaneMapEntry, isLive: boolean): EventTableData {
         const id = prngFromStr(obs, laneEntry.laneName);
         let newEvent: EventTableData;
@@ -417,11 +431,16 @@ export default function EventTable({
         if (isLive) {
             // Handle live observations
             const result = obs.result || obs;
-            newEvent = new EventTableData(id, laneEntry.laneName, result, null, obs["foi@id"] || obs.foiId);
+            newEvent = new EventTableData(id, laneEntry.laneName, result, null, obs["foi@id"] || obs.foiId, laneEntry.parentNode.name, laneEntry.isRS350Backpack);
             newEvent.setFoiId(obs["foi@id"] || obs.foiId);
+
+
+            if (newEvent.status !== 'None') {
+                sendNotification({ laneName: laneEntry.laneName, status: newEvent.status});
+            }
         } else {
             // Handle historical observations
-            newEvent = new EventTableData(id, laneEntry.laneName, obs.properties.result, obs.properties.id, obs.properties.foiId);
+            newEvent = new EventTableData(id, laneEntry.laneName, obs.properties.result, obs.properties.id, obs.properties.foiId, laneEntry.parentNode.name, laneEntry.isRS350Backpack);
             newEvent.setRPMSystemId(laneEntry.lookupSystemIdFromDataStreamId(obs.properties["datastream@id"]));
             newEvent.setDataStreamId(obs.properties["datastream@id"]);
             newEvent.setFoiId(obs.properties["foi@id"]);
@@ -452,7 +471,7 @@ export default function EventTable({
         const connectedSources: typeof ConSysApi[] = [];
 
         for (const entry of stableLaneMap.values()) {
-            const occStream: typeof DataStream = entry.datastreams?.find((ds: typeof DataStream) => isOccupancyDataStream(ds));
+            const occStream: typeof DataStream = entry.findDataStreamByObsProperty(OCCUPANCY_PILLAR_DEF);
 
             if (!occStream) {
                 continue;
@@ -560,7 +579,7 @@ export default function EventTable({
 
     async function getLatestGB(eventData: any) {
         for (const lane of laneMap.values()) {
-            let datastreams = lane.datastreams?.filter((ds: any) => isThresholdDataStream(ds)) || [];
+            let datastreams = lane.datastreams.filter((ds: any) => isThresholdDataStream(ds));
             let gammaThreshDs = datastreams.find((ds: typeof DataStream) =>
                 ds.properties["system@id"] === eventData.rpmSystemId
             );

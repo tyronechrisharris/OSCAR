@@ -27,6 +27,7 @@ import org.sensorhub.api.comm.ble.IGattClient;
 import org.sensorhub.api.comm.ble.IGattField;
 import org.sensorhub.api.comm.ble.IGattService;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.impl.SensorHub;
 import org.sensorhub.impl.module.ModuleRegistry;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ import org.vast.swe.SWEHelper;
  * Driver for Angel Sensor
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 12, 2016
  */
 public class AngelSensor extends AbstractSensorModule<AngelSensorConfig>
@@ -87,9 +88,9 @@ public class AngelSensor extends AbstractSensorModule<AngelSensorConfig>
 
 
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate IDs
         generateUniqueID("urn:osh:angelsensor:", config.btAddress);
@@ -143,13 +144,13 @@ public class AngelSensor extends AbstractSensorModule<AngelSensorConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         // connect to BLE network
         if (bleNetRef == null)
         {
-            ModuleRegistry reg = getParentHub().getModuleRegistry();
-            bleNetRef = reg.getModuleRef(config.networkID);
+            ModuleRegistry reg = SensorHub.getInstance().getModuleRegistry();
+            bleNetRef = (WeakReference<IBleNetwork<?>>) reg.getModuleRef(config.networkID);
 
             // connect to sensor
             gattCallback = new AngelSensorCallback();
@@ -159,7 +160,7 @@ public class AngelSensor extends AbstractSensorModule<AngelSensorConfig>
 
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         if (gattClient != null)
             gattClient.close();

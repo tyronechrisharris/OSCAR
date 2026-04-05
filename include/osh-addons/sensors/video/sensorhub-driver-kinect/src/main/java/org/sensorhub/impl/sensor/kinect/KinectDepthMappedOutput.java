@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
 import org.openkinect.freenect.DepthHandler;
 import org.openkinect.freenect.Device;
 import org.openkinect.freenect.FrameMode;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.vast.data.DataBlockMixed;
 import org.vast.data.TextEncodingImpl;
 import org.vast.swe.SWEHelper;
@@ -36,7 +36,7 @@ public class KinectDepthMappedOutput extends KinectDepthOutput {
 	private static final int IDX_Z_COORD_COMPONENT = 2;
 	private static final int DIMENSIONS = 3;
 
-	private static final String STR_NAME = new String("depthMapData");
+	private static final String STR_NAME = new String("Kinect Depth - Camera Model Mapped");
 
 	private static final String STR_POINT_UNITS_OF_MEASURE = new String("m");
 
@@ -69,7 +69,13 @@ public class KinectDepthMappedOutput extends KinectDepthOutput {
 
 	public KinectDepthMappedOutput(KinectSensor parentSensor, Device kinectDevice) {
 
-		super(STR_NAME, parentSensor, kinectDevice);
+		super(parentSensor, kinectDevice);
+
+		name = STR_NAME;
+
+		samplingTimeMillis = (long) (getParentModule().getConfiguration().samplingTime * MS_PER_S);
+
+		numPoints = computeNumPoints();
 	}
 
 	@Override
@@ -89,7 +95,7 @@ public class KinectDepthMappedOutput extends KinectDepthOutput {
 
 		numPoints = computeNumPoints();
 
-		device.setDepthFormat(getParentProducer().getConfiguration().depthFormat);
+		device.setDepthFormat(getParentModule().getConfiguration().depthFormat);
 
 		VectorHelper factory = new VectorHelper();
 
@@ -150,8 +156,8 @@ public class KinectDepthMappedOutput extends KinectDepthOutput {
 					// update latest record and send event
 					latestRecord = dataBlock;
 					latestRecordTime = System.currentTimeMillis();
-					eventHandler.publish(
-							new DataEvent(latestRecordTime, KinectDepthMappedOutput.this, dataBlock));
+					eventHandler.publishEvent(
+							new SensorDataEvent(latestRecordTime, KinectDepthMappedOutput.this, dataBlock));
 
 					frame.position(0);
 

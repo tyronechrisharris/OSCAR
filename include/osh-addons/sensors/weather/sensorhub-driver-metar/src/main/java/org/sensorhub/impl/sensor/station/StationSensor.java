@@ -37,9 +37,9 @@ public class StationSensor extends AbstractSensorModule<StationConfig>
     
     
     @Override
-    protected void doInit() throws SensorHubException
+    public void init() throws SensorHubException
     {
-        super.doInit();
+        super.init();
         
         // generate IDs
         this.uniqueID = "urn:osh:sensor:metar:network";
@@ -63,14 +63,14 @@ public class StationSensor extends AbstractSensorModule<StationConfig>
 
 
     @Override
-    protected void doStart() throws SensorHubException
+    public void start() throws SensorHubException
     {
         dataInterface.start();        
     }
     
 
     @Override
-    protected void doStop() throws SensorHubException
+    public void stop() throws SensorHubException
     {
         dataInterface.stop();
     }
