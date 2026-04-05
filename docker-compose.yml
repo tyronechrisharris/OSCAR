@@ -22,6 +22,13 @@ services:
         NEW_PASS=$$(cat /secrets/.app_secrets);
         keytool -storepasswd -new $$NEW_PASS -keystore /secrets/truststore.jks -storepass changeit;
       fi;
+
+      if [ ! -f /secrets/server.crt ]; then
+        echo 'Generating new self-signed certificate for PostGIS...';
+        openssl req -new -x509 -days 3650 -nodes -text -out /secrets/server.crt -keyout /secrets/server.key -subj "/CN=oscar-postgis";
+        chmod 600 /secrets/server.key;
+        chown 999:999 /secrets/server.key /secrets/server.crt;
+      fi;
       "
 
   osh-postgis:
@@ -30,6 +37,10 @@ services:
         condition: service_completed_successfully
     image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
+    command: >
+      -c ssl=on
+      -c ssl_cert_file=/secrets/server.crt
+      -c ssl_key_file=/secrets/server.key
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
