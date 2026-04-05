@@ -35,8 +35,10 @@ public class LocalCAUtility {
     public static void checkAndRenewCertificates() throws Exception {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
-        String keystorePath = "osh-keystore.p12";
-        String secretsPath = ".app_secrets";
+        String keystorePath = System.getenv("KEYSTORE") != null && !System.getenv("KEYSTORE").isBlank()
+            ? System.getenv("KEYSTORE") : "osh-keystore.p12";
+        String secretsPath = System.getenv("KEYSTORE_PASSWORD_FILE") != null && !System.getenv("KEYSTORE_PASSWORD_FILE").isBlank()
+            ? System.getenv("KEYSTORE_PASSWORD_FILE") : ".app_secrets";
         String rootCaExportPath = "root-ca.crt";
         String rootAlias = "root-ca";
         String leafAlias = "jetty";
@@ -46,7 +48,7 @@ public class LocalCAUtility {
 
         String password;
         if (!keystoreFile.exists()) {
-            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate...");
+            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate at " + keystoreFile.getAbsolutePath() + "...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
