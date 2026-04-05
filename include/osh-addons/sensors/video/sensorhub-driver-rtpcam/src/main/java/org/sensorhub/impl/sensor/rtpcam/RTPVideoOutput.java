@@ -27,7 +27,7 @@ import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataStream;
 import org.sensorhub.api.sensor.ISensorModule;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.sensor.rtpcam.RTSPClient.StreamInfo;
@@ -42,7 +42,7 @@ import org.vast.data.DataBlockMixed;
  * Implementation of data interface for RTP camera stream
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @param <SensorType> Type of parent sensor
  * @since Dec 12, 2015
  */
@@ -65,13 +65,21 @@ public class RTPVideoOutput<SensorType extends ISensorModule<?>> extends Abstrac
     
     public RTPVideoOutput(SensorType driver)
     {
-        this("video", driver);
+        this(driver, "video");
     }
     
     
-    public RTPVideoOutput(String name, SensorType driver)
+    public RTPVideoOutput(SensorType driver, String name)
     {
-        super(name, driver);
+        super(driver);
+        this.name = name;
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return name;
     }
     
     
@@ -200,6 +208,7 @@ public class RTPVideoOutput<SensorType extends ISensorModule<?>> extends Abstrac
     }
     
     
+    @Override
     public void stop()
     {
         // stop RTP receiver thread
@@ -245,13 +254,9 @@ public class RTPVideoOutput<SensorType extends ISensorModule<?>> extends Abstrac
                 if (fch != null)
                     fch.close();
             }
-            catch (InterruptedException e)
+            catch (Exception e)
             {
-            	Thread.currentThread().interrupt();
-            	log.error("Interrupted while shutting down frame listener thread", e);
-            }
-            catch (Exception e) {
-                log.error("Exception when shutting down frame listener thread", e);
+                log.error("Error when shutting down frame listener thread", e);
             }            
         }
     }
@@ -308,7 +313,7 @@ public class RTPVideoOutput<SensorType extends ISensorModule<?>> extends Abstrac
                     // send event
                     latestRecord = newRecord;
                     latestRecordTime = System.currentTimeMillis();
-                    eventHandler.publish(new DataEvent(latestRecordTime, RTPVideoOutput.this, latestRecord));
+                    eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, RTPVideoOutput.this, latestRecord));
                 }
             });                
         }

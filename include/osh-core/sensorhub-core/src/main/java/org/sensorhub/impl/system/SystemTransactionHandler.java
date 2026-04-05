@@ -364,15 +364,10 @@ public class SystemTransactionHandler
                 log.debug("Added datastream {}#{} with valid time {}", sysUID, outputName, validTime);
             }
             
-            // compare properties of old and new datastreams
-            var sameName = Objects.equals(oldDsInfo.getName(), dsInfo.getName());
-            var sameDescription = Objects.equals(oldDsInfo.getDescription(), dsInfo.getDescription());
-            var sameRecordStruct = DataComponentChecks.checkStructEquals(oldDsInfo.getRecordStructure(), dsInfo.getRecordStructure());
-            var sameRecordEncoding = DataComponentChecks.checkEncodingEquals(oldDsInfo.getRecordEncoding(), dsInfo.getRecordEncoding());
-            var recordStructCompatible = sameRecordStruct || DataComponentChecks.checkStructCompatible(oldDsInfo.getRecordStructure(), dsInfo.getRecordStructure());
-                        
             // if observations were already recorded and structure has changed, create a new datastream
-            if (hasObs && (!recordStructCompatible || !sameRecordEncoding))
+            if (hasObs &&
+               (!DataComponentChecks.checkStructCompatible(oldDsInfo.getRecordStructure(), dsInfo.getRecordStructure()) ||
+                !DataComponentChecks.checkEncodingEquals(oldDsInfo.getRecordEncoding(), dsInfo.getRecordEncoding())))
             {
                 // set validTime to current time
                 dsInfo = DataStreamInfo.Builder.from(dsInfo)
@@ -385,7 +380,10 @@ public class SystemTransactionHandler
             }
             
             // if something else has changed, update existing datastream
-            else if (!sameRecordStruct || !sameRecordEncoding || !sameName || !sameDescription)
+            else if (!DataComponentChecks.checkStructEquals(oldDsInfo.getRecordStructure(), dsInfo.getRecordStructure()) ||
+                     !DataComponentChecks.checkEncodingEquals(oldDsInfo.getRecordEncoding(), dsInfo.getRecordEncoding()) ||
+                     !Objects.equals(oldDsInfo.getName(), dsInfo.getName()) ||
+                     !Objects.equals(oldDsInfo.getDescription(), dsInfo.getDescription()))
             {
                 var dsHandler = new DataStreamTransactionHandler(dsKey, oldDsInfo, rootHandler);
                 dsHandler.update(dsInfo);
@@ -489,21 +487,11 @@ public class SystemTransactionHandler
                 addedEvent = new CommandStreamAddedEvent(sysUID, commandName);
                 log.debug("Added command stream {}#{} with valid time {}", sysUID, commandName, validTime);
             }
-            
-            // compare properties of old and new command streams
-            var sameName = Objects.equals(oldCsInfo.getName(), csInfo.getName());
-            var sameDescription = Objects.equals(oldCsInfo.getDescription(), csInfo.getDescription());
-            
-            var sameParamStruct = DataComponentChecks.checkStructEquals(oldCsInfo.getRecordStructure(), csInfo.getRecordStructure());
-            var sameParamEncoding = DataComponentChecks.checkEncodingEquals(oldCsInfo.getRecordEncoding(), csInfo.getRecordEncoding());
-            var paramStructCompatible = sameParamStruct || DataComponentChecks.checkStructCompatible(oldCsInfo.getRecordStructure(), csInfo.getRecordStructure());
-            
-            var sameResultStruct = DataComponentChecks.checkStructEqualsNullAllowed(oldCsInfo.getResultStructure(), csInfo.getResultStructure());
-            var sameResultEncoding = DataComponentChecks.checkEncodingEqualsNullAllowed(oldCsInfo.getResultEncoding(), csInfo.getResultEncoding());
-            var resultStructCompatible = sameResultStruct || DataComponentChecks.checkStructCompatibleNullAllowed(oldCsInfo.getResultStructure(), csInfo.getResultStructure());
-            
+
             // if observations were already recorded and structure has changed, create a new datastream
-            if (hasCommands && (!paramStructCompatible || !sameParamEncoding || !resultStructCompatible || !sameResultEncoding))
+            if (hasCommands &&
+               (!DataComponentChecks.checkStructCompatible(oldCsInfo.getRecordStructure(), csInfo.getRecordStructure()) ||
+                !DataComponentChecks.checkEncodingEquals(oldCsInfo.getRecordEncoding(), csInfo.getRecordEncoding())))
             {
                 // set validTime to current time
                 csInfo = CommandStreamInfo.Builder.from(csInfo)
@@ -516,7 +504,10 @@ public class SystemTransactionHandler
             }
 
             // if something else has changed, update existing command stream
-            else if (!sameParamStruct || !sameParamEncoding || !sameResultStruct || !sameResultEncoding || !sameName || !sameDescription)
+            else if (!DataComponentChecks.checkStructEquals(oldCsInfo.getRecordStructure(), csInfo.getRecordStructure()) ||
+                     !DataComponentChecks.checkEncodingEquals(oldCsInfo.getRecordEncoding(), csInfo.getRecordEncoding()) ||
+                     !Objects.equals(oldCsInfo.getName(), csInfo.getName()) ||
+                     !Objects.equals(oldCsInfo.getDescription(), csInfo.getDescription()))
             {
                 var csHandler = new CommandStreamTransactionHandler(csKey, oldCsInfo, rootHandler);
                 csHandler.update(csInfo);

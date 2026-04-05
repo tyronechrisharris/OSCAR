@@ -3,14 +3,12 @@ import {DateTimePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import React, {useEffect, useState} from "react";
 import dayjs, {Dayjs} from "dayjs";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 
 export default function NationalDatePicker({onCustomStartChange, onCustomEndChange }: {
     onCustomStartChange?: (value: string) => void,
     onCustomEndChange?: (value: string) => void,
 }){
-    const { t } = useLanguage();
 
     const [startTime, setStartTime] = useState<Dayjs>(dayjs().subtract(1, 'year'));
     const [endTime, setEndTime] = useState<Dayjs>(dayjs().add(1, 'hour'));
@@ -38,16 +36,18 @@ export default function NationalDatePicker({onCustomStartChange, onCustomEndChan
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} width={"100%"} justifyContent={"stretch"}>
                 <DateTimePicker
-                    label={t('startDate')}
+                    label="Start Date"
                     value={startTime}
                     onChange={handleStartTimeChange}
+                    sx={{ width: "100%" }}
                 />
                 <DateTimePicker
-                    label={t('endDate')}
+                    label="End Date"
                     value={endTime}
                     onChange={handleEndTimeChange}
+                    sx={{ width: "100%" }}
                 />
             </Stack>
         </LocalizationProvider>
