@@ -4,6 +4,13 @@ setlocal enabledelayedexpansion
 
 REM Persistent CA Check & Generation
 REM If keystore doesn't exist, this will generate it and create .app_secrets.
+
+if not "%KEYSTORE_PASSWORD_FILE%"=="" (
+    if exist "%KEYSTORE_PASSWORD_FILE%" (
+        copy /y "%KEYSTORE_PASSWORD_FILE%" ".\.app_secrets" >NUL
+    )
+)
+
 REM If it does exist, it will check for auto-renewal of the leaf certificate.
 java -cp "lib/*" com.botts.impl.security.LocalCAUtility
 

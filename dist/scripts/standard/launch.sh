@@ -5,6 +5,11 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # Persistent CA Check & Generation
 # If keystore doesn't exist, this will generate it and create .app_secrets.
 # If it does exist, it will check for auto-renewal of the leaf certificate.
+
+if [ -n "$KEYSTORE_PASSWORD_FILE" ] && [ -f "$KEYSTORE_PASSWORD_FILE" ]; then
+    cp "$KEYSTORE_PASSWORD_FILE" ./.app_secrets
+fi
+
 java -cp "lib/*" com.botts.impl.security.LocalCAUtility
 
 PASS_FILE=${KEYSTORE_PASSWORD_FILE:-.app_secrets}
