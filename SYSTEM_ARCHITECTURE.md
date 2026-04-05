@@ -18,7 +18,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
 1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon.
-2. **Bind Mounts (Persistent Configuration & Data)**: Non-sensitive persistent data (like the PostGIS database records in `./pgdata`, the backend's configuration in `./osh-node-oscar/config`, Tailscale state in `./tailscale`, and generated certificates mapped to the proxy) are bound to the host filesystem. This ensures administrators have direct access to back up databases, manually tweak configuration files, and manage certificates locally.
+2. **Bind Mounts (Persistent Configuration & Data)**: Non-sensitive persistent data (like the PostGIS database records in `./pgdata`, the backend's configuration in `./osh-node-oscar/config`, and Tailscale state in `./tailscale`) are bound to the host filesystem. This ensures administrators have direct access to back up databases and manually tweak configuration files locally.
 
 ## Deployment Scenarios & Minimum System Requirements
 
@@ -47,7 +47,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
 - **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
-- **Certificate Management**: OSH manages its own internal PKI. On first boot, a 20-year Root CA and a 1-year Leaf certificate are generated and stored in `osh-keystore.p12`. The system automatically renews the Leaf certificate if it is within 30 days of expiration during the boot sequence.
+- **Certificate Management**: OSCAR operates entirely on a dynamic PEM-first cryptographic root. On first boot, the `init-secrets` container utilizes OpenSSL to generate a 20-year Root CA (`ca.pem`) and a 10-year server certificate (`server.pem`). To maintain ecosystem compatibility, these PEMs are natively bundled into PKCS12 and JKS formats and stored securely in the Docker `oscar_secrets` volume, eliminating the need to bake private keys into deployment images or rely on local Java generators.
 
 ## Deployment and Lifecycle Commands
 

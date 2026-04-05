@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 - Added WebID analysis and result logging to the Adjudication Detail view.
 - Added `bluenviron/mediamtx:latest` as a dedicated sidecar container in `docker-compose.yml` to stabilize RTSP IP Camera streams.
 ### Changed
+- Refactored entire cryptographic architecture to dynamic PEM-first configuration. The `init-secrets` container now securely generates `server.pem` for Caddy and seamlessly bundles `osh-keystore.p12` for Java.
+- Standardized deployment via a "Hybrid Volume Architecture" in `docker-compose.yml` (Named Volumes for secure secrets, Bind Mounts for config data).
+- Striped deprecated `LocalCAUtility` local-file generation from backend startup scripts (`launch.sh` / `launch.bat`), forcing environment variable inheritance.
 - Upgraded the OSH backend `LaneSystem.java` initialization flow. When cameras are configured via the Admin UI, the backend now automatically intercepts the raw RTSP URI and dynamically provisions it through the MediaMTX sidecar REST API prior to FFmpeg connection.
 - Migrated Tailscale integration to a dedicated sidecar container to improve cross-platform compatibility (especially WSL2 on Windows).
 - Moved `TAILSCALE_DOMAIN` definition entirely into `.env` file instead of dynamically generating it.

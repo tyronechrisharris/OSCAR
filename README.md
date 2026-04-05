@@ -141,7 +141,7 @@ docker compose logs -f
 
 **Important Note on Localhost TLS Warnings:**
 When accessing `https://localhost` or a local IP (including raw Tailscale IPs without using your MagicDNS domain), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
-- **To resolve this warning locally:** You can install the generated Root CA certificate (`osh-root.crt`) into your system or browser's Trust Store. This file is generated automatically upon first boot and can be found in the persistent config directory (e.g., `./osh-node-oscar/osh-root.crt`).
+- **To resolve this warning locally:** You can optionally export and install the generated Root CA certificate (`ca.pem`) into your system or browser's Trust Store. This file is generated automatically upon first boot inside the secure `oscar_secrets` Docker volume.
 - **To resolve this warning over Tailscale:** Always access the system using your fully qualified `TAILSCALE_DOMAIN` (configured in `.env`). The sidecar architecture allows the Caddy proxy to automatically fetch and apply a trusted Let's Encrypt certificate for that domain.
 
 ### First-Time Setup

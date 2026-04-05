@@ -33,41 +33,48 @@ The launch script uses an explicit loop to delay the backend startup until PostG
 
 ## 2. Certificate Authority & TLS Generation
 
-TLS generation is handled by the Java backend using `LocalCAUtility.java` (`security-utils/src/main/java/com/botts/impl/security/LocalCAUtility.java`).
+TLS generation has been decoupled from the Java backend and is now managed securely at runtime via the `init-secrets` ephemeral container using standard OpenSSL commands.
 
 ### Timing of Certificate Generation
-The certificate generation happens **on backend startup**, initiated when the `LocalCAUtility.checkAndRenewCertificates()` method is invoked. It checks if `osh-keystore.p12` exists. If not, it assumes a first-boot scenario and generates the CA and leaf certificates.
+The certificate generation happens **before any other container starts**. The `init-secrets` container executes its shell script upon `docker compose up`, checks the shared `oscar_secrets` named volume, and generates missing assets.
 
 ### Generation Mechanism
-1. **Keystore Password Generation:** Generates a random 32-byte Base64 password and saves it to `.app_secrets`.
-2. **Root CA Generation:** Generates a persistent self-signed RSA-2048 Root CA certificate (`CN=OSCAR Root CA`) valid for 20 years (7300 days).
-3. **Leaf Certificate Generation:** Generates an RSA-2048 leaf certificate (`CN=localhost`) signed by the Root CA, valid for 1 year (365 days).
-4. **Keystore Storage:** Stores both the root and leaf certificates in `osh-keystore.p12` (using PKCS12 format) under the aliases `root-ca` and `jetty`, respectively.
-5. **Public Export:** Exports the Root CA public certificate to `root-ca.crt` for clients to trust.
+1. **Password Generation:** Uses `openssl rand` to generate secure 32-byte Base64 passwords for the database (`.db_password`) and the Java keystore/truststore (`.app_secrets`).
+2. **PEM Root CA Generation:** Generates a persistent self-signed RSA-2048 Root CA certificate (`ca.pem` and `ca.key`) valid for 20 years (7300 days).
+3. **PEM Server Certificate Generation:** Generates an RSA-2048 leaf certificate (`server.pem` and `server.key`) signed by the Root CA, valid for 10 years (3650 days), with the subject `CN=localhost`.
+4. **Java Keystore Packaging:** Because the OpenSensorHub Java backend natively requires JKS and PKCS12 formats for its `SSLContext`, the container uses `keytool` and `openssl pkcs12` to bundle the raw PEM files into `truststore.jks` and `osh-keystore.p12`, secured by the generated `.app_secrets` password.
+5. **PostGIS Certificate Generation:** Generates dedicated, unique self-signed certificates (`db-server.crt` and `db-server.key`) for the database container and enforces strict `chown 999:999` and `chmod 600` permissions.
 
 ### File Extraction and Proxy Access
-*   **Format:** The certificates are stored primarily within the `osh-keystore.p12` Java Keystore format. The Root CA is also exported as a PEM-formatted `root-ca.crt`.
-*   **Exposure to Reverse Proxy:** In a Docker Compose stack, if Caddy requires PEM-encoded `.crt` and `.key` files rather than `.p12` format, you may need an init-container or an update to `LocalCAUtility` to explicitly export `osh-leaf.crt` and `osh-leaf.key` to the filesystem alongside `root-ca.crt`.
+*   **Format Migration:** The migration to a PEM-first architecture ensures that standard tools like the Caddy Reverse Proxy (`osh-proxy`) can natively consume the `server.pem` and `server.key` directly from the secure `oscar_secrets` volume without needing to extract keys from proprietary Java `.p12` vaults.
+*   **Exposure to Reverse Proxy:** The `docker-compose.yml` mounts the shared `oscar_secrets` volume directly to `/etc/caddy/certs` in the `osh-proxy` container, fulfilling the Caddyfile TLS requirement dynamically.
 
 ## 3. Database Provisioning & Authentication
 
 ### Generating and Passing `.db_password`
-1. The `.db_password` is generated on the host machine by the launch script (`launch-all.sh`) using OpenSSL during the pre-flight phase:
+1. The `.db_password` is generated natively within the Docker environment by the `init-secrets` container during the pre-flight phase, completely abstracting it from the host machine:
    ```bash
-   if [ ! -f "$POSTGRES_PASSWORD_FILE" ]; then
-       echo "Generating new database password..."
-       openssl rand -base64 32 > "$POSTGRES_PASSWORD_FILE"
+   if [ ! -f /secrets/.db_password ]; then
+       openssl rand -base64 32 > /secrets/.db_password;
    fi
    ```
-2. It is passed into the PostGIS Docker container via a combination of bind mounts and environment variables:
-   *   `-v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password"`
-   *   `-e POSTGRES_PASSWORD_FILE="/run/secrets/db_password"`
+2. It is passed into the PostGIS Docker container via the highly secure Hybrid Volume Architecture:
+   *   The file is stored in the `oscar_secrets` Docker Named Volume.
+   *   The volume is mounted Read-Only (`ro`) to the `osh-postgis` container.
+   *   The environment variable `POSTGRES_PASSWORD_FILE=/secrets/.db_password` informs the database exactly where to read the secret.
 
-### Enforcing `scram-sha-256`
+### Enforcing `scram-sha-256` and TLS
 The enforcement of `scram-sha-256` authentication is handled explicitly in the PostGIS Dockerfile (`dist/release/postgis/Dockerfile`). The `POSTGRES_INITDB_ARGS` environment variable is set to configure the database initialization command:
 
 ```dockerfile
-ENV POSTGRES_INITDB_ARGS="--auth-local=trust --auth-host=scram-sha-256 -c max_parallel_workers_per_gather=0 -c max_parallel_workers=0 -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key"
+ENV POSTGRES_INITDB_ARGS="--auth-local=trust --auth-host=scram-sha-256"
+```
+The TLS encryption is enforced dynamically at runtime in `docker-compose.yml` using the `command:` override. This allows the container to dynamically consume the securely generated PostGIS certificates out of the named volume rather than baking a static private key into the public Docker Hub image:
+```yaml
+    command: >
+      -c ssl=on
+      -c ssl_cert_file=/secrets/db-server.crt
+      -c ssl_key_file=/secrets/db-server.key
 ```
 The `--auth-host=scram-sha-256` flag ensures all TCP connections (which the Java backend will use) require SCRAM-SHA-256 password hashing.
 

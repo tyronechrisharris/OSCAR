@@ -33,12 +33,11 @@ The system uses a Hybrid Volume Architecture (Named Volumes) to manage database 
 ## Application-Level Security Hardening
 
 ### Persistent Local CA and TLS Certificates
-On first boot, the system generates a persistent Root CA and a leaf TLS certificate.
-- **Root CA Private Key**: Securely stored within the PKCS12 keystore (`osh-keystore.p12`) under the alias `root-ca`. This allows for automated, silent renewal of leaf certificates.
-- **Lifespan**: The Root CA is generated with a 20-year lifespan, while the Leaf certificate has a 1-year lifespan.
-- **Automated Renewal**: Upon each startup, the system checks the expiration of the active Leaf certificate. If it expires within 30 days, a new Leaf certificate is automatically generated and signed by the persistent Root CA.
-- **Leaf Certificate**: Stored in the same PKCS12 keystore (`osh-keystore.p12`) under the alias `jetty`.
-- **Key Storage Security**: The keystore password is automatically generated and stored in a hidden `.app_secrets` file. Access to this file and the keystore is restricted to the executing user using POSIX permissions (Linux/macOS) or ACLs (Windows). The system implements a "fail-secure" startup policy: if `.app_secrets` is missing, the application will halt with a critical error rather than falling back to default passwords.
+The OSCAR architecture relies on a PEM-first cryptographic foundation managed completely within the Docker deployment ecosystem.
+- **Dynamic Runtime Generation**: Instead of baking SSL certificates into public Docker images or relying on proprietary Java generators, the `init-secrets` ephemeral container automatically generates standard OpenSSL PEM certificates (`ca.pem`, `server.pem`) upon the very first system boot.
+- **Java Compatibility**: To satisfy the OpenSensorHub Java backend's `SSLContext` requirements without modifying core OSH code, the `init-secrets` container dynamically bundles the raw PEM files into PKCS12 (`osh-keystore.p12`) and JKS (`truststore.jks`) vaults using `openssl pkcs12` and `keytool`. These are distributed securely to the backend via the `oscar_secrets` named volume.
+- **Caddy Reverse Proxy TLS**: The Caddy proxy (which manages all external ingress) natively consumes the raw `server.pem` and `server.key` from the same shared volume, guaranteeing the entire stack uses the exact same unified cryptographic trust chain.
+- **Fail-Secure Inheritance**: The backend's startup scripts (`launch.sh` / `launch.bat`) strictly rely on the Docker Compose `KEYSTORE_PASSWORD_FILE` environment variables. If the `.app_secrets` file is missing, the application will halt with a critical error rather than falling back to unsafe default passwords.
 - **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
 
 ### Setup Wizard and Credential Management
