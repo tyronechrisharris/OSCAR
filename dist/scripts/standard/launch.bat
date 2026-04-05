@@ -1,25 +1,11 @@
 @echo off
 setlocal enabledelayedexpansion
 
-
-REM Persistent CA Check & Generation
-REM If keystore doesn't exist, this will generate it and create .app_secrets.
-
-if not "%KEYSTORE_PASSWORD_FILE%"=="" (
-    if exist "%KEYSTORE_PASSWORD_FILE%" (
-        copy /y "%KEYSTORE_PASSWORD_FILE%" ".\.app_secrets" >NUL
-    )
-)
-
-REM If it does exist, it will check for auto-renewal of the leaf certificate.
-java -cp "lib/*" com.botts.impl.security.LocalCAUtility
-
 set PASS_FILE=%KEYSTORE_PASSWORD_FILE%
 if "%PASS_FILE%"=="" set PASS_FILE=.app_secrets
 
 if exist "%PASS_FILE%" (
     set /p KEYSTORE_PASSWORD=<%PASS_FILE%
-    REM Use the same auto-generated secret for the truststore if not provided
     if "%TRUSTSTORE_PASSWORD%"=="" (
         set "TRUSTSTORE_PASSWORD=!KEYSTORE_PASSWORD!"
     )
@@ -27,9 +13,6 @@ if exist "%PASS_FILE%" (
     echo CRITICAL ERROR: %PASS_FILE% not found. Cannot load keystore password. Halting startup.
     exit /b 1
 )
-
-REM Make sure all the necessary certificates are trusted by the system.
-CALL %~dp0load_trusted_certs.bat
 
 
 if exist ".\.initial_admin_password" (

@@ -2,21 +2,10 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# Persistent CA Check & Generation
-# If keystore doesn't exist, this will generate it and create .app_secrets.
-# If it does exist, it will check for auto-renewal of the leaf certificate.
-
-if [ -n "$KEYSTORE_PASSWORD_FILE" ] && [ -f "$KEYSTORE_PASSWORD_FILE" ]; then
-    cp "$KEYSTORE_PASSWORD_FILE" ./.app_secrets
-fi
-
-java -cp "lib/*" com.botts.impl.security.LocalCAUtility
-
 PASS_FILE=${KEYSTORE_PASSWORD_FILE:-.app_secrets}
 
 if [ -f "$PASS_FILE" ]; then
     export KEYSTORE_PASSWORD=$(head -n 1 "$PASS_FILE")
-    # Use the same auto-generated secret for the truststore if not provided
     if [ -z "$TRUSTSTORE_PASSWORD" ]; then
         export TRUSTSTORE_PASSWORD="$KEYSTORE_PASSWORD"
     fi
@@ -25,13 +14,9 @@ else
     exit 1
 fi
 
-# Make sure all the necessary certificates are trusted by the system.
-"$SCRIPT_DIR/load_trusted_certs.sh"
-
-
-  if [ -f "./.initial_admin_password" ]; then
-      export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"
-  fi
+if [ -f "./.initial_admin_password" ]; then
+    export INITIAL_ADMIN_PASSWORD_FILE="./.initial_admin_password"
+fi
 
 # Database configuration
 export DB_HOST="${DB_HOST:-localhost}"

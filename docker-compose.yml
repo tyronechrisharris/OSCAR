@@ -15,19 +15,30 @@ services:
         echo 'Generating new keystore and truststore password...';
         openssl rand -base64 32 > /secrets/.app_secrets;
 
-        echo 'Creating secure truststore.jks with generated password...';
+        NEW_PASS=$$(cat /secrets/.app_secrets);
+
+        echo 'Generating PEM Root CA...';
+        openssl req -x509 -nodes -newkey rsa:2048 -keyout /secrets/ca.key -out /secrets/ca.pem -days 7300 -subj "/CN=OSCAR Root CA";
+
+        echo 'Generating PEM Server Certificate...';
+        openssl req -nodes -newkey rsa:2048 -keyout /secrets/server.key -out /secrets/server.csr -subj "/CN=localhost";
+        openssl x509 -req -in /secrets/server.csr -CA /secrets/ca.pem -CAkey /secrets/ca.key -CAcreateserial -out /secrets/server.pem -days 3650;
+
+        echo 'Creating secure truststore.jks with generated password and Root CA...';
         cp $$JAVA_HOME/lib/security/cacerts /secrets/truststore.jks;
         chmod 644 /secrets/truststore.jks;
-
-        NEW_PASS=$$(cat /secrets/.app_secrets);
         keytool -storepasswd -new $$NEW_PASS -keystore /secrets/truststore.jks -storepass changeit;
+        keytool -import -trustcacerts -alias oscar-root -file /secrets/ca.pem -keystore /secrets/truststore.jks -storepass $$NEW_PASS -noprompt;
+
+        echo 'Creating PKCS12 keystore with Server Certificate...';
+        openssl pkcs12 -export -out /secrets/osh-keystore.p12 -inkey /secrets/server.key -in /secrets/server.pem -certfile /secrets/ca.pem -name "jetty" -password pass:$$NEW_PASS;
       fi;
 
-      if [ ! -f /secrets/server.crt ]; then
+      if [ ! -f /secrets/db-server.crt ]; then
         echo 'Generating new self-signed certificate for PostGIS...';
-        openssl req -new -x509 -days 3650 -nodes -text -out /secrets/server.crt -keyout /secrets/server.key -subj "/CN=oscar-postgis";
-        chmod 600 /secrets/server.key;
-        chown 999:999 /secrets/server.key /secrets/server.crt;
+        openssl req -new -x509 -days 3650 -nodes -text -out /secrets/db-server.crt -keyout /secrets/db-server.key -subj "/CN=oscar-postgis";
+        chmod 600 /secrets/db-server.key;
+        chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
       fi;
       "
 
@@ -39,8 +50,8 @@ services:
     container_name: oscar-postgis-container
     command: >
       -c ssl=on
-      -c ssl_cert_file=/secrets/server.crt
-      -c ssl_key_file=/secrets/server.key
+      -c ssl_cert_file=/secrets/db-server.crt
+      -c ssl_key_file=/secrets/db-server.key
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
@@ -75,7 +86,7 @@ services:
     environment:
       - DB_HOST=${DB_HOST:-osh-postgis}
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
-      - KEYSTORE=/app/config/osh-keystore.p12
+      - KEYSTORE=/secrets/osh-keystore.p12
       - KEYSTORE_TYPE=PKCS12
       - TRUSTSTORE=/secrets/truststore.jks
       - TRUSTSTORE_TYPE=JKS
@@ -157,8 +168,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - ./tailscale/sock:/var/run/tailscale:ro
-      # CRITICAL FIX 2: Appends /config to the host path so Caddy finds the certs
-      - ./osh-node-oscar/config:/etc/caddy/certs:ro
+      - oscar_secrets:/etc/caddy/certs:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -174,7 +184,7 @@ services:
         }
         https://localhost, 127.0.0.1 {
             reverse_proxy http://osh-backend:8282
-            tls /etc/caddy/certs/osh-leaf.crt /etc/caddy/certs/osh-leaf.key
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
         ${TAILSCALE_DOMAIN} {
             reverse_proxy http://osh-backend:8282
