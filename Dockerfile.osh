@@ -1,0 +1,22 @@
+# Dockerfile.osh
+FROM eclipse-temurin:21-jre-jammy
+
+# Set the working directory
+WORKDIR /app
+
+# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
+# Debian/Ubuntu (jammy) uses apt-get for dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends fonts-freefont-ttf openssl curl bash && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy build artifacts
+COPY ./osh-node-oscar/lib /app/lib
+COPY ./osh-node-oscar/web /app/web
+COPY ./osh-node-oscar/logback.xml /app/logback.xml
+COPY ./osh-node-oscar/config.json /app/config.json
+COPY ./osh-node-oscar/config /app/config
+
+# The ENTRYPOINT implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
+# JAVA_OPTS is used to pass memory limits from the .env file and route outbound traffic through Tailscale.
+ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]

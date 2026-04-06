@@ -1,0 +1,4 @@
+api: yes
+apiAddress: :9997
+
+paths: {}

@@ -35,8 +35,10 @@ public class LocalCAUtility {
     public static void checkAndRenewCertificates() throws Exception {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
-        String keystorePath = "osh-keystore.p12";
-        String secretsPath = ".app_secrets";
+        String keystorePath = System.getenv("KEYSTORE") != null && !System.getenv("KEYSTORE").isBlank()
+            ? System.getenv("KEYSTORE") : "osh-keystore.p12";
+        String secretsPath = System.getenv("KEYSTORE_PASSWORD_FILE") != null && !System.getenv("KEYSTORE_PASSWORD_FILE").isBlank()
+            ? System.getenv("KEYSTORE_PASSWORD_FILE") : ".app_secrets";
         String rootCaExportPath = "root-ca.crt";
         String rootAlias = "root-ca";
         String leafAlias = "jetty";
@@ -46,7 +48,7 @@ public class LocalCAUtility {
 
         String password;
         if (!keystoreFile.exists()) {
-            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate...");
+            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate at " + keystoreFile.getAbsolutePath() + "...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
@@ -72,8 +74,13 @@ public class LocalCAUtility {
             lockdownFile(keystoreFile);
 
             // 5. Export Public Root CA
-            exportCertificate(rootCaExportPath, rootCert);
+            exportCertificatePem(rootCaExportPath, rootCert);
             lockdownFile(new File(rootCaExportPath));
+
+            // Export Leaf Certificate and Key for Proxy
+            new File("config").mkdirs();
+            exportCertificatePem("config/osh-leaf.crt", leafCert);
+            exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
 
             System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
@@ -121,6 +128,12 @@ public class LocalCAUtility {
                     ks.store(fos, password.toCharArray());
                 }
                 lockdownFile(keystoreFile);
+
+                // Export renewed Leaf Certificate and Key for Proxy
+                new File("config").mkdirs();
+                exportCertificatePem("config/osh-leaf.crt", renewedLeafCert);
+                exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
+
                 System.out.println("Leaf certificate renewed successfully.");
             } else {
                 System.out.println("Leaf certificate is still valid for more than 30 days. No renewal needed.");
@@ -210,6 +223,34 @@ public class LocalCAUtility {
         ks.setKeyEntry(alias, privateKey, password.toCharArray(), chain);
         try (FileOutputStream fos = new FileOutputStream(path)) {
             ks.store(fos, password.toCharArray());
+        }
+        lockdownFile(new File(path));
+    }
+
+
+    private static void exportPrivateKey(String path, PrivateKey privateKey) throws Exception {
+        try (FileOutputStream fos = new FileOutputStream(path)) {
+            String encoded = Base64.getEncoder().encodeToString(privateKey.getEncoded());
+            fos.write("-----BEGIN PRIVATE KEY-----\n".getBytes());
+            fos.write(encoded.replaceAll("(.{64})", "$1\n").getBytes());
+            if (encoded.length() % 64 != 0) {
+                fos.write("\n".getBytes());
+            }
+            fos.write("-----END PRIVATE KEY-----\n".getBytes());
+        }
+        lockdownFile(new File(path));
+    }
+
+
+    private static void exportCertificatePem(String path, X509Certificate cert) throws Exception {
+        try (FileOutputStream fos = new FileOutputStream(path)) {
+            String encoded = Base64.getEncoder().encodeToString(cert.getEncoded());
+            fos.write("-----BEGIN CERTIFICATE-----\n".getBytes());
+            fos.write(encoded.replaceAll("(.{64})", "$1\n").getBytes());
+            if (encoded.length() % 64 != 0) {
+                fos.write("\n".getBytes());
+            }
+            fos.write("-----END CERTIFICATE-----\n".getBytes());
         }
         lockdownFile(new File(path));
     }

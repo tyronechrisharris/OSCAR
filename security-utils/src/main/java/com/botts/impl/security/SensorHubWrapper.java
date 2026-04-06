@@ -74,14 +74,13 @@ public class SensorHubWrapper {
 		String keyStoreEnv = System.getenv(KEYSTORE);
 		String keyStoreTypeEnv = System.getenv(KEYSTORE_TYPE);
 
-		PasswordValue keyStorePassword;
+		PasswordValue keyStorePassword = getPasswordValue(KEYSTORE_PASSWORD, null);
 		File appSecrets = new File(".app_secrets");
-		if (appSecrets.exists()) {
-			String val = firstLineOfFile(appSecrets.getAbsolutePath());
-			keyStorePassword = new PasswordValue(val, "KEYSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
-		} else {
-			keyStorePassword = getPasswordValue(KEYSTORE_PASSWORD, null);
-			if (keyStorePassword.getValue() == null) {
+		if (keyStorePassword.getValue() == null) {
+			if (appSecrets.exists()) {
+				String val = firstLineOfFile(appSecrets.getAbsolutePath());
+				keyStorePassword = new PasswordValue(val, "KEYSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
+			} else {
 				throw new IOException("CRITICAL ERROR: .app_secrets not found and KEYSTORE_PASSWORD not set. Cannot load keystore password. Halting startup.");
 			}
 		}
@@ -92,13 +91,12 @@ public class SensorHubWrapper {
 
 		String trustStoreEnv = System.getenv(TRUSTSTORE);
 		String trustStoreTypeEnv = System.getenv(TRUSTSTORE_TYPE);
-		PasswordValue trustStorePassword;
-		if (appSecrets.exists()) {
-			String val = firstLineOfFile(appSecrets.getAbsolutePath());
-			trustStorePassword = new PasswordValue(val, "TRUSTSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
-		} else {
-			trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, null);
-			if (trustStorePassword.getValue() == null) {
+		PasswordValue trustStorePassword = getPasswordValue(TRUSTSTORE_PASSWORD, null);
+		if (trustStorePassword.getValue() == null) {
+			if (appSecrets.exists()) {
+				String val = firstLineOfFile(appSecrets.getAbsolutePath());
+				trustStorePassword = new PasswordValue(val, "TRUSTSTORE_PASSWORD_FILE", appSecrets.getAbsolutePath(), PasswordSpecifier.FILE_ENVIRONMENT_VARIABLE);
+			} else {
 				throw new IOException("CRITICAL ERROR: TRUSTSTORE_PASSWORD not set. Cannot load truststore password. Halting startup.");
 			}
 		}

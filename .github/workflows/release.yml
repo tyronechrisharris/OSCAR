@@ -1,92 +1,225 @@
-name: Automated Build and Versioned Releases
+name: Release OSCAR Stack
+
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional tag suffix (e.g., v3.0.0-beta)'
+        required: false
+        type: string
+      notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
   pull_request:
-    types:
-      - closed
-    # Removed the 'branches' filter so this triggers on PRs to ANY branch
-  workflow_dispatch: # Enables manual trigger (defaults to the branch selected in the GitHub UI)
+    types: [opened, synchronize, closed]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   build-and-release:
-    # Runs if a PR is merged OR if triggered manually
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    # Run if it's a manual trigger, a PR is opened/synchronized, or if a PR was merged into main
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize' || (github.event.action == 'closed' && github.event.pull_request.merged == true)))
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          # Explicitly check out the branch the PR merged into, or the branch selected manually
-          ref: ${{ github.event.pull_request.base.ref || github.ref }}
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Build project
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build the project
         run: |
           chmod +x ./build-all.sh
           ./build-all.sh
 
-      - name: Determine Version and Rename Artifact
-        id: date
+      - name: Determine Release Details
+        id: release_info
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_NOTES: ${{ inputs.notes }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get current date in M-DD-YYYY format
-          CURRENT_DATE=$(date +'%-m-%d-%Y')
-          BASE_NAME="oscar_$CURRENT_DATE"
-          
-          # Check for existing tags matching today's date
-          EXISTING_TAGS=$(git tag -l "${BASE_NAME}*" | sort -V)
-          
-          if [ -z "$EXISTING_TAGS" ]; then
-            FINAL_NAME="$BASE_NAME"
-          else
-            # Get the last tag
-            LAST_TAG=$(echo "$EXISTING_TAGS" | sort -V | tail -n 1)
-            
-            if [[ "$LAST_TAG" == *_*_* ]]; then
-              # Extract the suffix character and increment it
-              SUFFIX=${LAST_TAG##*_}
-              NEXT_SUFFIX=$(echo "$SUFFIX" | tr 'A-Y' 'B-Z')
-              FINAL_NAME="${BASE_NAME}_${NEXT_SUFFIX}"
+          EOF_DELIM=$(cat /proc/sys/kernel/random/uuid)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DATE_STR=$(date +'%-m-%d-%Y_%H%M')
+            BASE_TAG="oscar_${DATE_STR}"
+
+            if [ -n "${INPUT_VERSION}" ]; then
+              CLEAN_SUFFIX=$(echo "${INPUT_VERSION}" | tr -dc '[:alnum:]_.-')
+              TAG_NAME="${BASE_TAG}_${CLEAN_SUFFIX}"
             else
-              # First build of the day exists, append '_B'
-              FINAL_NAME="${BASE_NAME}_B"
+              TAG_NAME="${BASE_TAG}"
+            fi
+
+            echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Manual Release ${TAG_NAME}" >> $GITHUB_ENV
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+
+            echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
+            echo "${INPUT_NOTES}" >> $GITHUB_ENV
+            echo "${EOF_DELIM}" >> $GITHUB_ENV
+          else
+            if [ "${{ github.event.action }}" = "opened" ] || [ "${{ github.event.action }}" = "synchronize" ]; then
+              # Dev release from PR
+              DATE_STR=$(date +'%-m-%d-%Y')
+              BASE_TAG="oscar_${DATE_STR}"
+
+              # Append a suffix indicating a DEV release
+              TIME_STR=$(date +'%H%M')
+              TAG_NAME="${BASE_TAG}_dev_pr${{ github.event.pull_request.number }}_${TIME_STR}"
+
+              echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+              echo "RELEASE_NAME=Dev Release ${TAG_NAME}" >> $GITHUB_ENV
+              echo "IS_PRERELEASE=true" >> $GITHUB_ENV
+
+              echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
+              echo "Dev release for PR #${{ github.event.pull_request.number }}. Updates:" >> $GITHUB_ENV
+              echo "${PR_BODY}" >> $GITHUB_ENV
+              echo "${EOF_DELIM}" >> $GITHUB_ENV
+            else
+              # Automated release from merged PR
+              DATE_STR=$(date +'%-m-%d-%Y')
+              BASE_TAG="oscar_${DATE_STR}"
+
+              # Find the next available letter suffix (A, B, C...)
+              SUFFIX="A"
+              for letter in {A..Z}; do
+                if ! gh release view "${BASE_TAG}_${letter}" >/dev/null 2>&1; then
+                  SUFFIX="${letter}"
+                  break
+                fi
+              done
+
+              TAG_NAME="${BASE_TAG}_${SUFFIX}"
+              echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+              echo "RELEASE_NAME=Auto-Release ${TAG_NAME}" >> $GITHUB_ENV
+              echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+
+              echo "RELEASE_NOTES<<${EOF_DELIM}" >> $GITHUB_ENV
+              echo "${PR_BODY}" >> $GITHUB_ENV
+              echo "${EOF_DELIM}" >> $GITHUB_ENV
             fi
           fi
-          
-          echo "Determined version: $FINAL_NAME"
-          echo "date=$CURRENT_DATE" >> $GITHUB_OUTPUT
-          echo "tag_name=$FINAL_NAME" >> $GITHUB_OUTPUT
-          
-          # Rename the artifact
-          # Note: distribution name from build.gradle is 'oscar' (rel distribution)
-          mv build/distributions/oscar-3.0.0.zip "build/distributions/${FINAL_NAME}.zip"
 
-      - name: Create Release
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PAT }}
+
+      - name: Build and Push Docker Images
+        run: |
+          DOCKER_USER="${{ secrets.DOCKER_USERNAME }}"
+
+          # Find the generated zip artifact
+          ZIP_FILE=$(ls build/distributions/*.zip | head -n 1)
+          echo "Extracting $ZIP_FILE for Docker build context..."
+
+          # Extract the zip to a temporary folder
+          unzip -q "$ZIP_FILE" -d ./docker_temp
+
+          # Move ALL contents from the extracted wrapper folder directly to the workspace root
+          EXTRACTED_DIR=$(find ./docker_temp -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          if [ -n "$EXTRACTED_DIR" ]; then
+            cp -r "$EXTRACTED_DIR"/* ./
+          else
+            cp -r ./docker_temp/* ./
+          fi
+          rm -rf ./docker_temp
+
+          # CRITICAL FIX: Forcefully whitelist the necessary folders in .dockerignore
+          if [ -f .dockerignore ]; then
+            echo "" >> .dockerignore
+            echo "!osh-node-oscar/" >> .dockerignore
+            echo "!osh-node-oscar/**" >> .dockerignore
+            echo "!postgis/" >> .dockerignore
+            echo "!postgis/**" >> .dockerignore
+            echo "Forcefully whitelisted directories in .dockerignore"
+          fi
+
+          if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
+            # Production Release (Manual or Merged PR)
+            echo "Building and pushing Production images with tags: latest and ${{ env.TAG_NAME }}"
+
+            # OSH Backend
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-backend:latest \
+              -t ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }} \
+              -f Dockerfile.osh .
+
+            # PostGIS (Using the standard Dockerfile for both architectures)
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-postgis:latest \
+              -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }} \
+              -f ./postgis/Dockerfile ./postgis
+
+          else
+            # Dev Release (PR Opened or Synchronized)
+            DEV_TAG="dev-pr-${{ github.event.pull_request.number }}"
+            echo "Building and pushing Dev images with tag: ${DEV_TAG}"
+
+            # OSH Backend
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} \
+              -f Dockerfile.osh .
+
+            # PostGIS
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} \
+              -f ./postgis/Dockerfile ./postgis
+          fi
+
+      - name: Prepare Artifacts
+        run: |
+          cd build/distributions
+          # The artifact is named oscar-<version>.zip or osh-node-oscar-<version>.zip.
+          # We rename it to the release tag version format required: oscar_M-DD-YYYY_A.zip
+          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
+          if [ -n "$ORIGINAL_ZIP" ]; then
+            mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
+          else
+            echo "No artifact found matching oscar-*.zip"
+            ALT_ZIP=$(ls osh-node-oscar-*.zip 2>/dev/null | head -n 1 || true)
+            if [ -n "$ALT_ZIP" ]; then
+              mv "$ALT_ZIP" "${TAG_NAME}.zip"
+            else
+              echo "No artifact found at all."
+              ls -l
+              # Force workflow to fail if artifact not found
+              sh -c 'exit 1'
+            fi
+          fi
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # Ensures the release and tag are attached to the correct branch, not the default branch
-          target_commitish: ${{ github.event.pull_request.base.ref || github.ref_name }}
-          tag_name: ${{ steps.date.outputs.tag_name }}
-          files: build/distributions/${{ steps.date.outputs.tag_name }}.zip
-          body: |
-            ## OSCAR Containerized Release Snapshot: ${{ github.event.pull_request.title || 'Manual Trigger' }}
-            **Branch:** ${{ github.event.pull_request.base.ref || github.ref_name }}
-            **Merged from PR:** #${{ github.event.pull_request.number || 'N/A' }}
-            **Summary:** ${{ github.event.pull_request.body || 'Manually triggered build for testing.' }}
-            **Build Date:** ${{ steps.date.outputs.date }}
-
-            ### Deployment Instructions:
-            1. Download and extract the `${{ steps.date.outputs.tag_name }}.zip` file.
-            2. Follow the instructions in `README.md` for launching the unified Docker Compose stack.
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.RELEASE_NAME }}
+          body: ${{ env.RELEASE_NOTES }}
+          files: |
+            build/distributions/${{ env.TAG_NAME }}.zip
+            docker-compose.yml
+            .env.example
+          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
