@@ -1,15 +1,14 @@
 # Dockerfile.osh
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
 
 # Set the working directory
 WORKDIR /app
 
 # GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
-# GLOBAL BUILD CONSTRAINT: Bypass HTTPS for corporate SSL inspection during build
-RUN sed -i 's/https/http/g' /etc/apk/repositories && \
-    apk update && \
-    apk add --no-cache font-freefont openssl bash curl && \
-    rm -rf /var/cache/apk/*
+# Debian/Ubuntu (jammy) uses apt-get for dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends fonts-freefont-ttf openssl curl bash && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy build artifacts
 COPY ./osh-node-oscar/lib /app/lib

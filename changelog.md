@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file.
 - Refactored entire cryptographic architecture to dynamic PEM-first configuration. The `init-secrets` container now securely generates `server.pem` for Caddy and seamlessly bundles `osh-keystore.p12` for Java.
 - Standardized deployment via a "Hybrid Volume Architecture" in `docker-compose.yml` (Named Volumes for secure secrets, Bind Mounts for config data).
 - Striped deprecated `LocalCAUtility` local-file generation from backend startup scripts (`launch.sh` / `launch.bat`), forcing environment variable inheritance.
-- Upgraded the OSH backend `LaneSystem.java` initialization flow. When cameras are configured via the Admin UI, the backend now automatically intercepts the raw RTSP URI and dynamically provisions it through the MediaMTX sidecar REST API prior to FFmpeg connection.
+- Upgraded the OSH backend `LaneSystem.java` initialization flow. When cameras are configured via the Admin UI, the backend now automatically intercepts the raw RTSP URI and dynamically provisions it through the MediaMTX sidecar REST API prior to FFmpeg connection. The backend gracefully falls back to the raw camera URI if MediaMTX is unconfigured or unreachable.
 - Migrated Tailscale integration to a dedicated sidecar container to improve cross-platform compatibility (especially WSL2 on Windows).
 - Moved `TAILSCALE_DOMAIN` definition entirely into `.env` file instead of dynamically generating it.
 - Reverted launch scripts (`launch-all.sh`, `launch-all.bat`) back to pure `docker compose up -d` execution.
+- Configured Java `HttpClient` modules resolving local APIs to explicitly utilize `NO_PROXY` and `JAVA_OPTS` to utilize `socksNonProxyHosts`, strictly segmenting local physical sensors and Docker bridges from the Tailscale SOCKS5 intercept.
+- **Critical Fix:** Upgraded `Dockerfile.osh` from an Alpine Linux (`musl`) base to Debian/Ubuntu `jammy` (`glibc`) to restore native JavaCPP FFmpeg JNI linking, resolving fatal `UnsatisfiedLinkError` module crashes.
 
 ## 3.0.0 2026-02-04
 This is the official first release of 3.0.0

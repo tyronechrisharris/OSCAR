@@ -30,6 +30,7 @@ The launch script uses an explicit loop to delay the backend startup until PostG
      sleep 5
    done
    ```
+4. **SOCKS Proxy Exemption:** During `JAVA_OPTS` configuration, `-DsocksNonProxyHosts` is explicitly appended to ensure local TCP sockets (like physical RPM connections) are exempted from the global Tailscale SOCKS5 intercept, resolving `SOCKS server general failure` exceptions.
 
 ## 2. Certificate Authority & TLS Generation
 
