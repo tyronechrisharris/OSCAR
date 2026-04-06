@@ -80,11 +80,29 @@ public class LaneSystem extends SensorSystem {
     private static final String PROCESS_URI = URN_PREFIX + "osh:process:occupancy";
     private static final String VIDEO_CLIPS_DIRECTORY = "clips/";
     private static final String VIDEO_STREAMING_DIRECTORY = "streaming/";
-    private static final String MEDIA_MTX_ADD_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/add/";
-    private static final String MEDIA_MTX_PATCH_PATHS_API_BASE = "http://172.17.0.1:9997/v3/config/paths/";
-    private static final String MEDIA_MTX_RTSP_BASE = "rtsp://172.17.0.1:8554/";
+
+    private String getMediaMtxIp() {
+        String ip = System.getenv("MEDIAMTX_IP");
+        return (ip != null && !ip.isBlank()) ? ip : "172.17.0.1";
+    }
+
+    private String getMediaMtxAddPathsApiBase() {
+        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/add/";
+    }
+
+    private String getMediaMtxPatchPathsApiBase() {
+        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/";
+    }
+
+    private String getMediaMtxRtspBase() {
+        return "rtsp://" + getMediaMtxIp() + ":8554/";
+    }
+
     private HttpClient getMediaMtxClient() {
-        return HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+        return HttpClient.newBuilder()
+                .proxy(HttpClient.Builder.NO_PROXY) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
     }
 
     AbstractSensorModule<?> existingRPMModule = null;
@@ -217,7 +235,7 @@ public class LaneSystem extends SensorSystem {
         try {
             HttpResponse<String> response = sendMediaMtxRequest(
                     "POST",
-                    MEDIA_MTX_ADD_PATHS_API_BASE + encodedPathName,
+                    getMediaMtxAddPathsApiBase() + encodedPathName,
                     payload);
 
             if (response.statusCode() >= 400 && response.statusCode() < 500) {
@@ -226,24 +244,24 @@ public class LaneSystem extends SensorSystem {
 
                 response = sendMediaMtxRequest(
                         "PATCH",
-                        MEDIA_MTX_PATCH_PATHS_API_BASE + encodedPathName,
+                        getMediaMtxPatchPathsApiBase() + encodedPathName,
                         payload);
             }
 
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new SensorHubException(
-                        "MediaMTX path configuration failed for " + pathName +
-                                " with HTTP " + response.statusCode() + ": " + response.body());
+                getLogger().error("MediaMTX path configuration failed for {} with HTTP {}: {}. Falling back to raw camera URI.",
+                        pathName, response.statusCode(), response.body());
+                return;
             }
 
             ffmpegConfig.connection.transportStreamPath = null;
-            ffmpegConfig.connection.connectionString = MEDIA_MTX_RTSP_BASE + pathName;
+            ffmpegConfig.connection.connectionString = getMediaMtxRtspBase() + pathName;
             ffmpegConfig.connection.useTCP = true;
         } catch (IOException e) {
-            throw new SensorHubException("Failed to call MediaMTX while configuring camera proxy for " + pathName, e);
+            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.getMessage());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SensorHubException("Interrupted while configuring MediaMTX camera proxy for " + pathName, e);
+            getLogger().error("Interrupted while configuring MediaMTX camera proxy for {}. Falling back to raw camera URI.", pathName);
         }
     }
 
