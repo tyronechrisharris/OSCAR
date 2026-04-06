@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 import org.openkinect.freenect.Device;
 import org.openkinect.freenect.FrameMode;
 import org.openkinect.freenect.VideoHandler;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.videocam.VideoCamHelper;
 import org.vast.data.DataBlockMixed;
@@ -32,18 +32,15 @@ class KinectInfraredOutput extends KinectOutputInterface {
 
 	private static final String ERR_STR = new String("Error while initializing IR output");
 
-	private static final String STR_NAME = new String("irCamera");
+	private static final String STR_NAME = new String("Kinect IR Camera");
 
 	protected DataStream irStream;
 
 	public KinectInfraredOutput(KinectSensor parentSensor, Device kinectDevice) {
 
-        super(STR_NAME, parentSensor, kinectDevice);
-    }
-	
-	protected KinectInfraredOutput(String name, KinectSensor parentSensor, Device kinectDevice) {
+		super(parentSensor, kinectDevice);
 
-		super(name, parentSensor, kinectDevice);
+		name = STR_NAME;
 	}
 
 	@Override
@@ -61,14 +58,14 @@ class KinectInfraredOutput extends KinectOutputInterface {
 	@Override
 	public void init() throws SensorException {
 
-		device.setVideoFormat(getParentProducer().getConfiguration().irFormat);
+		device.setVideoFormat(getParentModule().getConfiguration().irFormat);
 
 		try {
 
 			VideoCamHelper irHelper = new VideoCamHelper();
 
-			irStream = irHelper.newGrayscaleOutput(getName(), getParentProducer().getConfiguration().frameWidth,
-					getParentProducer().getConfiguration().frameHeight);
+			irStream = irHelper.newGrayscaleOutput(getName(), getParentModule().getConfiguration().frameWidth,
+					getParentModule().getConfiguration().frameHeight);
 
 		} catch (Exception e) {
 
@@ -86,8 +83,8 @@ class KinectInfraredOutput extends KinectOutputInterface {
 
 				DataBlock dataBlock = irStream.getElementType().createDataBlock();
 
-				byte[] channelData = new byte[getParentProducer().getConfiguration().frameWidth
-						* getParentProducer().getConfiguration().frameHeight];
+				byte[] channelData = new byte[getParentModule().getConfiguration().frameWidth
+						* getParentModule().getConfiguration().frameHeight];
 
 				getChannelData(frame, channelData);
 
@@ -101,7 +98,7 @@ class KinectInfraredOutput extends KinectOutputInterface {
 
 				latestRecordTime = System.currentTimeMillis();
 
-				eventHandler.publish(new DataEvent(latestRecordTime, KinectInfraredOutput.this, dataBlock));
+				eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, KinectInfraredOutput.this, dataBlock));
 
 				frame.position(0);
 			}
@@ -110,11 +107,11 @@ class KinectInfraredOutput extends KinectOutputInterface {
 
 	protected void getChannelData(ByteBuffer frame, byte[] channelData) {
 
-		for (short y = 0; y < getParentProducer().getConfiguration().frameHeight; ++y) {
+		for (short y = 0; y < getParentModule().getConfiguration().frameHeight; ++y) {
 
-			for (short x = 0; x < getParentProducer().getConfiguration().frameWidth; ++x) {
+			for (short x = 0; x < getParentModule().getConfiguration().frameWidth; ++x) {
 
-				int offset = (x + y * getParentProducer().getConfiguration().frameWidth);
+				int offset = (x + y * getParentModule().getConfiguration().frameWidth);
 
 				channelData[offset] = frame.get(offset);
 			}

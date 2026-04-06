@@ -47,7 +47,6 @@ public class TestHttpServer
     public void setup() throws Exception
     {
         System.out.println("\n*****************************");
-        System.setProperty("osh.testmode", "true");
         var hub = new SensorHub();
         hub.start();
         registry = hub.getModuleRegistry(); 
@@ -85,7 +84,6 @@ public class TestHttpServer
     @Test
     public void testDeployServlet() throws Exception
     {
-        addUsers();
         var httpServer = startServer(null);
         final String testText = "Deploying hot servlet in SensorHub works";
         
