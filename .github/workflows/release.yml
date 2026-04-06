@@ -177,23 +177,18 @@ jobs:
 
           else
             # Dev Release (PR Opened or Synchronized)
-            LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-            if [[ "$LABELS" == *"build-dev-image"* ]]; then
-              DEV_TAG="dev-pr-${{ github.event.pull_request.number }}"
-              echo "Building and pushing Dev images with tag: ${DEV_TAG}"
+            DEV_TAG="dev-pr-${{ github.event.pull_request.number }}"
+            echo "Building and pushing Dev images with tag: ${DEV_TAG}"
 
-              # OSH Backend
-              docker buildx build --platform linux/amd64,linux/arm64 --push \
-                -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} \
-                -f Dockerfile.osh .
+            # OSH Backend
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-backend:${DEV_TAG} \
+              -f Dockerfile.osh .
 
-              # PostGIS
-              docker buildx build --platform linux/amd64,linux/arm64 --push \
-                -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} \
-                -f ./postgis/Dockerfile ./postgis
-            else
-              echo "Skipping Docker image build for PR. 'build-dev-image' label not found."
-            fi
+            # PostGIS
+            docker buildx build --platform linux/amd64,linux/arm64 --push \
+              -t ${DOCKER_USER}/oscar-postgis:${DEV_TAG} \
+              -f ./postgis/Dockerfile ./postgis
           fi
 
       - name: Prepare Artifacts
