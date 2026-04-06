@@ -38,12 +38,12 @@ export default function NodeForm({isEditNode, modeChangeCallback, editNode}: {
 
     const newNodeOpts: NodeOptions = {
         name: "",
-        address: "localhost",
-        port: 8282,
+        address: window.location.hostname || "localhost",
+        port: window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80),
         oshPathRoot: "/sensorhub",
         csAPIEndpoint: "/api",
         auth: {username: "", password: ""},
-        isSecure: false,
+        isSecure: window.location.protocol === 'https:',
         isDefaultNode: false
     };
     const [newNode, setNewNode] = useState<INode>(new Node(newNodeOpts));

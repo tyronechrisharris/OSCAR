@@ -1,45 +1,61 @@
 services:
-  # Pre-flight container to generate secrets exactly like launch-all.sh
   init-secrets:
     image: eclipse-temurin:21-jre-alpine
     container_name: oscar-init-secrets
     volumes:
       - oscar_secrets:/secrets
     command: >
-      /bin/sh -c "
+      /bin/sh -c '
       apk add --no-cache openssl;
       if [ ! -f /secrets/.db_password ]; then
-        echo 'Generating new database password...';
+        echo "Generating new database password...";
         openssl rand -base64 32 > /secrets/.db_password;
       fi;
       if [ ! -f /secrets/.app_secrets ]; then
-        echo 'Generating new keystore and truststore password...';
+        echo "Generating new keystore and truststore password...";
         openssl rand -base64 32 > /secrets/.app_secrets;
 
-        echo 'Creating secure truststore.jks with generated password...';
+        NEW_PASS=$$(cat /secrets/.app_secrets);
+
+        echo "Generating PEM Root CA...";
+        openssl req -x509 -nodes -newkey rsa:2048 -keyout /secrets/ca.key -out /secrets/ca.pem -days 7300 -subj "/CN=OSCAR Root CA";
+
+        echo "Generating PEM Server Certificate...";
+        openssl req -nodes -newkey rsa:2048 -keyout /secrets/server.key -out /secrets/server.csr -subj "/CN=localhost";
+        openssl x509 -req -in /secrets/server.csr -CA /secrets/ca.pem -CAkey /secrets/ca.key -CAcreateserial -out /secrets/server.pem -days 3650;
+
+        echo "Creating secure truststore.jks with generated password and Root CA...";
         cp $$JAVA_HOME/lib/security/cacerts /secrets/truststore.jks;
         chmod 644 /secrets/truststore.jks;
-
-        # Change the default 'changeit' password to the secure generated password
-        NEW_PASS=$$(cat /secrets/.app_secrets);
         keytool -storepasswd -new $$NEW_PASS -keystore /secrets/truststore.jks -storepass changeit;
+        keytool -import -trustcacerts -alias oscar-root -file /secrets/ca.pem -keystore /secrets/truststore.jks -storepass $$NEW_PASS -noprompt;
+
+        echo "Creating PKCS12 keystore with Server Certificate...";
+        openssl pkcs12 -export -out /secrets/osh-keystore.p12 -inkey /secrets/server.key -in /secrets/server.pem -certfile /secrets/ca.pem -name "jetty" -password pass:$$NEW_PASS;
       fi;
-      "
+
+      if [ ! -f /secrets/db-server.crt ]; then
+        echo "Generating new self-signed certificate for PostGIS...";
+        openssl req -new -x509 -days 3650 -nodes -text -out /secrets/db-server.crt -keyout /secrets/db-server.key -subj "/CN=oscar-postgis";
+        chmod 600 /secrets/db-server.key;
+        chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
+      fi;
+      '
 
   osh-postgis:
     depends_on:
       init-secrets:
         condition: service_completed_successfully
-    build:
-      context: ./postgis
-      dockerfile: ${POSTGIS_DOCKERFILE:-Dockerfile}
-    image: oscar-postgis:latest
+    image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
+    command: >
+      -c ssl=on
+      -c ssl_cert_file=/secrets/db-server.crt
+      -c ssl_key_file=/secrets/db-server.key
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
-      # Performance Tuning from .env
       - POSTGRES_SHARED_BUFFERS=${DB_SHARED_BUFFERS:-128MB}
       - POSTGRES_EFFECTIVE_CACHE_SIZE=${DB_EFFECTIVE_CACHE_SIZE:-512MB}
       - POSTGRES_WORK_MEM=${DB_WORK_MEM:-4MB}
@@ -65,27 +81,24 @@ services:
       retries: 5
 
   osh-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.osh
-    image: oscar-backend:latest
+    image: harristc825/oscar-backend:${OSCAR_VERSION:-latest}
     container_name: oscar-backend-container
     environment:
       - DB_HOST=${DB_HOST:-osh-postgis}
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
-      - KEYSTORE=/app/config/osh-keystore.p12
+      - KEYSTORE=/secrets/osh-keystore.p12
       - KEYSTORE_TYPE=PKCS12
       - TRUSTSTORE=/secrets/truststore.jks
       - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
-      # JVM Tuning from .env
-      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G}
+      # CRITICAL FIX 1: Forces backend to use the shared secrets volume
+      - KEYSTORE_PASSWORD_FILE=/secrets/.app_secrets
+      - TRUSTSTORE_PASSWORD_FILE=/secrets/.app_secrets
+      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
     volumes:
-      # Use named volumes or bind mounts for persistent backend state
-      - ./osh-node-oscar:/app/config
+      - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
-      # The secrets volume guarantees persistence for the CA and database passwords
       - oscar_secrets:/secrets:ro
     networks:
       - osh-internal
@@ -97,46 +110,90 @@ services:
         limits:
           memory: ${BACKEND_MEM_LIMIT:-2G}
     restart: unless-stopped
-    # Port 8282 is not exposed to the host network to ensure it's only accessible via the proxy
-    # For local debugging, it can be bound to 127.0.0.1:8282
     ports:
       - "127.0.0.1:8282:8282"
     healthcheck:
-      # Wait-State Logic: The backend takes significant time to generate certificates,
-      # process the Setup Wizard, and validate TOTP/Admin states before it is ready.
-      # We test against the base API root to ensure it accepts connections.
       test: ["CMD-SHELL", "curl -s -I http://localhost:8282/sensorhub/api | grep -q 'HTTP/1.1' || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 15
       start_period: 60s
 
-  osh-proxy:
-    image: caddy:2-alpine
-    depends_on:
-      osh-backend:
-        condition: service_healthy
-    container_name: oscar-proxy-container
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: oscar-mediamtx
+    network_mode: "host"
     environment:
-      # We use 'invalid.local' as a hard fallback if TAILSCALE_DOMAIN is empty,
-      # preventing Caddy from throwing a "server block without any key is global configuration"
-      # error due to an empty string address block.
-      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
-      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
-      - LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}
+      - MTX_API=yes
+      - MTX_APIADDRESS=:9997
+    restart: unless-stopped
+
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: oscar-tailscale
+    hostname: ${NODE_NAME:-oscar-server}
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_ROUTES=${TS_ROUTES:-}
+      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SOCKS5_SERVER=:1055
+      - TS_SOCKET=/var/run/tailscale/tailscaled.sock
     ports:
       - "127.0.0.1:80:80"
-      - "0.0.0.0:443:443"
+      - "443:443"
     volumes:
-      - ./caddy:/etc/caddy
-      - caddy_data:/data
-      - caddy_config:/config
-      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock
-      # Mount the generated certificates from the backend's persistent config volume
-      - ./osh-node-oscar:/etc/caddy/certs:ro
+      - ./tailscale/state:/var/lib/tailscale
+      - ./tailscale/sock:/var/run/tailscale
     networks:
       - osh-internal
+    cap_add:
+      - net_admin
+      - sys_module
     restart: unless-stopped
+
+  osh-proxy:
+    image: caddy:latest
+    container_name: oscar-proxy
+    network_mode: "service:tailscale"
+    depends_on:
+      tailscale:
+        condition: service_started
+      osh-backend:
+        condition: service_healthy
+    environment:
+      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
+      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./tailscale/sock:/var/run/tailscale:ro
+      - oscar_secrets:/etc/caddy/certs:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    command:
+      - sh
+      - -c
+      - |
+        cat << EOF > /etc/caddy/Caddyfile
+        http://localhost {
+            reverse_proxy http://osh-backend:8282
+        }
+        https://localhost, 127.0.0.1 {
+            reverse_proxy http://osh-backend:8282
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
+        }
+        ${TAILSCALE_DOMAIN} {
+            reverse_proxy http://osh-backend:8282
+            tls {
+                get_certificate tailscale
+            }
+        }
+        EOF
+        caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 networks:
   osh-internal:

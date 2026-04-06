@@ -28,4 +28,5 @@ build/
 web/oscar-viewer/node_modules
 web/oscar-viewer/.next
 web/oscar-viewer/web
-osh-node-oscar/
+docker_temp
+security-utils/config/

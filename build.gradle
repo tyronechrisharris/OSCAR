@@ -71,6 +71,7 @@ distributions{
             into("osh-node-oscar/") {
                 from 'dist/scripts/standard'
                 from 'dist/config/standard'
+                exclude '**/.app_secrets', '**/.db_password', '**/.initial_admin_password', '**/*.jks', '**/*.p12'
             }
             into ("osh-node-oscar/config") {
                 from 'dist/config/eml'
@@ -90,6 +91,7 @@ distributions{
             into("osh-node-oscar/") {
                 from 'README.md'
                 from 'osh-node-oscar/changelog.md'
+                exclude '**/.app_secrets', '**/.db_password', '**/.initial_admin_password', '**/*.jks', '**/*.p12'
             }
             into("osh-node-oscar/lib") {
                 from 'third-party-drivers'
@@ -101,6 +103,8 @@ distributions{
                 from('dist/release')
                 from('docker-compose.yml')
                 from('Dockerfile.osh')
+                from('.env.example')
+                exclude '**/.app_secrets', '**/.db_password', '**/.initial_admin_password', '**/*.jks', '**/*.p12'
             }
 
             into('caddy') {

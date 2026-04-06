@@ -1,8 +1,53 @@
 # Tailscale Security and Configuration for OSCAR Federation
 
-This document explains the requirements and security considerations for using Tailscale to provision API keys between OSCAR nodes.
+This document explains the requirements and security considerations for using Tailscale to secure the OSCAR proxy and provision API keys between OSCAR nodes.
 
-## 1. Tailscale Requirements
+## 1. Tailscale Sidecar Configuration
+
+OSCAR utilizes a dedicated Docker container (a "sidecar") running the Tailscale daemon to natively bridge the stack onto your Tailnet. This abstracts the complexity of host-level networking and provides reliable operation across macOS, Windows (WSL2), and Linux.
+
+### A. Authentication
+The `oscar-tailscale` sidecar requires an authentication key to join your Tailnet automatically.
+1. Log in to the **Tailscale Admin Console** (login.tailscale.com).
+2. On the left sidebar, click **Settings**.
+3. Under the *Personal Settings* (or *Tailnet Settings*), click **Keys**.
+4. Click **Generate auth key**. Since the system uses a `tailscale_state` volume to save your login, a standard, one-time use key is perfectly fine. Optionally, you can assign it a Tag (like `tag:server`) for tighter security if you use Tailscale ACLs.
+5. Click **Generate** and copy the key (it starts with `tskey-auth-`). Paste this into your `.env` file as `TS_AUTHKEY`.
+
+### B. Node Name & MagicDNS and HTTPS Certificates
+To prevent network collisions when deploying multiple OSCAR nodes, each node must have a unique `NODE_NAME` defined in `.env` (e.g., `oscar-alpha`). This parameter sets the Tailscale machine name.
+
+Your full `TAILSCALE_DOMAIN` is a combination of this **hostname** and your network's **Tailnet name**.
+1. In the Admin Console, go to the **DNS** tab on the left sidebar.
+2. Under the **MagicDNS** section, locate your **Tailnet name** (e.g., `tail09415d.ts.net` or `flying-fox.ts.net`).
+3. Combine this with your `NODE_NAME`. For example, if `NODE_NAME=oscar-alpha`, your domain is:
+   `oscar-alpha.YOUR_TAILNET_NAME.ts.net`
+
+**Enable HTTPS Certificates:**
+To allow Caddy's `get_certificate tailscale` directive to automatically fetch trusted Let's Encrypt certificates, your Tailnet must have permission to generate them. If this feature is turned off in the admin console, your Tailscale sidecar will be denied when it asks for the certificate, and Caddy will throw an SSL error.
+
+Here is exactly what you need to do in the Tailscale Admin Console (this is a one-time toggle for your entire network):
+1. Log in to the [Tailscale Admin Console](https://login.tailscale.com/admin/machines).
+2. Navigate to the **DNS** tab on the left-hand menu.
+3. Scroll down to the **MagicDNS** section and ensure it is **Enabled** (it usually is by default).
+4. Scroll down further to the **HTTPS Certificates** section and click **Enable HTTPS**.
+
+**Why this is required:**
+When you enable this, Tailscale provisions a unique `*.ts.net` domain for your network and sets up the DNS challenge routing with Let's Encrypt. Now, when your Docker stack boots up:
+- Caddy wakes up and asks the Tailscale sidecar for a certificate.
+- The sidecar reaches out to the Tailscale control plane.
+- Because you flipped that switch, the control plane says "Yes," automatically handles the Let's Encrypt DNS verification in the background, and drops a fully trusted, valid TLS certificate right into your sidecar.
+- Caddy grabs it, and your browser gives you the green padlock.
+
+Once configured:
+1. Determine the MagicDNS address of your node (e.g., `oscar-server.tailxxxxx.ts.net`).
+2. Provide this fully-qualified domain name in your `.env` file via the `TAILSCALE_DOMAIN` variable.
+
+### C. State Persistence
+The sidecar's machine identity and runtime state are persisted to the local host filesystem at `./tailscale/state` and `./tailscale/sock`. This ensures that if the container restarts, it retains its Tailscale IP and cryptographic identity without needing to re-authenticate with the coordination server.
+
+
+## 2. Federation Provisioning Requirements
 
 To use the automated provisioning scripts (`provision-node.sh` and `provision-node.bat`), the following Tailscale features must be configured on both the **Central Station** (Source) and the **Federated Node** (Target).
 

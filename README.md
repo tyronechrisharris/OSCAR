@@ -12,7 +12,7 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository:
 
 ```bash
-git clone git@github.com:Botts-Innovative-Research/oscar-flat.git
+git clone git@github.com:tyronechrisharris/oscar-flat.git
 ```
 ## Build 
 Navigate to the project directory:
@@ -36,39 +36,113 @@ Run the build script (Windows):
 After the build completes, it can be located in `build/distributions/` 
 
 ## Deploy and Start OSH Node
-1. Unzip the distribution using the command line or File Explorer:
+
+There are two primary methods to deploy OSCAR depending on your internet connectivity and preference.
+
+### Method 1: Online Deployment (Docker Hub)
+For connected environments, you can run the stack directly using our pre-built Docker images hosted on Docker Hub. This is the fastest method.
+1. Download `docker-compose.yml` and `.env.example` from the [Latest Release](https://github.com/tyronechrisharris/oscar-flat/releases).
+2. Place both files in a new directory (e.g., `oscar-deployment/`).
+3. Proceed to **Environment Setup** below.
+
+### Method 2: Offline / Source Deployment
+For air-gapped environments or local builds, you can use the complete distribution archive containing the Dockerfiles and launch scripts.
+1. Unzip the distribution archive (`oscar-<version>.zip`) downloaded from the Releases page or built locally:
 
     Option 1: Command Line
     ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    unzip build/distributions/osh-node-oscar-<version>.zip
-    cd osh-node-oscar-<version>/osh-node-oscar-<version>
+    unzip oscar-<version>.zip
+    cd oscar-<version>
     ```
    ```bash
     # Note: Replace <version> with the current version, e.g. 3.0.0
-    tar -xf build/distributions/osh-node-oscar-<version>.zip
-    cd osh-node-oscar-<version>/osh-node-oscar-<version>
+    tar -xf oscar-<version>.zip
+    cd oscar-<version>
     ```
    Option 2: Use File Explorer
-    1. Navigate to `path/to/oscar-flat/build/distributions/`
-    2. Right-click `osh-node-oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
-    3. Select **Extract All..**
-    4. Choose your destination, (or leave the default) and extract.
-1. Launch the Stack (Docker Compose):
-   The entire OSCAR stack (PostGIS, OSH Backend, and Caddy Reverse Proxy) is fully containerized. To launch the system from the repository root, ensure Docker is installed and run:
+    1. Right-click `oscar-<version>.zip` (where `<version>` is the current release version, e.g. `3.0.0`).
+    2. Select **Extract All..**
+    3. Choose your destination, (or leave the default) and extract.
+    4. Navigate into the extracted `oscar-<version>` folder.
+2. Proceed to **Environment Setup** below.
 
-   ```bash
-   docker compose up -d
-   ```
-   *Note: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) located in `dist/release/` are still available for backward compatibility.*
+### Environment Setup
+Before launching, copy `.env.example` to `.env`. The `.env` file contains critical scaling profiles. The default is **Scenario B (Tactical Hub)**. If your system requires a different scale (like the Edge Node or Enterprise Central Hub), uncomment the appropriate profile block. For Enterprise deployments spanning multiple machines, see `SYSTEM_ARCHITECTURE.md` for specific initialization logic.
 
-2. Access the OSCAR System
+### Tailscale Sidecar Setup
+OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy to your Tailnet without requiring host-machine Tailscale daemons or complicated socket mounts.
+- Provide a reusable or ephemeral Tailscale auth key in `.env` as `TS_AUTHKEY`.
+- Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates.
+
+### Launch the Stack
+The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, MediaMTX, and Caddy Reverse Proxy) is fully containerized. Ensure Docker is installed and run:
+
+```bash
+docker compose up -d
+```
+*Note for Offline Deployments: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) are still available inside the `dist/release/` directory of the zip archive for convenience.*
+
+### Shutdown and Restart Procedures
+
+To properly shut down and restart your OSCAR stack, you have a few different options depending on whether you just want to pause the system, rebuild it, or completely wipe it.
+
+These exact terminal commands should be run from inside your `oscar` directory, regardless of whether you are using Windows PowerShell, Mac Terminal, or Linux Bash.
+
+**Option 1: The "Soft" Stop and Start (Recommended for pausing)**
+This is the fastest way to bring the system down and back up. It stops the containers exactly where they are without deleting them or removing them from Docker's internal network.
+
+* **To shut down:**
+    ```bash
+    docker compose stop
+    ```
+* **To start back up:**
+    ```bash
+    docker compose start
+    ```
+
+**Option 2: The "Clean" Restart (Recommended for applying updates)**
+If you make changes to your `docker-compose.yml` file, your `.env` file, or if you download a new version of your backend image, you must use this method. It safely deletes the containers and networks, but **keeps your data and certificates perfectly safe** in their volumes.
+
+* **To shut down:**
+    ```bash
+    docker compose down
+    ```
+* **To start back up:**
+    ```bash
+    docker compose up -d
+    ```
+
+**Option 3: The "Nuclear" Reset (Data Wipe)**
+Only use this if you want to completely factory reset the system. **This permanently deletes your database history, your saved passwords, and your generated SSL certificates.**
+
+* **To wipe everything:**
+    ```bash
+    docker compose down -v
+    ```
+* **To boot fresh:**
+    ```bash
+    docker compose up -d
+    ```
+
+---
+
+**A Pro-Tip for Monitoring the Restart:**
+Whenever you run `docker compose up -d`, the `-d` flag runs everything in the background so you can keep using your terminal. If you want to watch the system boot up to make sure everything connects smoothly, run this command right after:
+
+```bash
+docker compose logs -f
+```
+*(Press `Ctrl + C` when you are done watching to exit the log view).*
+
+### Access the OSCAR System
 - Local/Remote Access (via Caddy Proxy): **https://localhost** or **http://localhost**
+- Tailscale Access: **https://[your-tailscale-domain]**
 
 **Important Note on Localhost TLS Warnings:**
-When accessing `https://localhost` or a local IP (including Tailscale IPs without MagicDNS), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
-- **To resolve this warning:** You can install the generated Root CA certificate (`osh-root.crt`) into your system or browser's Trust Store. This file is generated automatically upon first boot and can be found in the persistent config directory (e.g., `./osh-node-oscar/osh-root.crt`).
-- **Tailscale Users:** If accessing via a raw Tailscale IP (`100.x.x.x`), you will also encounter this warning. For a fully trusted connection without warnings, it is recommended to configure Tailscale MagicDNS and pass your MagicDNS hostname to the container via the `TAILSCALE_DOMAIN` environment variable (e.g., `TAILSCALE_DOMAIN=my-node.tailscale.net`). This allows Caddy to fetch a trusted Let's Encrypt certificate automatically.
+When accessing `https://localhost` or a local IP (including raw Tailscale IPs without using your MagicDNS domain), you may see a "Not Secure" or "Your connection is not private" warning in your browser. This is expected behavior because the system uses auto-generated self-signed certificates for local encryption.
+- **To resolve this warning locally:** You can optionally export and install the generated Root CA certificate (`ca.pem`) into your system or browser's Trust Store. This file is generated automatically upon first boot inside the secure `oscar_secrets` Docker volume.
+- **To resolve this warning over Tailscale:** Always access the system using your fully qualified `TAILSCALE_DOMAIN` (configured in `.env`). The sidecar architecture allows the Caddy proxy to automatically fetch and apply a trusted Let's Encrypt certificate for that domain.
 
 ### First-Time Setup
 On first boot, OSCAR enters an **Uninitialized State** and requires configuration via a Setup Wizard.
