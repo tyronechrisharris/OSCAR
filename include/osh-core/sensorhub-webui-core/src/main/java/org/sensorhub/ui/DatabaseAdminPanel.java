@@ -96,7 +96,7 @@ public class DatabaseAdminPanel extends DefaultModulePanel<IObsSystemDatabaseMod
             //layout.addComponent(new Label(""));
             HorizontalLayout titleBar = new HorizontalLayout();
             titleBar.setSpacing(true);
-            Label sectionLabel = new Label(I18N.get("databaseContent1"));
+            Label sectionLabel = new Label("Database Content");
             sectionLabel.addStyleName(STYLE_H3);
             sectionLabel.addStyleName(STYLE_COLORED);
             titleBar.addComponent(sectionLabel);
@@ -138,7 +138,7 @@ public class DatabaseAdminPanel extends DefaultModulePanel<IObsSystemDatabaseMod
                     
                     if (action == DELETE_SYSTEM_ACTION)
                     {
-                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToRemoveAllDataAndMetadataAssociatedWithSystem01", uid));
+                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to remove all data and metadata associated with system:<br/><b>" + uid + "?</b>");
                         popup.addCloseListener(event -> {
                             if (popup.isConfirmed())
                             {
@@ -159,7 +159,7 @@ public class DatabaseAdminPanel extends DefaultModulePanel<IObsSystemDatabaseMod
                     }
                     else if (action == DELETE_OBS_ACTION)
                     {
-                        final ConfirmDialog popup = new ConfirmDialog(I18N.get("areYouSureYouWantToRemoveAllObservationsFromSystem01", uid));
+                        final ConfirmDialog popup = new ConfirmDialog("Are you sure you want to remove all observations from system:<br/><b>" + uid + "?</b>");
                         popup.addCloseListener(event -> {
                             if (popup.isConfirmed())
                             {

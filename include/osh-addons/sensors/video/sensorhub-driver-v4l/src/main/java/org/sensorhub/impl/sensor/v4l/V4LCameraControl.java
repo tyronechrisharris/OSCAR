@@ -15,23 +15,20 @@ Copyright (C) 2012-2015 Sensia Software LLC. All Rights Reserved.
 package org.sensorhub.impl.sensor.v4l;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import net.opengis.swe.v20.AllowedTokens;
 import net.opengis.swe.v20.AllowedValues;
 import net.opengis.swe.v20.Category;
 import net.opengis.swe.v20.Count;
+import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataType;
 import net.opengis.swe.v20.Quantity;
-import org.sensorhub.api.command.CommandStatus;
-import org.sensorhub.api.command.CommandException;
-import org.sensorhub.api.command.ICommandStatus;
-import org.sensorhub.api.command.ICommandData;
+import org.sensorhub.api.common.CommandStatus;
+import org.sensorhub.api.common.CommandStatus.StatusCode;
 import org.sensorhub.api.sensor.SensorException;
 import org.sensorhub.impl.sensor.AbstractSensorControl;
 import org.vast.data.DataValue;
 import org.vast.data.SWEFactory;
-import au.edu.jcu.v4l4j.DeviceInfo;
 import au.edu.jcu.v4l4j.FrameInterval;
 import au.edu.jcu.v4l4j.FrameInterval.DiscreteInterval;
 import au.edu.jcu.v4l4j.ImageFormat;
@@ -44,7 +41,7 @@ import au.edu.jcu.v4l4j.ResolutionInfo.DiscreteResolution;
  * Implementation of control interface for V4L sensor
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Sep 5, 2013
  */
 public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
@@ -55,11 +52,18 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
     
     protected V4LCameraControl(V4LCameraDriver driver)
     {
-        super("camParams", driver);
+        super(driver);
     }
     
     
-    protected void init(DeviceInfo deviceInfo)
+    @Override
+    public String getName()
+    {
+        return "camParams";
+    }
+    
+    
+    protected void init()
     {
         this.camParams = parentSensor.camParams;
         SWEFactory fac = new SWEFactory();
@@ -74,7 +78,7 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
         // choice of image format
         Category formatVal = fac.newCategory();
         tokenConstraint = fac.newAllowedTokens();
-        List<ImageFormat> v4lImgFormats = deviceInfo.getFormatList().getNativeFormats();
+        List<ImageFormat> v4lImgFormats = parentSensor.deviceInfo.getFormatList().getNativeFormats();
         for (int i=0; i<v4lImgFormats.size(); i++)
             tokenConstraint.addValue(v4lImgFormats.get(i).getName());
         formatVal.setConstraint(tokenConstraint);
@@ -84,7 +88,7 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
         ResolutionInfo v4lResInfo = v4lImgFormats.get(0).getResolutionInfo();
         if (v4lResInfo.getType() == ResolutionInfo.Type.DISCRETE)
         {
-            Category resVal = fac.newCategory();
+            Category resVal = fac.newCategory();       
             tokenConstraint = fac.newAllowedTokens();
             List<DiscreteResolution> v4lResList = v4lResInfo.getDiscreteResolutions();
             for (int i=0; i<v4lResList.size(); i++)
@@ -132,14 +136,14 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
             {
                 List<DiscreteInterval> v4lIntervalList = v4lFrameIntervals.getDiscreteIntervals();
                 for (int i=0; i<v4lIntervalList.size(); i++)
-                    numConstraint.addValue((double) v4lIntervalList.get(i).denominator / v4lIntervalList.get(i).numerator);
+                    numConstraint.addValue(v4lIntervalList.get(i).denominator / v4lIntervalList.get(i).numerator);                
             }
             else if (v4lFrameIntervals.getType() == FrameInterval.Type.STEPWISE)
             {
                 DiscreteInterval minInterval = v4lFrameIntervals.getStepwiseInterval().minIntv;
                 DiscreteInterval maxInterval = v4lFrameIntervals.getStepwiseInterval().maxIntv;
                 double minRate = (double)minInterval.denominator / (double)minInterval.numerator;
-                double maxRate = (double)maxInterval.denominator / (double)maxInterval.numerator;
+                double maxRate = (double)maxInterval.denominator / (double)maxInterval.numerator;                
                 numConstraint.addInterval(new double[] {minRate, maxRate});
             }
             
@@ -157,11 +161,14 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
 
 
     @Override
-    public CompletableFuture<ICommandStatus> submitCommand(ICommandData command)
+    public CommandStatus execCommand(DataBlock command) throws SensorException
     {
+        CommandStatus cmdStatus = new CommandStatus();
+        cmdStatus.status = StatusCode.COMPLETED;
+        
         // associate command data to msg structure definition
         DataComponent commandMsg = commandData.copy();
-        commandMsg.setData(command.getParams());
+        commandMsg.setData(command);
         
         // parse command (TODO should we assume it has already been validated?)        
         // image format
@@ -185,26 +192,10 @@ public class V4LCameraControl extends AbstractSensorControl<V4LCameraDriver>
         // frame rate
         camParams.frameRate = commandMsg.getComponent("frameRate").getData().getIntValue();
         
-        // update driver with new params
-        try
-        {
-            parentSensor.updateParams(camParams);
-            var status = CommandStatus.completed(command.getID());
-            return CompletableFuture.completedFuture(status);
-        }
-        catch (SensorException e)
-        {
-            var status = CommandStatus.failed(command.getID(), e.getMessage());
-            return CompletableFuture.completedFuture(status);
-        }
-    }
-
-
-    @Override
-    public void validateCommand(ICommandData command) throws CommandException
-    {
-        // TODO Auto-generated method stub
+        // update driver with new params        
+        parentSensor.updateParams(camParams);
         
+        return cmdStatus;
     }
 
 

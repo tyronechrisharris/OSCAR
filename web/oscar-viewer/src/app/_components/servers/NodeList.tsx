@@ -13,7 +13,7 @@ import ListItemText from "@mui/material/ListItemText";
 import {INode, Node} from "@/lib/data/osh/Node";
 import {useAppDispatch} from "@/lib/state/Hooks";
 import React, {useState} from "react";
-import {useLanguage} from "@/contexts/LanguageContext";
+import {useLanguage} from "@/app/contexts/LanguageContext";
 
 interface NodeListProps {
     modeChangeCallback?: (editMode: boolean, editNode: INode) => void
@@ -72,7 +72,7 @@ export default function NodeList({modeChangeCallback}: NodeListProps) {
                 { t('nodes') }
             </Typography>
             {nodes.length === 0 ? (
-                <p>{t('noNodes')}</p>
+                <p>No Nodes</p>
             ) : (
                 <List>
                     {nodes.map((node: INode) => (
@@ -86,10 +86,10 @@ export default function NodeList({modeChangeCallback}: NodeListProps) {
                                     sx={{m: 1}}
                                     onClick={() => setEditNode(node)}
                                 >
-                                    {t('edit')}
+                                    Edit
                                 </Button>
                                 <Button variant="contained" size={"small"} color="secondary" sx={{m: 1}}
-                                        onClick={() => deleteNode(node.id)}>{t('delete')}</Button>
+                                        onClick={() => deleteNode(node.id)}>Delete</Button>
                             </ListItem>
                         </Card>
                     ))}

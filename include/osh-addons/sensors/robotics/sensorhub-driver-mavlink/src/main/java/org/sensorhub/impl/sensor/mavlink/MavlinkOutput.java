@@ -17,7 +17,7 @@ package org.sensorhub.impl.sensor.mavlink;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
-import org.sensorhub.api.data.DataEvent;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import com.MAVLink.Messages.MAVLinkMessage;
 
@@ -27,7 +27,7 @@ import com.MAVLink.Messages.MAVLinkMessage;
  * Abstract base for all outputs corresponding to MAVLink messages
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Dec 10, 2015
  */
 public abstract class MavlinkOutput extends AbstractSensorOutput<MavlinkDriver>
@@ -38,9 +38,9 @@ public abstract class MavlinkOutput extends AbstractSensorOutput<MavlinkDriver>
     protected long lastMsgTime = Long.MIN_VALUE;
     
 
-    public MavlinkOutput(String name, MavlinkDriver parentSensor)
+    public MavlinkOutput(MavlinkDriver parentSensor)
     {
-        super(name, parentSensor);
+        super(parentSensor);
     }
     
     
@@ -70,7 +70,7 @@ public abstract class MavlinkOutput extends AbstractSensorOutput<MavlinkDriver>
         // update latest record and send event
         latestRecord = dataBlock;
         latestRecordTime = msgTime;
-        eventHandler.publish(new DataEvent(msgTime, this, dataBlock));
+        eventHandler.publishEvent(new SensorDataEvent(msgTime, this, dataBlock));
     }
     
     

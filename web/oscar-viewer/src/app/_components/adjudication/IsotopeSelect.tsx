@@ -13,7 +13,6 @@ import {
     Theme
 } from '@mui/material';
 import {useEffect, useState} from 'react';
-import {useLanguage} from '@/contexts/LanguageContext';
 
 const isotopeChoices=[
     "Unknown",
@@ -53,7 +52,6 @@ export default function IsotopeSelect(props: {
   onSelect: (value: string[]) => void, // Return selected value
   isotopeValue: string[]
 }) {
-  const { t } = useLanguage();
   const [isotope, setIsotope] = useState<string[]>([""]);
 
   const handleChange = (event: SelectChangeEvent<typeof isotope>) => {
@@ -72,9 +70,9 @@ export default function IsotopeSelect(props: {
 
   return (
       <FormControl size="small" fullWidth>
-        <InputLabel id="label">{t('isotope')}</InputLabel>
+        <InputLabel id="label">Isotope</InputLabel>
         <Select
-            label={t('isotope')}
+            label="Isotope"
             variant="outlined"
             id="label"
             multiple

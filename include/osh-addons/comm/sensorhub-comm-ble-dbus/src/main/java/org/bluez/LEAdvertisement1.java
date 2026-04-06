@@ -32,7 +32,7 @@ import org.freedesktop.dbus.DBusInterface;
  * <b>Object path:</b> freely definable
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Feb 26, 2016
  */
 public interface LEAdvertisement1 extends DBusInterface
