@@ -50,24 +50,24 @@ services:
         echo $USER > /mtx-secrets/.mediamtx_api_user;
 
         cat << EOF > /mtx-secrets/mediamtx.yml
-# MediaMTX Configuration for OSCAR (Auto-Generated)
-api: yes
-apiAddress: :9997
-apiUser: $USER
-apiPass: $PASS
+        # MediaMTX Configuration for OSCAR (Auto-Generated)
+        api: yes
+        apiAddress: :9997
+        apiUser: $USER
+        apiPass: $PASS
 
-# Protocols (Optimized for high density)
-rtmp: no
-hls: no
-webrtc: no
-srt: no
+        # Protocols (Optimized for high density)
+        rtmp: no
+        hls: no
+        webrtc: no
+        srt: no
 
-# Global Path Settings
-paths:
-  all:
-    sourceOnDemand: yes
-    readBufferCount: 2048
-EOF
+        # Global Path Settings
+        paths:
+          all:
+            sourceOnDemand: yes
+            readBufferCount: 2048
+        EOF
       fi;
       '
 
