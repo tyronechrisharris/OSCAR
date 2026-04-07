@@ -55,6 +55,7 @@ import org.vast.util.Asserts;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.Base64;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -267,14 +268,22 @@ public class LaneSystem extends SensorSystem {
 
     private HttpResponse<String> sendMediaMtxRequest(String method, String url, String payload)
             throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(10))
                 .header("Content-Type", "application/json")
-                .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                .build();
+                .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8));
 
-        return getMediaMtxClient().send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        // Inject Basic Auth if credentials are provided in environment
+        String user = System.getenv("MEDIAMTX_API_USER");
+        String pass = System.getenv("MEDIAMTX_API_PASS");
+        if (user != null && !user.isBlank() && pass != null && !pass.isBlank()) {
+            String auth = user + ":" + pass;
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+            requestBuilder.header("Authorization", "Basic " + encodedAuth);
+        }
+
+        return getMediaMtxClient().send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
     }
 
     private String buildMediaMtxPathName(FFMPEGConfig ffmpegConfig, int index) {

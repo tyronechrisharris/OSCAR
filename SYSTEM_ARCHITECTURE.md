@@ -40,7 +40,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **PostGIS Database**: `5432` (Internal Docker Network only)
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy)
-- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback)
+- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback. Requires HTTP Basic Auth)
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
