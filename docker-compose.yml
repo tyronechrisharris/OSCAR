@@ -42,10 +42,32 @@ services:
         chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
       fi;
 
-      if [ ! -f /mtx-secrets/.mediamtx_api_pass ]; then
-        echo "Generating secure MediaMTX API credentials in segmented volume...";
-        openssl rand -hex 16 > /mtx-secrets/.mediamtx_api_pass;
-        echo "oscar-admin" > /mtx-secrets/.mediamtx_api_user;
+      if [ ! -f /mtx-secrets/mediamtx.yml ]; then
+        echo "Generating secure MediaMTX configuration in segmented volume...";
+        PASS=$(openssl rand -hex 16);
+        USER="oscar-admin";
+        echo $PASS > /mtx-secrets/.mediamtx_api_pass;
+        echo $USER > /mtx-secrets/.mediamtx_api_user;
+
+        cat << EOF > /mtx-secrets/mediamtx.yml
+# MediaMTX Configuration for OSCAR (Auto-Generated)
+api: yes
+apiAddress: :9997
+apiUser: $USER
+apiPass: $PASS
+
+# Protocols (Optimized for high density)
+rtmp: no
+hls: no
+webrtc: no
+srt: no
+
+# Global Path Settings
+paths:
+  all:
+    sourceOnDemand: yes
+    readBufferCount: 2048
+EOF
       fi;
       '
 
@@ -137,27 +159,9 @@ services:
     container_name: oscar-mediamtx
     network_mode: "host"
     environment:
-      - MTX_API=yes
-      - MTX_APIADDRESS=:9997
-      - MTX_RTMP=no
-      - MTX_HLS=no
-      - MTX_WEBRTC=no
-      - MTX_SRT=no
-      - MTX_PATHS_ALL_SOURCEONDEMAND=yes
-      - MTX_PATHS_ALL_READBUFFERCOUNT=2048
+      - MTX_CONFIG=/etc/mediamtx/mediamtx.yml
     volumes:
-      - mtx_secrets:/mtx_secrets:ro
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        if [ -f /mtx_secrets/.mediamtx_api_user ]; then
-          export MTX_APIUSER=$(cat /mtx_secrets/.mediamtx_api_user)
-        fi
-        if [ -f /mtx_secrets/.mediamtx_api_pass ]; then
-          export MTX_APIPASS=$(cat /mtx_secrets/.mediamtx_api_pass)
-        fi
-        /mediamtx
+      - mtx_secrets:/etc/mediamtx:ro
     restart: unless-stopped
 
   tailscale:

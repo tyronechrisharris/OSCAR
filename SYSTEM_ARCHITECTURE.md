@@ -13,7 +13,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
 - **Client Web UI**: React/Frontend viewer.
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
-- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors.
+- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. Configuration is automatically generated and hardened at runtime.
 
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
