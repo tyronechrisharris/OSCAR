@@ -44,30 +44,28 @@ services:
 
       if [ ! -f /mtx-secrets/mediamtx.yml ]; then
         echo "Generating secure MediaMTX configuration in segmented volume...";
-        PASS=$(openssl rand -hex 16);
+        PASS=$$(openssl rand -hex 16);
         USER="oscar-admin";
-        echo $PASS > /mtx-secrets/.mediamtx_api_pass;
-        echo $USER > /mtx-secrets/.mediamtx_api_user;
+        echo $$PASS > /mtx-secrets/.mediamtx_api_pass;
+        echo $$USER > /mtx-secrets/.mediamtx_api_user;
 
-        cat << EOF > /mtx-secrets/mediamtx.yml
-        # MediaMTX Configuration for OSCAR (Auto-Generated)
-        api: yes
-        apiAddress: :9997
-        apiUser: $USER
-        apiPass: $PASS
-
-        # Protocols (Optimized for high density)
-        rtmp: no
-        hls: no
-        webrtc: no
-        srt: no
-
-        # Global Path Settings
-        paths:
-          all:
-            sourceOnDemand: yes
-            readBufferCount: 2048
-        EOF
+        echo "# MediaMTX Configuration for OSCAR (Auto-Generated)" > /mtx-secrets/mediamtx.yml;
+        echo "api: yes" >> /mtx-secrets/mediamtx.yml;
+        echo "apiAddress: :9997" >> /mtx-secrets/mediamtx.yml;
+        echo "apiUser: $$USER" >> /mtx-secrets/mediamtx.yml;
+        echo "apiPass: $$PASS" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "# Protocols (Optimized for high density)" >> /mtx-secrets/mediamtx.yml;
+        echo "rtmp: no" >> /mtx-secrets/mediamtx.yml;
+        echo "hls: no" >> /mtx-secrets/mediamtx.yml;
+        echo "webrtc: no" >> /mtx-secrets/mediamtx.yml;
+        echo "srt: no" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "# Global Path Settings" >> /mtx-secrets/mediamtx.yml;
+        echo "paths:" >> /mtx-secrets/mediamtx.yml;
+        echo "  all:" >> /mtx-secrets/mediamtx.yml;
+        echo "    sourceOnDemand: yes" >> /mtx-secrets/mediamtx.yml;
+        echo "    readBufferCount: 2048" >> /mtx-secrets/mediamtx.yml;
       fi;
       '
 
