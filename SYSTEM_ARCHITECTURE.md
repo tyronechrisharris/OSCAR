@@ -17,7 +17,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
-1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon.
+1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon. To enforce the Principle of Least Privilege, a dedicated `mtx_secrets` volume is used to segment MediaMTX API credentials from high-sensitivity system secrets.
 2. **Bind Mounts (Persistent Configuration & Data)**: Non-sensitive persistent data (like the PostGIS database records in `./pgdata`, the backend's configuration in `./osh-node-oscar/config`, and Tailscale state in `./tailscale`) are bound to the host filesystem. This ensures administrators have direct access to back up databases and manually tweak configuration files locally.
 
 ## Deployment Scenarios & Minimum System Requirements
