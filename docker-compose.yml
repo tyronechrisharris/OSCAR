@@ -40,6 +40,14 @@ services:
         chmod 600 /secrets/db-server.key;
         chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
       fi;
+      if [ ! -f /secrets/.mtx_api_user ]; then
+        echo "Generating default MediaMTX API user...";
+        echo "admin" > /secrets/.mtx_api_user;
+      fi;
+      if [ ! -f /secrets/.mtx_api_pass ]; then
+        echo "Generating random MediaMTX API password...";
+        openssl rand -base64 32 > /secrets/.mtx_api_pass;
+      fi;
       '
 
   osh-postgis:
@@ -94,8 +102,10 @@ services:
       # CRITICAL FIX 1: Forces backend to use the shared secrets volume
       - KEYSTORE_PASSWORD_FILE=/secrets/.app_secrets
       - TRUSTSTORE_PASSWORD_FILE=/secrets/.app_secrets
-      - MEDIAMTX_API_USER=${MEDIAMTX_API_USER}
-      - MEDIAMTX_API_PASS=${MEDIAMTX_API_PASS}
+      - MEDIAMTX_API_USER=${MEDIAMTX_API_USER:-}
+      - MEDIAMTX_API_PASS=${MEDIAMTX_API_PASS:-}
+      - MEDIAMTX_API_USER_FILE=/secrets/.mtx_api_user
+      - MEDIAMTX_API_PASS_FILE=/secrets/.mtx_api_pass
       - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
     volumes:
       - ./osh-node-oscar/config:/app/config
@@ -128,6 +138,19 @@ services:
     environment:
       - MTX_API=yes
       - MTX_APIADDRESS=:9997
+    volumes:
+      - oscar_secrets:/secrets:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        if [ -f /secrets/.mtx_api_user ]; then
+          export MTX_APIUSER=$(cat /secrets/.mtx_api_user)
+        fi
+        if [ -f /secrets/.mtx_api_pass ]; then
+          export MTX_APIPASS=$(cat /secrets/.mtx_api_pass)
+        fi
+        /mediamtx
     restart: unless-stopped
 
   tailscale:

@@ -55,6 +55,8 @@ import org.vast.util.Asserts;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -266,6 +268,25 @@ public class LaneSystem extends SensorSystem {
         }
     }
 
+    private String getEnvOrFile(String envVar) {
+        String value = System.getenv(envVar);
+        String fileVar = envVar + "_FILE";
+        String filePath = System.getenv(fileVar);
+
+        if (filePath != null && !filePath.isEmpty()) {
+            try {
+                value = new String(Files.readAllBytes(Paths.get(filePath))).trim();
+                // Handle potential UTF-8 BOM
+                if (value.startsWith("\uFEFF")) {
+                    value = value.substring(1);
+                }
+            } catch (IOException e) {
+                getLogger().error("Failed to read {} from {}: {}", envVar, filePath, e.getMessage());
+            }
+        }
+        return value;
+    }
+
     private HttpResponse<String> sendMediaMtxRequest(String method, String url, String payload)
             throws IOException, InterruptedException {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -274,9 +295,10 @@ public class LaneSystem extends SensorSystem {
                 .header("Content-Type", "application/json")
                 .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8));
 
-        // Inject Basic Auth if credentials are provided in environment
-        String user = System.getenv("MEDIAMTX_API_USER");
-        String pass = System.getenv("MEDIAMTX_API_PASS");
+        // Inject Basic Auth if credentials are provided in environment or secret files
+        String user = getEnvOrFile("MEDIAMTX_API_USER");
+        String pass = getEnvOrFile("MEDIAMTX_API_PASS");
+
         if (user != null && !user.isBlank() && pass != null && !pass.isBlank()) {
             String auth = user + ":" + pass;
             String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
