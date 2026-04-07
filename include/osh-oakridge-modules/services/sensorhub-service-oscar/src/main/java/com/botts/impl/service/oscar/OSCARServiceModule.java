@@ -25,11 +25,13 @@ import com.botts.impl.service.oscar.spreadsheet.SpreadsheetHandler;
 import com.botts.impl.service.oscar.stats.StatisticsControl;
 import com.botts.impl.service.oscar.stats.StatisticsOutput;
 import com.botts.impl.service.oscar.video.VideoRetention;
+import org.sensorhub.impl.utils.rad.interfaces.IWebIdProvider;
+import org.sensorhub.impl.utils.rad.webid.WebIdClient;
+import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
 import org.sensorhub.api.datastore.obs.ObsFilter;
-import org.sensorhub.api.module.IModule;
 import org.sensorhub.api.module.ModuleEvent;
 import org.sensorhub.impl.module.AbstractModule;
 
@@ -38,7 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
+public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> implements IWebIdProvider {
 
     SiteInfoOutput siteInfoOutput;
     RequestReportControl reportControl;
@@ -53,6 +55,7 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
     SpreadsheetHandler spreadsheetHandler;
     VideoRetention videoRetention;
     DatabasePurger databasePurger;
+    WebIdResourceHandler webIdResourceHandler;
 
     @Override
     protected void doInit() throws SensorHubException {
@@ -142,6 +145,11 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
             databasePurger.start();
         }
 
+        WebIdClient webIdClient = (config.webIdApiRoot != null && !config.webIdApiRoot.isBlank())
+                ? new WebIdClient(config.webIdApiRoot) : null;
+        webIdResourceHandler = new WebIdResourceHandler(bucketStore, getParentHub(), webIdClient);
+        bucketService.registerObjectHandler(webIdResourceHandler);
+
         statsOutput.start();
 
         refreshSiteDiagram();
@@ -164,6 +172,11 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
 
         if (videoRetention != null)
             videoRetention.stop();
+
+        if (webIdResourceHandler != null) {
+            bucketService.unregisterObjectHandler(webIdResourceHandler);
+            webIdResourceHandler = null;
+        }
     }
 
     private void refreshSiteDiagram() {
@@ -200,4 +213,9 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
     public SpreadsheetHandler getSpreadsheetHandler() {
         return spreadsheetHandler;
     }
+
+    public WebIdResourceHandler getWebIdResourceHandler() { return webIdResourceHandler; }
+
+    @Override
+    public WebIdClient getWebIdClient() { return webIdResourceHandler.getWebIdClient(); }
 }

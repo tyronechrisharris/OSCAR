@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * RTCP Sender
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Mar 21, 2016
  */
 public class RTCPSender extends TimerTask

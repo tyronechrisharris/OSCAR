@@ -53,26 +53,38 @@ export default function DataSourceProvider({children}: { children: ReactNode }) 
         let allLanes: Map<string, LaneMapEntry> = new Map();
 
         await Promise.all(nodes.map(async (node: INode) => {
-            try {
-                let nodeLaneMap = await node.fetchLaneSystemsAndSubsystems();
-                if(!nodeLaneMap) return;
+            let nodeLaneMap = await node.fetchLaneSystemsAndSubsystems();
+            if(!nodeLaneMap) return;
 
-                await node.fetchDataStreams(nodeLaneMap);
-                await node.fetchLaneControlStreams(nodeLaneMap);
+            await node.fetchDataStreams(nodeLaneMap);
+            await node.fetchLaneControlStreams(nodeLaneMap);
 
 
-                for (const [key, mapEntry] of nodeLaneMap.entries()) {
-                    try {
-                        mapEntry.addDefaultConSysApis();
-                    } catch (e) {
-                        console.error(`[ERROR] addDefaultConSysApis failed for ${key}:`, e);
-                    }
+            for (const [key, mapEntry] of nodeLaneMap.entries()) {
+                try {
+                    mapEntry.addDefaultConSysApis();
+                } catch (e) {
+                    console.error(`[ERROR] addDefaultConSysApis failed for ${key}:`, e);
                 }
-
-                nodeLaneMap.forEach((value: LaneMapEntry, key: string) =>allLanes.set(key,value));
-            } catch (e) {
-                console.error(`[ERROR] Failed to fetch data for node ${node.name}:`, e);
             }
+
+            nodeLaneMap.forEach((value: LaneMapEntry, key: string) => {
+                if (allLanes.has(key)) {
+                    const prefixedKey = `${node.name} - ${key}`;
+                    value.setLaneName(prefixedKey);
+                    allLanes.set(prefixedKey, value);
+
+                    const existing = allLanes.get(key);
+                    if (existing) {
+                        const existingPrefixedKey = `${existing.parentNode.name} - ${key}`;
+                        existing.setLaneName(existingPrefixedKey);
+                        allLanes.set(existingPrefixedKey, existing);
+                        allLanes.delete(key);
+                    }
+                } else {
+                    allLanes.set(key, value);
+                }
+            });
         }));
 
         dispatch(setLaneMap(allLanes));
@@ -96,15 +108,16 @@ export default function DataSourceProvider({children}: { children: ReactNode }) 
 
 export const initializeDefaultNode = () => (dispatch: AppDispatch) => {
     const hostName = window.location.hostname;
-    const port = window.location.port ? parseInt(window.location.port, 10) : (window.location.protocol === 'https:' ? 443 : 80);
-    const isSecure = window.location.protocol === 'https:';
+    const port = window.location.port;
+    const isSecure = window.location.protocol === "https:";
 
     const initialNodeOpts: NodeOptions = {
         name: "Local Node",
         address: hostName,
-        port: port,
+        port: Number(port),
         oshPathRoot: "/sensorhub",
         csAPIEndpoint: "/api",
+        auth: { username: "admin", password: "oscar" },
         isSecure: isSecure,
         isDefaultNode: true
     };

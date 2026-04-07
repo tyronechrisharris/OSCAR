@@ -2,36 +2,29 @@ description = 'Gridded Dataset Utilities'
 ext.details = 'Various utilities for handling grid formats based on Unidata library'
 version = '0.3.3'
 
-def thisProjectDir = projectDir
 rootProject.allprojects {
   repositories {
-    /*maven {
-      name 'unidata'
-      url 'https://artifacts.unidata.ucar.edu/repository/unidata-all'
-    }*/
-    maven {
-      name 'unidata-local'
-      url "file:///$thisProjectDir/libs"
-    }
+    maven { url 'https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases' }
   }
 }
 
 dependencies {
   implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
-  embeddedApi ('edu.ucar:grib:4.6.10') {
+  api ('edu.ucar:grib:4.6.10') {
     exclude group: 'com.amazonaws', module: 'aws-java-sdk-s3'
+    exclude group: 'edu.ucar', module: 'jj2000'  
     exclude group: 'org.apache.httpcomponents', module: 'httpcore'
     exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     exclude group: 'org.apache.httpcomponents', module: 'httpmime'
     exclude group: 'com.google.guava', module: 'guava'
-    exclude group: 'org.slf4j', module: 'slf4j-api'
   }
 }
 
 // add info to OSGi manifest
-osgi {
+jar {
   manifest {
-    attributes('Bundle-Vendor': 'Botts Innovative Research Inc.')
+    attributes 'Bundle-Vendor': 'Botts Innovative Research Inc.'
+    attributes 'Bundle-Activator': 'org.sensorhub.impl.sensor.turbulence.Turbulence'
   }
 }
 

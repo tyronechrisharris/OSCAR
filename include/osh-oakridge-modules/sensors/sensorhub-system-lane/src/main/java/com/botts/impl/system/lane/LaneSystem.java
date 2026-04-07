@@ -16,6 +16,8 @@
 package com.botts.impl.system.lane;
 
 
+import com.botts.impl.process.rs350.occupancy.Rs350OccupancyProcessConfig;
+import com.botts.impl.process.rs350.occupancy.Rs350OccupancyProcessModule;
 import com.botts.impl.sensor.aspect.AspectConfig;
 import com.botts.impl.sensor.aspect.AspectSensor;
 import com.botts.impl.sensor.aspect.comm.ModbusTCPCommProvider;
@@ -23,9 +25,14 @@ import com.botts.impl.sensor.aspect.comm.ModbusTCPCommProviderConfig;
 import com.botts.impl.sensor.rapiscan.EMLConfig;
 import com.botts.impl.sensor.rapiscan.RapiscanConfig;
 import com.botts.impl.sensor.rapiscan.RapiscanSensor;
+import com.botts.impl.sensor.rs350.RS350Config;
+import com.botts.impl.sensor.rs350.RS350Sensor;
+import com.botts.impl.system.lane.helpers.webid.WebIdHelper;
+import org.sensorhub.impl.utils.rad.output.N42Output;
 import com.botts.impl.system.lane.config.*;
 import com.botts.impl.system.lane.helpers.occupancy.OccupancyWrapper;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.data.IDataProducerModule;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.DataStoreException;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
@@ -41,7 +48,6 @@ import org.sensorhub.api.system.SystemRemovedEvent;
 import org.sensorhub.impl.comm.TCPCommProviderConfig;
 import org.sensorhub.impl.module.AbstractModule;
 import org.sensorhub.impl.module.ModuleRegistry;
-import org.sensorhub.impl.module.ModuleSecurity;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.sensorhub.impl.sensor.SensorSystem;
 import org.sensorhub.impl.sensor.SensorSystemConfig;
@@ -52,14 +58,6 @@ import org.sensorhub.impl.system.SystemDatabaseTransactionHandler;
 import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -76,42 +74,23 @@ public class LaneSystem extends SensorSystem {
     private static final String URN_PREFIX = "urn:";
     private static final String LANE_SYSTEM_PREFIX = URN_PREFIX + "osh:system:lane:";
     private static final String RAPISCAN_URI = URN_PREFIX + "osh:sensor:rapiscan";
+    private static final String RS350_URI = URN_PREFIX + "osh:sensor:rs350";
     private static final String ASPECT_URI = URN_PREFIX + "osh:sensor:aspect";
     private static final String PROCESS_URI = URN_PREFIX + "osh:process:occupancy";
-    private static final String VIDEO_CLIPS_DIRECTORY = "clips/";
-    private static final String VIDEO_STREAMING_DIRECTORY = "streaming/";
-
-    private String getMediaMtxIp() {
-        String ip = System.getenv("MEDIAMTX_IP");
-        return (ip != null && !ip.isBlank()) ? ip : "172.17.0.1";
-    }
-
-    private String getMediaMtxAddPathsApiBase() {
-        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/add/";
-    }
-
-    private String getMediaMtxPatchPathsApiBase() {
-        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/";
-    }
-
-    private String getMediaMtxRtspBase() {
-        return "rtsp://" + getMediaMtxIp() + ":8554/";
-    }
-
-    private HttpClient getMediaMtxClient() {
-        return HttpClient.newBuilder()
-                .proxy(HttpClient.Builder.NO_PROXY) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
-    }
+    private static final Set<Class<?>> WEBID_SENSORS = Set.of(RS350Sensor.class);
+    private static final String DEFAULT_XMLID_PREFIX = "lane";
 
     AbstractSensorModule<?> existingRPMModule = null;
+    IDataProducerModule<?> occupancyProducer = null;
     Flow.Subscription subscription = null;
     private ExecutorService threadPool = null;
     Map<String, FFMPEGConfig> ffmpegConfigs = null;
     OccupancyWrapper occupancyWrapper;
+    WebIdHelper webIdHelper;
 
     AdjudicationControl adjudicationControl;
+    WebIdOutput webIdOutput;
+    N42Output<?> n42Output;
 
     @Override
     protected void doInit() throws SensorHubException {
@@ -139,8 +118,15 @@ public class LaneSystem extends SensorSystem {
         for (var member : getMembers().values()) {
             if (member instanceof RapiscanSensor || member instanceof AspectSensor) {
                 existingRPMModule = (AbstractSensorModule<?>) member;
-            }else if (member instanceof FFMPEGSensor) {
+                occupancyProducer = (IDataProducerModule<?>) member;
+            } else if (member instanceof FFMPEGSensor) {
                 ffmpegConfigs.put(member.getLocalID(), ((FFMPEGSensor) member).getConfiguration());
+
+            // Want to be able to handle both RS350 and its process.
+            } else if (member instanceof RS350Sensor) {
+                existingRPMModule = (AbstractSensorModule<?>) member;
+            } else if (member instanceof Rs350OccupancyProcessModule) {
+                occupancyProducer = (IDataProducerModule<?>) member;
             }
         }
 
@@ -152,17 +138,15 @@ public class LaneSystem extends SensorSystem {
                 // Create Rapiscan or Aspect config, then add as submodule
                 var config = createRPMConfig(rpmConfig);
                 existingRPMModule = (AbstractSensorModule<?>) registerSubmodule(config);
+
+
             }
-            if (existingRPMModule != null) {
-                occupancyWrapper = new OccupancyWrapper(getParentHub(), existingRPMModule);
-                //occupancyWrapper.videoNamePrefix = BASE_VIDEO_DIRECTORY + "lane" + getConfiguration().groupID + "/";
-            }
+
             // Initial FFmpeg config
             var ffmpegConfigList = getConfiguration().laneOptionsConfig.ffmpegConfig;
             if (ffmpegConfigList != null) {
                 for (var simpleConfig : ffmpegConfigList) {
                     FFMPEGConfig config = createFFmpegConfig(simpleConfig, ffmpegConfigList.indexOf(simpleConfig));
-                    configureMediaMtxProxy(config, buildMediaMtxPathName(config, ffmpegConfigList.indexOf(simpleConfig)));
                     var ffmpegModule = createFFmpegModule(config);
                     if (occupancyWrapper != null) {
                         //occupancyWrapper.addFFmpegSensor(ffmpegModule);
@@ -171,9 +155,14 @@ public class LaneSystem extends SensorSystem {
             }
         }
 
+        webIdOutput = new WebIdOutput(this);
+        addOutput(webIdOutput, false);
+
+        n42Output = new N42Output<>(this);
+        addOutput(n42Output, false);
+
         adjudicationControl = new AdjudicationControl(this);
         addControlInput(adjudicationControl);
-
 
         String statusMsg = "Note: ";
         if (existingRPMModule == null)
@@ -185,7 +174,7 @@ public class LaneSystem extends SensorSystem {
 
         // Init modules all modules except process module as it requires other modules to be started
         for (var module: getMembers().values()) {
-            if (module != null) {
+            if (module != null && module instanceof AbstractSensorModule<?>) {
                 try {
                     /*
                     threadPool.execute(() -> {
@@ -200,8 +189,8 @@ public class LaneSystem extends SensorSystem {
                     module.init();
                 }
                 catch (Exception e) {
-                    // If rapiscan fails to initialize, then don't load process module
-                    if (module instanceof RapiscanSensor || module instanceof AspectSensor)
+                    // If RPM fails to initialize, then don't load process module
+                    if (module instanceof RapiscanSensor || module instanceof AspectSensor || module instanceof RS350Sensor)
                         rpmFailedToInit = true;
                     getLogger().error("Cannot initialize system component {}", MsgUtils.moduleString(module), e);
                 }
@@ -219,93 +208,8 @@ public class LaneSystem extends SensorSystem {
             });
     }
 
-    private void configureMediaMtxProxy(FFMPEGConfig ffmpegConfig, String pathName) throws SensorHubException {
-        if (ffmpegConfig == null || ffmpegConfig.connection == null) {
-            throw new SensorHubException("Cannot configure MediaMTX proxy because FFmpeg connection config is missing");
-        }
-
-        String rawUri = ffmpegConfig.connection.connectionString;
-        if (rawUri == null || rawUri.isBlank()) {
-            throw new SensorHubException("Cannot configure MediaMTX proxy because the raw RTSP URI is blank");
-        }
-
-        String payload = "{\"source\":\"" + jsonEscape(rawUri) + "\",\"sourceOnDemand\":true}";
-        String encodedPathName = encodePathSegment(pathName);
-
-        try {
-            HttpResponse<String> response = sendMediaMtxRequest(
-                    "POST",
-                    getMediaMtxAddPathsApiBase() + encodedPathName,
-                    payload);
-
-            if (response.statusCode() >= 400 && response.statusCode() < 500) {
-                getLogger().info("MediaMTX add failed for path {} with HTTP {}. Attempting PATCH update.",
-                        pathName, response.statusCode());
-
-                response = sendMediaMtxRequest(
-                        "PATCH",
-                        getMediaMtxPatchPathsApiBase() + encodedPathName,
-                        payload);
-            }
-
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                getLogger().error("MediaMTX path configuration failed for {} with HTTP {}: {}. Falling back to raw camera URI.",
-                        pathName, response.statusCode(), response.body());
-                return;
-            }
-
-            ffmpegConfig.connection.transportStreamPath = null;
-            ffmpegConfig.connection.connectionString = getMediaMtxRtspBase() + pathName;
-            ffmpegConfig.connection.useTCP = true;
-        } catch (IOException e) {
-            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.getMessage());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            getLogger().error("Interrupted while configuring MediaMTX camera proxy for {}. Falling back to raw camera URI.", pathName);
-        }
-    }
-
-    private HttpResponse<String> sendMediaMtxRequest(String method, String url, String payload)
-            throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(10))
-                .header("Content-Type", "application/json")
-                .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                .build();
-
-        return getMediaMtxClient().send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-    }
-
-    private String buildMediaMtxPathName(FFMPEGConfig ffmpegConfig, int index) {
-        String laneName = "lane";
-        if (getConfiguration() != null && getConfiguration().name != null && !getConfiguration().name.isBlank()) {
-            laneName = getConfiguration().name;
-        }
-
-        String serial = "camera-" + index;
-        if (ffmpegConfig != null && ffmpegConfig.serialNumber != null && !ffmpegConfig.serialNumber.isBlank()) {
-            serial = ffmpegConfig.serialNumber;
-        }
-
-        String base = (laneName + "-" + serial)
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9._-]", "-")
-                .replaceAll("-{2,}", "-")
-                .replaceAll("^-|-$", "");
-
-        return base.isBlank() ? "camera-" + index : base;
-    }
-
-    private String encodePathSegment(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8)
-                .replace("+", "%20");
-    }
-
-    private String jsonEscape(String value) {
-        return value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"");
+    public N42Output<?> getN42Output() {
+        return this.n42Output;
     }
 
     private FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
@@ -329,8 +233,38 @@ public class LaneSystem extends SensorSystem {
     }
 
     @Override
+    protected void beforeInit() throws SensorHubException {
+        removeOccupancyProcess();
+        super.beforeInit();
+    }
+
+    @Override
+    protected void beforeStart() throws SensorHubException {
+        removeOccupancyProcess();
+        super.beforeStart();
+    }
+
+    private void removeOccupancyProcess() throws SensorHubException {
+        for (var member : this.getMembers().values()) {
+            if (member instanceof Rs350OccupancyProcessModule) {
+                this.removeSubSystem(member.getConfiguration().id);
+            }
+        }
+    }
+
+    @Override
     protected void afterStart() throws SensorHubException {
         super.afterStart();
+        if (existingRPMModule instanceof RS350Sensor rs350Module) {
+            var processConfig = createOccupancyProcessConfig(rs350Module);
+            occupancyProducer = (IDataProducerModule<?>) registerSubmodule(processConfig);
+        } else {
+            occupancyProducer = existingRPMModule;
+        }
+        if (occupancyProducer != null) {
+            occupancyWrapper = new OccupancyWrapper(getParentHub(), occupancyProducer);
+            //occupancyWrapper.videoNamePrefix = BASE_VIDEO_DIRECTORY + "lane" + getConfiguration().groupID + "/";
+        }
 
         var db = getParentHub().getSystemDriverRegistry().getDatabase(getUniqueIdentifier());
         if (db == null) {
@@ -343,6 +277,28 @@ public class LaneSystem extends SensorSystem {
             return;
         }
         adjudicationControl.setObsStore(obsStore);
+
+        if (webIdHelper != null) {
+            webIdHelper.stop();
+        }
+        if (WEBID_SENSORS.contains(existingRPMModule.getClass())) {
+            webIdHelper = new WebIdHelper(this, occupancyProducer);
+        } else {
+            webIdHelper = null;
+        }
+    }
+
+    protected void doStop() throws SensorHubException {
+        super.doStop();
+        if (webIdHelper != null) {
+            webIdHelper.stop();
+        }
+        if (occupancyProducer != existingRPMModule) {
+            removeSubSystem(occupancyProducer.getConfiguration().id);
+        }
+        if (occupancyWrapper != null) {
+            occupancyWrapper.removeRpmSensor();
+        }
     }
 
     @Override
@@ -429,9 +385,11 @@ public class LaneSystem extends SensorSystem {
             if (event.getParentGroupUID() != null && event.getParentGroupUID().equals(getUniqueIdentifier())) {
 
                 // If RPM is removed, nullify local object
-                if (event.getSystemUID().contains(RAPISCAN_URI) || event.getSystemUID().contains(ASPECT_URI)) {
-                    occupancyWrapper.removeRpmSensor();
+                if (event.getSystemUID().contains(RAPISCAN_URI) || event.getSystemUID().contains(ASPECT_URI) || event.getSystemUID().contains(RS350_URI)) {
+                    if (occupancyWrapper != null)
+                        occupancyWrapper.removeRpmSensor();
                     existingRPMModule = null;
+                    occupancyProducer = null;
                 }
             }
 
@@ -441,11 +399,13 @@ public class LaneSystem extends SensorSystem {
             // Module STATE_CHANGED events
             if (event.getType() == ModuleEvent.Type.STATE_CHANGED) {
 
-                if (event.getModule() == existingRPMModule) {
+                if (event.getModule() == occupancyProducer) {
                     if (event.getNewState() == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.start();
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.start();
                     } else if (event.getNewState() == ModuleEvent.ModuleState.STOPPING) {
-                        occupancyWrapper.stop();
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.stop();
                     }
                 }
 
@@ -457,20 +417,34 @@ public class LaneSystem extends SensorSystem {
                     }
 
                     if (state == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.addFFmpegSensor(ffmpegDriver);
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.addFFmpegSensor(ffmpegDriver);
                     } else {
-                        occupancyWrapper.removeFFmpegSensor(ffmpegDriver);
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.removeFFmpegSensor(ffmpegDriver);
                     }
                 }
 
-                else if ((event.getModule() instanceof RapiscanSensor || event.getModule() instanceof AspectSensor)
+                else if ((event.getModule() instanceof RapiscanSensor || event.getModule() instanceof AspectSensor || event.getModule() instanceof RS350Sensor)
                 && getMembers().containsValue(event.getModule())) {
                     var state = event.getNewState();
 
                     if (state == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.setRpmSensor((AbstractSensorModule<?>) event.getModule());
+                        if (occupancyProducer != existingRPMModule) {
+                            try {
+                                if (occupancyProducer instanceof Rs350OccupancyProcessModule rs350Process) {
+                                    rs350Process.getConfiguration().systemUID = existingRPMModule.getUniqueIdentifier();
+                                }
+                                occupancyProducer.init();
+                            } catch (SensorHubException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.setRpmSensor((IDataProducerModule<?>) occupancyProducer);
                     } else {
-                        occupancyWrapper.removeRpmSensor();
+                        if (occupancyWrapper != null)
+                            occupancyWrapper.removeRpmSensor();
                     }
                 }
             }
@@ -552,6 +526,25 @@ public class LaneSystem extends SensorSystem {
         }
     }
 
+    // If an RPM doesn't produce occupancies, we want to connect it to the process that
+    // converts its outputs to an Occupancy.
+    private ModuleConfig createOccupancyProcessConfig(AbstractSensorModule<?> parentRpm) {
+        ModuleConfig config = null;
+
+        // Using this structure just in case another type of rpm is added that needs a process
+        if (parentRpm instanceof RS350Sensor) {
+            String rpmId = parentRpm.getUniqueIdentifier();
+            var rs350Config = new Rs350OccupancyProcessConfig();
+
+            rs350Config.serialNumber = getConfiguration().uniqueID;
+            rs350Config.moduleClass = Rs350OccupancyProcessModule.class.getCanonicalName();
+            rs350Config.autoStart = true;
+
+            config = rs350Config;
+        }
+        return config;
+    }
+
     private SensorConfig createRPMConfig(RPMConfig rpmConfig) {
         Asserts.checkNotNull(rpmConfig.remoteHost);
 
@@ -574,7 +567,7 @@ public class LaneSystem extends SensorSystem {
             comm.connection.reconnectAttempts = 10;
             comm.moduleClass = ModbusTCPCommProvider.class.getCanonicalName();
             config = aspectConfig;
-        }else if(rpmConfig instanceof RapiscanRPMConfig rapiscanRPMConfig){
+        } else if(rpmConfig instanceof RapiscanRPMConfig rapiscanRPMConfig){
             RapiscanConfig rapiscanConfig = new RapiscanConfig();
             rapiscanConfig.serialNumber = getConfiguration().uniqueID;
             rapiscanConfig.moduleClass = RapiscanSensor.class.getCanonicalName();
@@ -596,8 +589,21 @@ public class LaneSystem extends SensorSystem {
             comm.connection.reconnectAttempts = 10;
 
             config = rapiscanConfig;
-        }else{
-            reportError("RPM Config specified is invalid, config must be of type AspectRPMConfig or RapiscanRPMConfig", new IllegalArgumentException());
+        } else if (rpmConfig instanceof RS350RPMConfig rS350RPMConfig){
+            RS350Config rs350Config = new RS350Config();
+            rs350Config.serialNumber = getConfiguration().uniqueID;
+            rs350Config.moduleClass = RS350Sensor.class.getCanonicalName();
+
+            var comm = rs350Config.commSettings = new TCPCommProviderConfig();
+
+            comm.protocol.remoteHost = rS350RPMConfig.remoteHost;
+            comm.protocol.remotePort = rS350RPMConfig.remotePort;
+            comm.connection.connectTimeout = 5000;
+            comm.connection.reconnectAttempts = 10;
+
+            config = rs350Config;
+        } else{
+            reportError("RPM Config specified is invalid, config must be of type AspectRPMConfig, RapiscanRPMConfig or RS350RPMConfig", new IllegalArgumentException());
         }
 
         config.name = getConfiguration().name + " - RPM";
@@ -648,6 +654,7 @@ public class LaneSystem extends SensorSystem {
         config.connectionConfig.reconnectAttempts = 10;
         config.output.useHLS = true;
         config.output.useVideoFrames = false;
+        config.connection.bufferSize = ffmpegConfig.bufferSize;
         return config;
     }
 

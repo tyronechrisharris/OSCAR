@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import javax.net.ssl.SSLSocket;
@@ -87,7 +86,7 @@ public class TCPCommProvider extends AbstractModule<TCPCommProviderConfig> imple
                     os = socket.getOutputStream();
                 } else {
                     SocketAddress endpoint = new InetSocketAddress(addr, config.remotePort);
-                    socket = new Socket(Proxy.NO_PROXY);
+                    socket = new Socket();
                     socket.connect(endpoint, this.config.connection.connectTimeout);
                     is = socket.getInputStream();
                     os = socket.getOutputStream();

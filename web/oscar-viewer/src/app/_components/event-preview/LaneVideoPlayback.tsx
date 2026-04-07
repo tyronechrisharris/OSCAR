@@ -9,7 +9,6 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import '../../../Styles.css';
 import CircularProgress from "@mui/material/CircularProgress";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 
 export class LaneVideoPlaybackProps {
@@ -25,13 +24,12 @@ export class LaneVideoPlaybackProps {
 }
 
 export default function LaneVideoPlayback({selectedNode, videos, modeType, startTime, endTime, isPlaying, syncTime, onVideoTimeUpdate, onSelectedVideoIdxChange}: LaneVideoPlaybackProps) {
-    const { t } = useLanguage();
     const [videoHeight, setVideoHeight] = useState("320px");
     const videoRefs = useRef<HTMLVideoElement[]>([]);
     const [videoDuration, setVideoDuration] = useState<number>(0);
     const [isUpdatingFromSlider, setIsUpdatingFromSlider] = useState(false);
     const [selVideoIdx, setSelVidIdx] = useState<number>(0);
-    const [tls, setTls] = useState("");
+    const tls = selectedNode ? (selectedNode.isSecure ? 'https' : 'http') : '';
 
 
     useEffect(() => {
@@ -40,13 +38,6 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
         } else if ( modeType=== 'preview' ){
             setVideoHeight("300px")
         }
-
-        if (!selectedNode)
-            return;
-
-        let tls = selectedNode.isSecure ? 'https' : 'http';
-        setTls(tls)
-
     }, [modeType, videos, selectedNode]);
 
     useEffect(() => {
@@ -151,14 +142,17 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
     return (
         <Box sx={{
             display: "flex",
+            flexWrap: "nowrap",
             justifyContent: "center",
             alignItems: "center",
+            width: "100%",
+            overflow: "hidden",
         }}>
-            {videos?.length > 0 ? (
+            {videos?.length > 0 && selectedNode ? (
                 <div style={{display: "flex"}}>
                     <IconButton
                         onClick={handlePrevPage}
-                        sx={{margin: 2, cursor: 'pointer'}}
+                        sx={{ mx: { xs: 0.5, sm: 2 }, flexShrink: 0, cursor: 'pointer' }}
                         disabled={selVideoIdx === 0}
                     >
                         <NavigateBeforeIcon/>
@@ -177,7 +171,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
                                     playsInline
                                 >
                                     <source src={`${tls}://${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${video.trim()}`} type="video/mp4" />
-                                    {t('yourBrowserDoesNotSupportVideoTag')}
+                                    Your browser does not support the video tag.
                                 </video>
                             );
                         })}
@@ -185,7 +179,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
 
                     <IconButton
                         onClick={handleNextPage}
-                        sx={{margin: 2, cursor: 'pointer'}}
+                        sx={{ mx: { xs: 0.5, sm: 2 }, flexShrink: 0, cursor: 'pointer' }}
                         disabled={selVideoIdx >= videos.length - 1}
                     >
                         <NavigateNextIcon/>
@@ -194,7 +188,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
                 )
                 : (
                     <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>
-                        <Typography>{t('noVideoAvailable')}</Typography>
+                        <Typography>No Video Available</Typography>
                     </Box>
                 )}
         </Box>

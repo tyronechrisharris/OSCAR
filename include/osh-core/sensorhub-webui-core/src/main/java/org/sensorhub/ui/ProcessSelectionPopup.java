@@ -113,7 +113,7 @@ public class ProcessSelectionPopup extends Window implements UIConstants
         layout.addComponent(table);
         
         // link to more modules
-        Button installNew = new Button(I18N.get("installMorePackages1"));
+        Button installNew = new Button("Install More Packages...");
         installNew.setStyleName(STYLE_LINK);
         layout.addComponent(installNew);
         layout.setComponentAlignment(installNew, Alignment.MIDDLE_RIGHT);
@@ -134,12 +134,12 @@ public class ProcessSelectionPopup extends Window implements UIConstants
         layout.setComponentAlignment(buttons, Alignment.MIDDLE_LEFT);
         
         // name text box
-        buttons.addComponent(new Label(I18N.get("processName1")));
+        buttons.addComponent(new Label("Process Name:"));
         final TextField textBox = new TextField();
         buttons.addComponent(textBox);
         
         // OK button
-        Button okButton = new Button(I18N.get("ok1"));
+        Button okButton = new Button("OK");
         okButton.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(ClickEvent event)

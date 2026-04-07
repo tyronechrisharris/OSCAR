@@ -25,10 +25,9 @@ import {INode} from "@/lib/data/osh/Node";
 import ObservationFilter from "osh-js/source/core/consysapi/observation/ObservationFilter";
 import { convertToMap } from "@/app/utils/Utils";
 import DataStreamFilter from "osh-js/source/core/consysapi/datastream/DataStreamFilter.js";
-import { useLanguage } from '@/contexts/LanguageContext';
+
 
 export default function MapComponent() {
-    const { t } = useLanguage();
     const mapcontainer: string = "mapcontainer";
     const laneMap = useSelector((state: RootState) => selectLaneMap(state));
     const leafletViewRef = useRef<typeof LeafletView | null>(null);
@@ -79,10 +78,9 @@ export default function MapComponent() {
 
         for (let [laneid, lane] of laneMapRef.current.entries()) {
             laneDSMap.set(laneid, new LaneDSColl());
-            const datastreams = lane.datastreams || [];
-            for (let ds of datastreams) {
+            for (let ds of lane.datastreams) {
 
-                let idx: number = datastreams.indexOf(ds);
+                let idx: number = lane.datastreams.indexOf(ds);
                 let rtDS = lane.datasourcesRealtime[idx];
                 let batchDS = lane.datasourcesBatch[idx];
                 let laneDSColl = laneDSMap.get(laneid);
@@ -322,8 +320,8 @@ export default function MapComponent() {
 
         return (
             `<div id='popup-data-layer' class='point-popup'><hr/>
-                <h3 class='popup-text-status'>${t('status')}: ${status}</h3>
-                <button onClick='location.href="/lane-view"' class="popup-button" type="button">${t('viewLane')}</button>
+                <h3 class='popup-text-status'>Status: ${status}</h3>
+                <button onClick='location.href="/lane-view"' class="popup-button" type="button">VIEW LANE</button>
             </div>`
         );
     }
@@ -331,7 +329,7 @@ export default function MapComponent() {
     return (
         <Box
             id="mapcontainer"
-            style={{width: '100%', height: '1200px'}}
+            sx={{width: '100%', height: '100vh'}}
         />
     );
 }
