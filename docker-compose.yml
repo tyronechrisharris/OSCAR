@@ -219,13 +219,14 @@ services:
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
         echo "https://localhost, 127.0.0.1 {" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
         echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
         echo "}" >> /etc/caddy/Caddyfile
-        echo "{env.TAILSCALE_DOMAIN} {" >> /etc/caddy/Caddyfile
+        echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
