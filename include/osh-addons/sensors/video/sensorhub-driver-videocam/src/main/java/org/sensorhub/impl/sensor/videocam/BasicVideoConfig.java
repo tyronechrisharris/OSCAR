@@ -22,7 +22,7 @@ import org.sensorhub.api.config.DisplayInfo;
  * Generic configuration class for IP video cameras
  * </p>
  *
- * @author Mike Botts
+ * @author Mike Botts <mike.botts@botts-inc.com>
  * @since March 2016
  */
 public abstract class BasicVideoConfig

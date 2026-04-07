@@ -33,7 +33,7 @@ import org.vast.util.DateTimeFormat;
  * Otherwise UTC day is obtained from system clock.
  * </p>
  *
- * @author Alex Robin
+ * @author Alex Robin <alex.robin@sensiasoftware.com>
  * @since Aug 27, 2015
  */
 public class LLALocationOutput extends NMEAGpsOutput
@@ -48,11 +48,18 @@ public class LLALocationOutput extends NMEAGpsOutput
     
     public LLALocationOutput(NMEAGpsSensor parentSensor)
     {
-        super("gpsLocation", parentSensor);
+        super(parentSensor);
         this.samplingPeriod = 1.0; // default to 1Hz on startup
         
         this.cal = new GregorianCalendar();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+    
+    
+    @Override
+    public String getName()
+    {
+        return "gpsLocation";
     }
 
     

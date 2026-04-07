@@ -83,7 +83,7 @@ public class SWEControlForm extends SWEEditForm
         super.buildForm();
         
         // send button
-        Button sendBtn = new Button(I18N.get("sendCommand1"));
+        Button sendBtn = new Button("Send Command");
         sendBtn.addStyleName(UIConstants.STYLE_SMALL);
         addComponent(sendBtn);
         setComponentAlignment(sendBtn, Alignment.MIDDLE_LEFT);

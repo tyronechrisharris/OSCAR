@@ -9,11 +9,12 @@ import ObservationFilter from "osh-js/source/core/consysapi/observation/Observat
 import {selectEventData, selectSpeed, setSpeed} from "@/lib/state/EventDetailsSlice";
 import {useAppDispatch} from "@/lib/state/Hooks";
 import {isSpeedDataStream} from "@/lib/data/oscar/Utilities";
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useBreakpoint } from "@/app/providers";
 
 
 export default function MiscTable({currentTime}: {currentTime: string}) {
-  const { t } = useLanguage();
+  const { isMobile } = useBreakpoint();
+
   const dispatch = useAppDispatch();
 
   const savedSpeed = useSelector(selectSpeed)
@@ -25,20 +26,16 @@ export default function MiscTable({currentTime}: {currentTime: string}) {
 
   const checkForSpeed = useCallback(async () => {
     if (eventData) {
-      let lme = laneMapRef.current?.get(eventData.laneId);
-      if (!lme) return;
+      let lme = laneMapRef.current.get(eventData.laneId);
 
-      let speedDS = lme.datastreams?.find((ds: any) => isSpeedDataStream(ds));
-      if (!speedDS) return;
+      let speedDS = lme.datastreams.find(ds => isSpeedDataStream(ds));
 
       let initialRes = await speedDS.searchObservations(new ObservationFilter({ resultTime: `${eventData?.startTime}/${eventData?.endTime}`}), 10000);
 
       // while(initialRes.hasNext()){
         let speedArr = await initialRes.nextPage();
         // make CSAPI request for speed in different output
-        let speed = "N/A";
-
-        speed = speedArr[0].result.speedKPH ? speedArr[0].result.speedKPH : "N/A";
+        let speed = speedArr[0].result.speedKPH ? speedArr[0].result.speedKPH : "N/A";
 
         setSpeedval(speed);
         // dispatch(setSpeed(speed));
@@ -56,20 +53,46 @@ export default function MiscTable({currentTime}: {currentTime: string}) {
   return (
       <Box>
         <TableContainer>
-          <Table sx={{ minWidth: 650 }} aria-label={t('simpleTable')}>
+          <Table
+            aria-label="simple table"
+            sx={{ minWidth: 500 }}
+          >
             <TableBody>
-              <TableRow>
-                <TableCell>{t('maxGammaCountRate')}</TableCell>
-                <TableCell>{eventData?.maxGamma}</TableCell>
-                <TableCell>{t('neutronBackgroundCountRate')}</TableCell>
-                <TableCell>{eventData?.neutronBackground}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>{t('maxNeutronCountRate')}</TableCell>
-                <TableCell>{eventData?.maxNeutron}</TableCell>
-                <TableCell>{t('speedKph')}</TableCell>
-                <TableCell>{speedVal}</TableCell>
-              </TableRow>
+              {!isMobile ? (
+                <>
+                  <TableRow>
+                    <TableCell>Max Gamma Count Rate (cps)</TableCell>
+                    <TableCell>{eventData?.maxGamma}</TableCell>
+                    <TableCell>Neutron Background Count Rate</TableCell>
+                      <TableCell>{eventData?.neutronBackground}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Max Neutron Count Rate (cps)</TableCell>
+                    <TableCell>{eventData?.maxNeutron}</TableCell>
+                    <TableCell>Speed (kph)</TableCell>
+                    <TableCell>{speedVal}</TableCell>
+                  </TableRow>
+                </>
+              ) : (
+                <>
+                  <TableRow>
+                    <TableCell>Max Gamma Count Rate (cps)</TableCell>
+                    <TableCell>{eventData?.maxGamma}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Neutron Background Count Rate</TableCell>
+                      <TableCell>{eventData?.neutronBackground}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Max Neutron Count Rate (cps)</TableCell>
+                    <TableCell>{eventData?.maxNeutron}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Speed (kph)</TableCell>
+                    <TableCell>{speedVal}</TableCell>
+                  </TableRow>
+                </>
+              )}
             </TableBody>
           </Table>
         </TableContainer>

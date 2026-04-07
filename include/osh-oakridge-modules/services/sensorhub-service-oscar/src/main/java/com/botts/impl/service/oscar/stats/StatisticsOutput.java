@@ -4,6 +4,7 @@ import com.botts.impl.service.oscar.OSCARSystem;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
+import net.opengis.swe.v20.DataRecord;
 import org.sensorhub.api.common.BigId;
 import org.sensorhub.api.data.DataEvent;
 import org.sensorhub.api.database.IObsSystemDatabase;
@@ -18,6 +19,7 @@ import org.vast.data.TextEncodingImpl;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -95,8 +97,10 @@ public class StatisticsOutput extends AbstractSensorOutput<OSCARSystem> {
     }
 
     public void stop() {
-        service.shutdown();
-        service = null;
+        if (service != null) {
+            service.shutdown();
+            service = null;
+        }
     }
 
     public void publishLatestStatistics() {
