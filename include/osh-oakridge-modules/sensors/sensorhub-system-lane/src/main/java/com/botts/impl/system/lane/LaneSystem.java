@@ -65,6 +65,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Extended functionality of the SensorSystem class unique for Open Source Central Alarm (OSCAR)
@@ -100,7 +102,12 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxPatchPathsApiBase() {
         String ip = getMediaMtxIp();
-        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/";
+        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/patch/";
+    }
+
+    private String getMediaMtxDeletePathsApiBase() {
+        String ip = getMediaMtxIp();
+        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/delete/";
     }
 
     private String getMediaMtxRtspBase() {
@@ -362,7 +369,7 @@ public class LaneSystem extends SensorSystem {
     }
 
     private void deleteMediaMtxPath(String pathName) {
-        String apiBase = getMediaMtxPatchPathsApiBase();
+        String apiBase = getMediaMtxDeletePathsApiBase();
         if (apiBase == null) return;
 
         try {
@@ -420,11 +427,7 @@ public class LaneSystem extends SensorSystem {
     public void cleanup() throws SensorHubException {
         super.cleanup();
 
-        // Cleanup MediaMTX paths
-        activeMtxPaths.forEach((uid, pathName) -> deleteMediaMtxPath(pathName));
-        activeMtxPaths.clear();
-
-        // Shut down thread pool
+        // Shut down thread pool first to stop new path provisioning
         if (threadPool != null) {
             threadPool.shutdown();
             try {
@@ -436,6 +439,10 @@ public class LaneSystem extends SensorSystem {
                 Thread.currentThread().interrupt();
             }
         }
+
+        // Cleanup MediaMTX paths
+        activeMtxPaths.forEach((uid, pathName) -> deleteMediaMtxPath(pathName));
+        activeMtxPaths.clear();
 
         // Auto delete lane data if specified
         if (getConfiguration() != null && getConfiguration().autoDelete) {

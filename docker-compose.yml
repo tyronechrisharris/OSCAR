@@ -139,11 +139,20 @@ services:
     environment:
       - MTX_API=yes
       - MTX_APIADDRESS=:9997
-      - MTX_APIUSER_FILE=/mtx_secrets/.mediamtx_api_user
-      - MTX_APIPASS_FILE=/mtx_secrets/.mediamtx_api_pass
     volumes:
       - ./config/mediamtx.yml:/mediamtx.yml:ro
       - mtx_secrets:/mtx_secrets:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        if [ -f /mtx_secrets/.mediamtx_api_user ]; then
+          export MTX_APIUSER=$(cat /mtx_secrets/.mediamtx_api_user)
+        fi
+        if [ -f /mtx_secrets/.mediamtx_api_pass ]; then
+          export MTX_APIPASS=$(cat /mtx_secrets/.mediamtx_api_pass)
+        fi
+        /mediamtx
     restart: unless-stopped
 
   tailscale:
