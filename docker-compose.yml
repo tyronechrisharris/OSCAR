@@ -106,7 +106,8 @@ services:
       - MEDIAMTX_API_PASS=${MEDIAMTX_API_PASS:-}
       - MEDIAMTX_API_USER_FILE=/secrets/.mtx_api_user
       - MEDIAMTX_API_PASS_FILE=/secrets/.mtx_api_pass
-      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
+      - MEDIAMTX_IP=${MEDIAMTX_IP:-172.17.0.1}
+      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
     volumes:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
@@ -120,7 +121,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${BACKEND_MEM_LIMIT:-2G}
+          memory: ${BACKEND_MEM_LIMIT:-2.5G}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8282:8282"
@@ -139,6 +140,7 @@ services:
       - MTX_API=yes
       - MTX_APIADDRESS=:9997
     volumes:
+      - ./config/mediamtx.yml:/mediamtx.yml:ro
       - oscar_secrets:/secrets:ro
     entrypoint:
       - /bin/sh

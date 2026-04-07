@@ -86,19 +86,26 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxIp() {
         String ip = System.getenv("MEDIAMTX_IP");
-        return (ip != null && !ip.isBlank()) ? ip : "172.17.0.1";
+        if (ip == null || ip.isBlank()) {
+            getLogger().error("CRITICAL: MEDIAMTX_IP environment variable is missing. Dynamic camera proxying will fail.");
+            return null;
+        }
+        return ip;
     }
 
     private String getMediaMtxAddPathsApiBase() {
-        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/add/";
+        String ip = getMediaMtxIp();
+        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/add/";
     }
 
     private String getMediaMtxPatchPathsApiBase() {
-        return "http://" + getMediaMtxIp() + ":9997/v3/config/paths/";
+        String ip = getMediaMtxIp();
+        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/";
     }
 
     private String getMediaMtxRtspBase() {
-        return "rtsp://" + getMediaMtxIp() + ":8554/";
+        String ip = getMediaMtxIp();
+        return (ip == null) ? null : "rtsp://" + ip + ":8554/";
     }
 
     private HttpClient getMediaMtxClient() {
@@ -112,13 +119,14 @@ public class LaneSystem extends SensorSystem {
     Flow.Subscription subscription = null;
     private ExecutorService threadPool = null;
     Map<String, FFMPEGConfig> ffmpegConfigs = null;
+    private final Map<String, String> activeMtxPaths = new ConcurrentHashMap<>();
     OccupancyWrapper occupancyWrapper;
 
     AdjudicationControl adjudicationControl;
 
     @Override
     protected void doInit() throws SensorHubException {
-        threadPool = Executors.newSingleThreadExecutor();
+        threadPool = Executors.newFixedThreadPool(10);
         ffmpegConfigs = new HashMap<>();
         occupancyWrapper = null;
 
@@ -164,12 +172,21 @@ public class LaneSystem extends SensorSystem {
             var ffmpegConfigList = getConfiguration().laneOptionsConfig.ffmpegConfig;
             if (ffmpegConfigList != null) {
                 for (var simpleConfig : ffmpegConfigList) {
-                    FFMPEGConfig config = createFFmpegConfig(simpleConfig, ffmpegConfigList.indexOf(simpleConfig));
-                    configureMediaMtxProxy(config, buildMediaMtxPathName(config, ffmpegConfigList.indexOf(simpleConfig)));
-                    var ffmpegModule = createFFmpegModule(config);
-                    if (occupancyWrapper != null) {
-                        //occupancyWrapper.addFFmpegSensor(ffmpegModule);
-                    }
+                    final int index = ffmpegConfigList.indexOf(simpleConfig);
+                    FFMPEGConfig config = createFFmpegConfig(simpleConfig, index);
+
+                    // Provision camera async to avoid blocking startup
+                    CompletableFuture.runAsync(() -> {
+                        try {
+                            String pathName = buildMediaMtxPathName(config, index);
+                            configureMediaMtxProxy(config, pathName);
+                            var ffmpegModule = createFFmpegModule(config);
+                            // Track the relationship for cleanup
+                            activeMtxPaths.put(ffmpegModule.getUniqueIdentifier(), pathName);
+                        } catch (Exception e) {
+                            getLogger().error("Failed to async provision MediaMTX proxy for camera {}: {}", config.name, e.getMessage());
+                        }
+                    }, threadPool);
                 }
             }
         }
@@ -227,6 +244,11 @@ public class LaneSystem extends SensorSystem {
             throw new SensorHubException("Cannot configure MediaMTX proxy because FFmpeg connection config is missing");
         }
 
+        String apiBase = getMediaMtxAddPathsApiBase();
+        if (apiBase == null) {
+            return;
+        }
+
         String rawUri = ffmpegConfig.connection.connectionString;
         if (rawUri == null || rawUri.isBlank()) {
             throw new SensorHubException("Cannot configure MediaMTX proxy because the raw RTSP URI is blank");
@@ -238,7 +260,7 @@ public class LaneSystem extends SensorSystem {
         try {
             HttpResponse<String> response = sendMediaMtxRequest(
                     "POST",
-                    getMediaMtxAddPathsApiBase() + encodedPathName,
+                    apiBase + encodedPathName,
                     payload);
 
             if (response.statusCode() >= 400 && response.statusCode() < 500) {
@@ -339,6 +361,24 @@ public class LaneSystem extends SensorSystem {
                 .replace("\"", "\\\"");
     }
 
+    private void deleteMediaMtxPath(String pathName) {
+        String apiBase = getMediaMtxPatchPathsApiBase();
+        if (apiBase == null) return;
+
+        try {
+            String encodedPath = encodePathSegment(pathName);
+            HttpResponse<String> response = sendMediaMtxRequest("DELETE", apiBase + encodedPath, "");
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                getLogger().info("Successfully deleted MediaMTX path: {}", pathName);
+            } else {
+                getLogger().warn("Failed to delete MediaMTX path {} with HTTP {}: {}", pathName, response.statusCode(), response.body());
+            }
+        } catch (Exception e) {
+            getLogger().error("Error while deleting MediaMTX path {}: {}", pathName, e.getMessage());
+        }
+    }
+
     private FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
         // Get ffmpeg submodule with the same unique serial num
         // If there is a module registered for this serial number, then the driver was already registered
@@ -379,6 +419,23 @@ public class LaneSystem extends SensorSystem {
     @Override
     public void cleanup() throws SensorHubException {
         super.cleanup();
+
+        // Cleanup MediaMTX paths
+        activeMtxPaths.forEach((uid, pathName) -> deleteMediaMtxPath(pathName));
+        activeMtxPaths.clear();
+
+        // Shut down thread pool
+        if (threadPool != null) {
+            threadPool.shutdown();
+            try {
+                if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                    threadPool.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
 
         // Auto delete lane data if specified
         if (getConfiguration() != null && getConfiguration().autoDelete) {
@@ -463,6 +520,12 @@ public class LaneSystem extends SensorSystem {
                 if (event.getSystemUID().contains(RAPISCAN_URI) || event.getSystemUID().contains(ASPECT_URI)) {
                     occupancyWrapper.removeRpmSensor();
                     existingRPMModule = null;
+                }
+
+                // If FFmpeg sensor is removed, cleanup MediaMTX path
+                String pathName = activeMtxPaths.remove(event.getSystemUID());
+                if (pathName != null) {
+                    deleteMediaMtxPath(pathName);
                 }
             }
 
