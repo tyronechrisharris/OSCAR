@@ -139,8 +139,13 @@ services:
     environment:
       - MTX_API=yes
       - MTX_APIADDRESS=:9997
+      - MTX_RTMP=no
+      - MTX_HLS=no
+      - MTX_WEBRTC=no
+      - MTX_SRT=no
+      - MTX_PATHS_ALL_SOURCEONDEMAND=yes
+      - MTX_PATHS_ALL_READBUFFERCOUNT=2048
     volumes:
-      - ./config/mediamtx.yml:/mediamtx.yml:ro
       - mtx_secrets:/mtx_secrets:ro
     entrypoint:
       - /bin/sh
@@ -207,14 +212,20 @@ services:
       - |
         cat << EOF > /etc/caddy/Caddyfile
         http://localhost {
-            reverse_proxy http://osh-backend:8282
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+            }
         }
         https://localhost, 127.0.0.1 {
-            reverse_proxy http://osh-backend:8282
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+            }
             tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
-        ${TAILSCALE_DOMAIN} {
-            reverse_proxy http://osh-backend:8282
+        $${TAILSCALE_DOMAIN} {
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+            }
             tls {
                 get_certificate tailscale
             }

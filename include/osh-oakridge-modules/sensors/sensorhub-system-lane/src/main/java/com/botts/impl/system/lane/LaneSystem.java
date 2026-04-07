@@ -107,7 +107,7 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxDeletePathsApiBase() {
         String ip = getMediaMtxIp();
-        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/delete/";
+        return (ip == null) ? null : "http://" + ip + ":9997/v3/config/paths/remove/";
     }
 
     private String getMediaMtxRtspBase() {
@@ -374,7 +374,7 @@ public class LaneSystem extends SensorSystem {
 
         try {
             String encodedPath = encodePathSegment(pathName);
-            HttpResponse<String> response = sendMediaMtxRequest("DELETE", apiBase + encodedPath, "");
+            HttpResponse<String> response = sendMediaMtxRequest("POST", apiBase + encodedPath, "");
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 getLogger().info("Successfully deleted MediaMTX path: {}", pathName);
