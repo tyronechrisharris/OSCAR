@@ -77,10 +77,13 @@ EOF
         condition: service_completed_successfully
     image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/secrets/db-server.crt
-      -c ssl_key_file=/secrets/db-server.key
+    command:
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/secrets/db-server.crt"
+      - "-c"
+      - "ssl_key_file=/secrets/db-server.key"
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
@@ -104,7 +107,7 @@ EOF
           memory: ${DB_MEM_LIMIT:-1G}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d gis"]
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "gis"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -148,7 +151,7 @@ EOF
     ports:
       - "127.0.0.1:8282:8282"
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -I http://localhost:8282/sensorhub/api | grep -q 'HTTP/1.1' || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8282/sensorhub/api"]
       interval: 15s
       timeout: 10s
       retries: 15
@@ -211,10 +214,10 @@ EOF
         limits:
           memory: 256M
     command:
-      - sh
+      - /bin/sh
       - -c
       - |
-        cat << EOF > /etc/caddy/Caddyfile
+        cat << 'EOF' > /etc/caddy/Caddyfile
         http://localhost {
             reverse_proxy http://osh-backend:8282 {
                 flush_interval -1
@@ -226,7 +229,7 @@ EOF
             }
             tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
-        $${TAILSCALE_DOMAIN} {
+        {env.TAILSCALE_DOMAIN} {
             reverse_proxy http://osh-backend:8282 {
                 flush_interval -1
             }

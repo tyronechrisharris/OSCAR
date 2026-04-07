@@ -7,21 +7,14 @@ This document provides a comprehensive step-by-step detail of the initialization
 ### Boot Process and Execution Order
 The startup sequence is managed through Docker Compose and standardizes the initialization of all components using `depends_on` conditions to enforce execution order:
 1. **Pre-flight Checks & Credentials (`init-secrets`):** An ephemeral container generates secure credentials. This includes the database password (`.db_password`) and keystore password (`.app_secrets`) in the `oscar_secrets` volume. It also generates a dedicated 16-character hex password and default username (`oscar-admin`) for the MediaMTX API, and a complete, hardened `mediamtx.yml` configuration file, all stored in the segmented `mtx_secrets` volume.
-2. **PostGIS Initialization:** Launches the database container. It depends on `init-secrets` completing successfully.
-3. **Backend Launch:** Starts the OSH backend. This container waits for the `osh-postgis` container's `pg_isready` health check to report `service_healthy`.
+2. **PostGIS Initialization:** Launches the database container. It depends on `init-secrets` completing successfully. Database flags are passed as a YAML array to ensure reliable initialization without shell interference.
+3. **Backend Launch:** Starts the OSH backend. This container waits for the `osh-postgis` container's health check to report `service_healthy`.
 4. **Tailscale Sidecar Initialization:** Starts a dedicated `tailscale` container. It reads the `TS_AUTHKEY` from the environment to register the node, and persists its machine identity to the `./tailscale/state` host bind mount. It also creates a unix socket at `./tailscale/sock/tailscaled.sock`.
 5. **Proxy Launch:** Starts the `osh-proxy` (Caddy) container. Because it shares the Tailscale network namespace (`network_mode: "service:tailscale"`), it explicitly waits for the `tailscale` container to be `service_started`. It also enforces a strict 60+ second startup delay by waiting for the `osh-backend` to finish the Setup Wizard/Certificate generation and report as `service_healthy`.
 
 ### Wait-State Logic for PostGIS
-The launch script uses an explicit loop to delay the backend startup until PostGIS has fully loaded its spatial extensions (`gis` and `template_postgis` databases).
-1. **`pg_isready` Polling Loop:** The script polls the PostGIS container every 5 seconds (defined by `RETRY_INTERVAL`) using the `pg_isready` command targeting the `gis` database.
-   ```bash
-   RETRY_COUNT=0
-   until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-     echo "PostGIS not ready yet, retrying..."
-     sleep "${RETRY_INTERVAL}"
-   done
-   ```
+The orchestration uses a non-shell healthcheck to delay the backend startup until PostGIS has fully loaded its spatial extensions (`gis` and `template_postgis` databases).
+1. **`pg_isready` Healthcheck:** The PostGIS container utilizes a native healthcheck targeting the `gis` database using the `CMD` exec form to ensure compatibility with distroless and minimal images.
 2. **Additional Buffer (Sleep 30):** Once `pg_isready` succeeds, an explicit 30-second sleep (`sleep 30`) is executed to ensure PostGIS has sufficient time to complete loading all internal initializations and spatial extensions before backend connections are attempted.
 3. **Final Verification Loop:** A final safety loop ensures PostGIS hasn't entered a restart loop after the 30-second wait before allowing the backend to launch:
    ```bash
