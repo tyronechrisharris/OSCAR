@@ -6,22 +6,15 @@ This document provides a comprehensive step-by-step detail of the initialization
 
 ### Boot Process and Execution Order
 The startup sequence is managed through Docker Compose and standardizes the initialization of all components using `depends_on` conditions to enforce execution order:
-1. **Pre-flight Checks & Credentials (`init-secrets`):** An ephemeral container generates secure credentials (database password, keystore password) and seeds `.app_secrets` and `.db_password` into the shared `oscar_secrets` volume.
-2. **PostGIS Initialization:** Launches the database container. It depends on `init-secrets` completing successfully.
-3. **Backend Launch:** Starts the OSH backend. This container waits for the `osh-postgis` container's `pg_isready` health check to report `service_healthy`.
+1. **Pre-flight Checks & Credentials (`init-secrets`):** An ephemeral container generates secure credentials. This includes the database password (`.db_password`) and keystore password (`.app_secrets`) in the `oscar_secrets` volume. It also generates a dedicated 16-character hex password and default username (`oscar-admin`) for the MediaMTX API, and a complete, hardened `mediamtx.yml` configuration file, all stored in the segmented `mtx_secrets` volume.
+2. **PostGIS Initialization:** Launches the database container. It depends on `init-secrets` completing successfully. Database flags are passed as a YAML array to ensure reliable initialization without shell interference.
+3. **Backend Launch:** Starts the OSH backend. This container waits for the `osh-postgis` container's health check to report `service_healthy`.
 4. **Tailscale Sidecar Initialization:** Starts a dedicated `tailscale` container. It reads the `TS_AUTHKEY` from the environment to register the node, and persists its machine identity to the `./tailscale/state` host bind mount. It also creates a unix socket at `./tailscale/sock/tailscaled.sock`.
 5. **Proxy Launch:** Starts the `osh-proxy` (Caddy) container. Because it shares the Tailscale network namespace (`network_mode: "service:tailscale"`), it explicitly waits for the `tailscale` container to be `service_started`. It also enforces a strict 60+ second startup delay by waiting for the `osh-backend` to finish the Setup Wizard/Certificate generation and report as `service_healthy`.
 
 ### Wait-State Logic for PostGIS
-The launch script uses an explicit loop to delay the backend startup until PostGIS has fully loaded its spatial extensions (`gis` and `template_postgis` databases).
-1. **`pg_isready` Polling Loop:** The script polls the PostGIS container every 5 seconds (defined by `RETRY_INTERVAL`) using the `pg_isready` command targeting the `gis` database.
-   ```bash
-   RETRY_COUNT=0
-   until docker exec -u "$DB_USER" "$CONTAINER_NAME" pg_isready -d "$DB_NAME" > /dev/null 2>&1; do
-     echo "PostGIS not ready yet, retrying..."
-     sleep "${RETRY_INTERVAL}"
-   done
-   ```
+The orchestration uses a non-shell healthcheck to delay the backend startup until PostGIS has fully loaded its spatial extensions (`gis` and `template_postgis` databases).
+1. **`pg_isready` Healthcheck:** The PostGIS container utilizes a native healthcheck targeting the `gis` database using the `CMD` exec form to ensure compatibility with distroless and minimal images.
 2. **Additional Buffer (Sleep 30):** Once `pg_isready` succeeds, an explicit 30-second sleep (`sleep 30`) is executed to ensure PostGIS has sufficient time to complete loading all internal initializations and spatial extensions before backend connections are attempted.
 3. **Final Verification Loop:** A final safety loop ensures PostGIS hasn't entered a restart loop after the 30-second wait before allowing the backend to launch:
    ```bash
@@ -40,8 +33,10 @@ TLS generation has been decoupled from the Java backend and is now managed secur
 The certificate generation happens **before any other container starts**. The `init-secrets` container executes its shell script upon `docker compose up`, checks the shared `oscar_secrets` named volume, and generates missing assets.
 
 ### Generation Mechanism
-1. **Password Generation:** Uses `openssl rand` to generate secure 32-byte Base64 passwords for the database (`.db_password`) and the Java keystore/truststore (`.app_secrets`).
-2. **PEM Root CA Generation:** Generates a persistent self-signed RSA-2048 Root CA certificate (`ca.pem` and `ca.key`) valid for 20 years (7300 days).
+1. **Password Generation:** Uses `openssl rand` to generate secure 32-byte Base64 passwords for the database (`.db_password`) and the Java keystore/truststore (`.app_secrets`). It also generates a 16-character random hex password for the MediaMTX API (`.mediamtx_api_pass`) and initializes the default `oscar-admin` username (`.mediamtx_api_user`).
+2. **MediaMTX Runtime Configuration:** The `init-secrets` container generates a hardened `mediamtx.yml` at boot, baking the auto-generated credentials and performance optimizations (RTSP-only, source-on-demand) directly into the file.
+3. **Volume Segmentation:** To enforce the **Principle of Least Privilege**, the MediaMTX credentials and configuration are stored in a dedicated `mtx_secrets` named volume, isolating them from high-sensitivity system secrets like the database password and Root CA private key. This volume is mounted to the MediaMTX sidecar at `/etc/mediamtx`.
+3. **PEM Root CA Generation:** Generates a persistent self-signed RSA-2048 Root CA certificate (`ca.pem` and `ca.key`) valid for 20 years (7300 days).
 3. **PEM Server Certificate Generation:** Generates an RSA-2048 leaf certificate (`server.pem` and `server.key`) signed by the Root CA, valid for 10 years (3650 days), with the subject `CN=localhost`.
 4. **Java Keystore Packaging:** Because the OpenSensorHub Java backend natively requires JKS and PKCS12 formats for its `SSLContext`, the container uses `keytool` and `openssl pkcs12` to bundle the raw PEM files into `truststore.jks` and `osh-keystore.p12`, secured by the generated `.app_secrets` password.
 5. **PostGIS Certificate Generation:** Generates dedicated, unique self-signed certificates (`db-server.crt` and `db-server.key`) for the database container and enforces strict `chown 999:999` and `chmod 600` permissions.

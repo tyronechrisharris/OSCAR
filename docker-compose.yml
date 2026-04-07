@@ -4,6 +4,7 @@ services:
     container_name: oscar-init-secrets
     volumes:
       - oscar_secrets:/secrets
+      - mtx_secrets:/mtx-secrets
     command: >
       /bin/sh -c '
       apk add --no-cache openssl;
@@ -40,6 +41,32 @@ services:
         chmod 600 /secrets/db-server.key;
         chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
       fi;
+
+      if [ ! -f /mtx-secrets/mediamtx.yml ]; then
+        echo "Generating secure MediaMTX configuration in segmented volume...";
+        PASS=$$(openssl rand -hex 16);
+        USER="oscar-admin";
+        echo $$PASS > /mtx-secrets/.mediamtx_api_pass;
+        echo $$USER > /mtx-secrets/.mediamtx_api_user;
+
+        echo "# MediaMTX Configuration for OSCAR (Auto-Generated)" > /mtx-secrets/mediamtx.yml;
+        echo "api: yes" >> /mtx-secrets/mediamtx.yml;
+        echo "apiAddress: :9997" >> /mtx-secrets/mediamtx.yml;
+        echo "apiUser: $$USER" >> /mtx-secrets/mediamtx.yml;
+        echo "apiPass: $$PASS" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "# Protocols (Optimized for high density)" >> /mtx-secrets/mediamtx.yml;
+        echo "rtmp: no" >> /mtx-secrets/mediamtx.yml;
+        echo "hls: no" >> /mtx-secrets/mediamtx.yml;
+        echo "webrtc: no" >> /mtx-secrets/mediamtx.yml;
+        echo "srt: no" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "# Global Path Settings" >> /mtx-secrets/mediamtx.yml;
+        echo "paths:" >> /mtx-secrets/mediamtx.yml;
+        echo "  all:" >> /mtx-secrets/mediamtx.yml;
+        echo "    sourceOnDemand: yes" >> /mtx-secrets/mediamtx.yml;
+        echo "    readBufferCount: 2048" >> /mtx-secrets/mediamtx.yml;
+      fi;
       '
 
   osh-postgis:
@@ -48,10 +75,13 @@ services:
         condition: service_completed_successfully
     image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
     container_name: oscar-postgis-container
-    command: >
-      -c ssl=on
-      -c ssl_cert_file=/secrets/db-server.crt
-      -c ssl_key_file=/secrets/db-server.key
+    command:
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/secrets/db-server.crt"
+      - "-c"
+      - "ssl_key_file=/secrets/db-server.key"
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
@@ -75,7 +105,7 @@ services:
           memory: ${DB_MEM_LIMIT:-1G}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d gis"]
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "gis"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,12 +124,18 @@ services:
       # CRITICAL FIX 1: Forces backend to use the shared secrets volume
       - KEYSTORE_PASSWORD_FILE=/secrets/.app_secrets
       - TRUSTSTORE_PASSWORD_FILE=/secrets/.app_secrets
-      - JAVA_OPTS=-Xmx${BACKEND_MEM_LIMIT:-2G} -Xms${BACKEND_MEM_LIMIT:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
+      - MEDIAMTX_API_USER=${MEDIAMTX_API_USER:-}
+      - MEDIAMTX_API_PASS=${MEDIAMTX_API_PASS:-}
+      - MEDIAMTX_API_USER_FILE=/mtx_secrets/.mediamtx_api_user
+      - MEDIAMTX_API_PASS_FILE=/mtx_secrets/.mediamtx_api_pass
+      - MEDIAMTX_IP=${MEDIAMTX_IP:-172.17.0.1}
+      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*
     volumes:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
       - oscar_secrets:/secrets:ro
+      - mtx_secrets:/mtx_secrets:ro
     networks:
       - osh-internal
     depends_on:
@@ -108,12 +144,12 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${BACKEND_MEM_LIMIT:-2G}
+          memory: ${BACKEND_MEM_LIMIT:-2.5G}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8282:8282"
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -I http://localhost:8282/sensorhub/api | grep -q 'HTTP/1.1' || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8282/sensorhub/api"]
       interval: 15s
       timeout: 10s
       retries: 15
@@ -124,8 +160,9 @@ services:
     container_name: oscar-mediamtx
     network_mode: "host"
     environment:
-      - MTX_API=yes
-      - MTX_APIADDRESS=:9997
+      - MTX_CONFIG=/etc/mediamtx/mediamtx.yml
+    volumes:
+      - mtx_secrets:/etc/mediamtx:ro
     restart: unless-stopped
 
   tailscale:
@@ -175,24 +212,28 @@ services:
         limits:
           memory: 256M
     command:
-      - sh
+      - /bin/sh
       - -c
       - |
-        cat << EOF > /etc/caddy/Caddyfile
-        http://localhost {
-            reverse_proxy http://osh-backend:8282
-        }
-        https://localhost, 127.0.0.1 {
-            reverse_proxy http://osh-backend:8282
-            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
-        }
-        ${TAILSCALE_DOMAIN} {
-            reverse_proxy http://osh-backend:8282
-            tls {
-                get_certificate tailscale
-            }
-        }
-        EOF
+        echo "http://localhost {" > /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo "https://localhost, 127.0.0.1 {" >> /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    tls {" >> /etc/caddy/Caddyfile
+        echo "        get_certificate tailscale" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
         caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 networks:
@@ -203,3 +244,4 @@ volumes:
   caddy_data:
   caddy_config:
   oscar_secrets:
+  mtx_secrets:

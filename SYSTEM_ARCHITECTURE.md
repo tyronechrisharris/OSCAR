@@ -13,11 +13,11 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
 - **Client Web UI**: React/Frontend viewer.
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
-- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors.
+- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. Configuration is automatically generated and hardened at runtime.
 
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
-1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon.
+1. **Named Volumes (High Security)**: Highly sensitive files, such as the dynamically generated database password (`.db_password`), keystore passwords (`.app_secrets`), and Caddy internal state data are locked inside Docker Named Volumes (e.g., `oscar_secrets`, `caddy_data`). This ensures these secrets are abstracted from the host file system and handled entirely by the Docker daemon. To enforce the **Principle of Least Privilege**, a dedicated `mtx_secrets` volume is used to segment MediaMTX API credentials (`.mediamtx_api_user`, `.mediamtx_api_pass`) from high-sensitivity system secrets.
 2. **Bind Mounts (Persistent Configuration & Data)**: Non-sensitive persistent data (like the PostGIS database records in `./pgdata`, the backend's configuration in `./osh-node-oscar/config`, and Tailscale state in `./tailscale`) are bound to the host filesystem. This ensures administrators have direct access to back up databases and manually tweak configuration files locally.
 
 ## Deployment Scenarios & Minimum System Requirements
@@ -40,13 +40,14 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **PostGIS Database**: `5432` (Internal Docker Network only)
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy)
-- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback)
+- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback. Requires HTTP Basic Auth)
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
 - **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
 - **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
+- **MQTT Connectivity**: The system maintains stable MQTT connections over WebSockets. Both the OSH backend and the reverse proxy are configured with an increased 10-minute idle timeout to prevent frequent disconnections in high-latency environments (e.g., Tailscale mesh).
 - **Certificate Management**: OSCAR operates entirely on a dynamic PEM-first cryptographic root. On first boot, the `init-secrets` container utilizes OpenSSL to generate a 20-year Root CA (`ca.pem`) and a 10-year server certificate (`server.pem`). To maintain ecosystem compatibility, these PEMs are natively bundled into PKCS12 and JKS formats and stored securely in the Docker `oscar_secrets` volume, eliminating the need to bake private keys into deployment images or rely on local Java generators.
 
 ## Deployment and Lifecycle Commands
