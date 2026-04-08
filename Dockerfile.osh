@@ -19,4 +19,5 @@ COPY ./osh-node-oscar/config /app/config
 
 # The ENTRYPOINT implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
 # JAVA_OPTS is used to pass memory limits from the .env file and route outbound traffic through Tailscale.
-ENTRYPOINT ["/bin/bash", "-c", "echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]
+# set -f is used to disable filename expansion (globbing) to prevent '*' in JAVA_OPTS from being expanded by the shell.
+ENTRYPOINT ["/bin/bash", "-c", "set -f; echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]
