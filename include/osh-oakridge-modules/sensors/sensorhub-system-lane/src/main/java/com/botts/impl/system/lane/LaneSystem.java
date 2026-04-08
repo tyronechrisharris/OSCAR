@@ -187,9 +187,10 @@ public class LaneSystem extends SensorSystem {
                         try {
                             String pathName = buildMediaMtxPathName(config, index);
                             configureMediaMtxProxy(config, pathName);
-                            var ffmpegModule = createFFmpegModule(config);
-                            // Track the relationship for cleanup
-                            activeMtxPaths.put(ffmpegModule.getUniqueIdentifier(), pathName);
+                            createFFmpegModule(config);
+                            // Track the relationship for cleanup using deterministic UID
+                            String ffmpegUID = "urn:osh:sensor:ffmpeg:" + config.serialNumber;
+                            activeMtxPaths.put(ffmpegUID, pathName);
                         } catch (Exception e) {
                             getLogger().error("Failed to async provision MediaMTX proxy for camera {}: {}", config.name, e.getMessage());
                         }

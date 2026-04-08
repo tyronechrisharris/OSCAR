@@ -65,7 +65,6 @@ services:
         echo "paths:" >> /mtx-secrets/mediamtx.yml;
         echo "  all:" >> /mtx-secrets/mediamtx.yml;
         echo "    sourceOnDemand: yes" >> /mtx-secrets/mediamtx.yml;
-        echo "    readBufferCount: 2048" >> /mtx-secrets/mediamtx.yml;
       fi;
       '
 
@@ -158,10 +157,14 @@ services:
       start_period: 60s
 
   mediamtx:
-    image: bluenviron/mediamtx:v1.11.3
+    image: bluenviron/mediamtx:1.17.1
     container_name: oscar-mediamtx
     network_mode: "host"
-    command: ["/etc/mediamtx/mediamtx.yml"]
+    depends_on:
+      init-secrets:
+        condition: service_completed_successfully
+    environment:
+      - MTX_CONFIG=/etc/mediamtx/mediamtx.yml
     volumes:
       - mtx_secrets:/etc/mediamtx:ro
     restart: unless-stopped
