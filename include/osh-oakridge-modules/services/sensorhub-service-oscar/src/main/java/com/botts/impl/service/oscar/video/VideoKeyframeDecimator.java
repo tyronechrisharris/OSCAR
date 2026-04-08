@@ -59,7 +59,7 @@ public class VideoKeyframeDecimator implements DataBufferListener {
     }
 
     public void openOutputFile(String fileName, AVStream otherStream) {
-        avFormatContext = new AVFormatContext(null);
+        avFormatContext = avformat.avformat_alloc_context();
         avformat.avformat_alloc_output_context2(avFormatContext, null, "mp4", null);
 
         avStream = avformat.avformat_new_stream(avFormatContext, null);

@@ -91,6 +91,8 @@ public class MpegTsProcessor extends Thread {
      */
     private AVFormatContext avFormatContext;
 
+    public final Object contextLock = new Object();
+
     /**
      * Flag indicating if processing of the transport stream should be terminated.
      */
@@ -153,14 +155,15 @@ public class MpegTsProcessor extends Thread {
      * @return True if the stream is opened successfully, false otherwise.
      */
     public boolean openStream() {
-        logger.debug("openStream");
+        synchronized (contextLock) {
+            logger.debug("openStream");
 
-        avformat.avformat_network_init();
+            avformat.avformat_network_init();
 
-        // Create a new AV Format Context for I/O
-        avFormatContext = new AVFormatContext(null);
+            // Create a new AV Format Context for I/O
+            avFormatContext = avformat.avformat_alloc_context();
 
-        // Set timeout
+            // Set timeout
         var options = new AVDictionary(null);
         avutil.av_dict_set(options, "timeout", "3000000", 0);
 
@@ -182,12 +185,13 @@ public class MpegTsProcessor extends Thread {
                 audioStreamContext.openCodecContext(avFormatContext);
 
                 logger.debug("Stream opened {}", streamSource);
+                }
+            } else {
+                logger.error("Failed to open stream: {}", streamSource);
             }
-        } else {
-            logger.error("Failed to open stream: {}", streamSource);
-        }
 
-        return streamOpened;
+            return streamOpened;
+        }
     }
 
     public boolean isStreamOpened() {
@@ -199,6 +203,8 @@ public class MpegTsProcessor extends Thread {
      * Invoked after {@link MpegTsProcessor#openStream()}.
      */
     private void queryEmbeddedStreams() {
+        if (avFormatContext == null || avFormatContext.isNull())
+            return;
         for (int streamId = 0; streamId < avFormatContext.nb_streams(); ++streamId) {
             int codecType = avFormatContext.streams(streamId).codecpar().codec_type();
 
@@ -260,12 +266,14 @@ public class MpegTsProcessor extends Thread {
      * @throws IllegalStateException if there is no video stream embedded
      */
     public double getVideoStreamAvgFrameRate() throws IllegalStateException {
-        if (!videoStreamContext.hasStream()) {
-            throw new IllegalStateException("Stream does not contain video frames");
-        }
+        synchronized (contextLock) {
+            if (!videoStreamContext.hasStream() || avFormatContext == null || avFormatContext.isNull()) {
+                throw new IllegalStateException("Stream does not contain video frames");
+            }
 
-        AVRational rational = avFormatContext.streams(videoStreamContext.getStreamId()).avg_frame_rate();
-        return (double) rational.num() / rational.den();
+            AVRational rational = avFormatContext.streams(videoStreamContext.getStreamId()).avg_frame_rate();
+            return (double) rational.num() / rational.den();
+        }
     }
 
     /**
@@ -276,21 +284,23 @@ public class MpegTsProcessor extends Thread {
      * @throws IllegalStateException If there is no video stream embedded.
      */
     public int[] getVideoStreamFrameDimensions() {
-        final int WIDTH_IDX = 0;
-        final int HEIGHT_IDX = 1;
+        synchronized (contextLock) {
+            final int WIDTH_IDX = 0;
+            final int HEIGHT_IDX = 1;
 
-        logger.debug("getVideoStreamFrameDimensions");
+            logger.debug("getVideoStreamFrameDimensions");
 
-        if (!videoStreamContext.hasStream()) {
-            throw new IllegalStateException("Stream does not contain video frames");
+            if (!videoStreamContext.hasStream() || avFormatContext == null || avFormatContext.isNull()) {
+                throw new IllegalStateException("Stream does not contain video frames");
+            }
+
+            AVCodecParameters codecParameters = avFormatContext.streams(videoStreamContext.getStreamId()).codecpar();
+            int[] dimensions = {codecParameters.width(), codecParameters.height()};
+
+            logger.debug("Frame [width, height] = [ {}, {} ]", dimensions[WIDTH_IDX], dimensions[HEIGHT_IDX]);
+
+            return dimensions;
         }
-
-        AVCodecParameters codecParameters = avFormatContext.streams(videoStreamContext.getStreamId()).codecpar();
-        int[] dimensions = {codecParameters.width(), codecParameters.height()};
-
-        logger.debug("Frame [width, height] = [ {}, {} ]", dimensions[WIDTH_IDX], dimensions[HEIGHT_IDX]);
-
-        return dimensions;
     }
 
     /**
@@ -301,14 +311,16 @@ public class MpegTsProcessor extends Thread {
      * @throws IllegalStateException If there is no audio stream embedded.
      */
     public int getAudioSampleRate() {
-        if (!audioStreamContext.hasStream()) {
-            throw new IllegalStateException("Stream does not contain audio data");
+        synchronized (contextLock) {
+            if (!audioStreamContext.hasStream() || avFormatContext == null || avFormatContext.isNull()) {
+                throw new IllegalStateException("Stream does not contain audio data");
+            }
+
+            int sampleRate = avFormatContext.streams(audioStreamContext.getStreamId()).codecpar().sample_rate();
+
+            logger.debug("Audio sample rate: {}", sampleRate);
+            return sampleRate;
         }
-
-        int sampleRate = avFormatContext.streams(audioStreamContext.getStreamId()).codecpar().sample_rate();
-
-        logger.debug("Audio sample rate: {}", sampleRate);
-        return sampleRate;
     }
 
     /**
@@ -439,15 +451,17 @@ public class MpegTsProcessor extends Thread {
      * Closes the transport stream, releasing allocated resources including the codec context.
      */
     public void closeStream() {
-        logger.debug("closeStream");
+        synchronized (contextLock) {
+            logger.debug("closeStream");
 
-        if (streamOpened) {
+            if (streamOpened) {
 
-            if (avFormatContext != null) {
-                avformat.avformat_close_input(avFormatContext);
+                if (avFormatContext != null && !avFormatContext.isNull()) {
+                    avformat.avformat_close_input(avFormatContext);
+                }
+
+                streamOpened = false;
             }
-
-            streamOpened = false;
         }
 
         if (restartExecutor != null) {

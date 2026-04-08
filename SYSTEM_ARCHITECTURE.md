@@ -13,7 +13,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
 - **Client Web UI**: React/Frontend viewer.
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
-- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. Configuration is automatically generated and hardened at runtime.
+- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. To ensure stability and security, specific image versions are pinned (e.g., `v1.11.3`), and configuration is explicitly loaded from the `mtx_secrets` volume at runtime.
 
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
@@ -40,7 +40,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **PostGIS Database**: `5432` (Internal Docker Network only)
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy)
-- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback. Requires HTTP Basic Auth)
+- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` routed through the `host.docker.internal` gateway. Requires HTTP Basic Auth)
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
