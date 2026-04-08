@@ -504,6 +504,10 @@ public class LaneSystem extends SensorSystem {
         newMember.config = config;
         var newSubmodule = (AbstractModule<?>) addSubsystem(newMember);
 
+        // CRITICAL FIX: Synchronously initialize the submodule so its uniqueID is generated
+        // before any other part of the system (like registration or path tracking) attempts to access it.
+        newSubmodule.init();
+
         // Wait for loaded module, then notify listeners of config changed. QOL for admin UI
         threadPool.execute(() -> {
             try {

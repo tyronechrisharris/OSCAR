@@ -105,6 +105,7 @@
   <!-- Cameras -> MediaMTX Proxy -> OSH Processing Modules -->
   <path d="M 140 230 L 140 240" class="arrow" /> <!-- Cam to MediaMTX -->
   <path d="M 230 280 L 300 220" class="arrow" /> <!-- MediaMTX to FFmpeg -->
+  <path d="M 280 280 L 230 280" class="arrow" /> <!-- OSH to MediaMTX (API Control) -->
 
   <!-- Drivers to Processing -->
   <path d="M 390 160 L 390 180" class="arrow" />

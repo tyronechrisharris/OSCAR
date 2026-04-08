@@ -64,7 +64,6 @@ services:
         echo "# Global Path Settings" >> /mtx-secrets/mediamtx.yml;
         echo "paths:" >> /mtx-secrets/mediamtx.yml;
         echo "  all:" >> /mtx-secrets/mediamtx.yml;
-        echo "    sourceOnDemand: yes" >> /mtx-secrets/mediamtx.yml;
       fi;
       '
 
@@ -164,7 +163,7 @@ services:
       init-secrets:
         condition: service_completed_successfully
     environment:
-      - MTX_CONFIG=/etc/mediamtx/mediamtx.yml
+      - MEDIAMTX_CONFIG=/etc/mediamtx/mediamtx.yml
     volumes:
       - mtx_secrets:/etc/mediamtx:ro
     restart: unless-stopped
