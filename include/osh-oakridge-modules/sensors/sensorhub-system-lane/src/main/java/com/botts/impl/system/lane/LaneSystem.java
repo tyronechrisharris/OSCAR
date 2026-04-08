@@ -53,6 +53,7 @@ import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
 import java.io.IOException;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.file.Files;
@@ -117,7 +118,7 @@ public class LaneSystem extends SensorSystem {
 
     private HttpClient getMediaMtxClient() {
         return HttpClient.newBuilder()
-                .proxy(HttpClient.Builder.NO_PROXY) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
+                .proxy(ProxySelector.of(null)) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
     }
