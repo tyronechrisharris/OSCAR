@@ -53,9 +53,7 @@ import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
 import java.io.IOException;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -292,7 +290,7 @@ public class LaneSystem extends SensorSystem {
             ffmpegConfig.connection.connectionString = getMediaMtxRtspBase() + pathName;
             ffmpegConfig.connection.useTCP = true;
         } catch (IOException e) {
-            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.getMessage());
+            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.toString(), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             getLogger().error("Interrupted while configuring MediaMTX camera proxy for {}. Falling back to raw camera URI.", pathName);
