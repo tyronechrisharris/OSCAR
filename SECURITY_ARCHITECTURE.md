@@ -33,6 +33,9 @@ The system uses a Hybrid Volume Architecture (Named Volumes) to manage database 
 
 ## Application-Level Security Hardening
 
+### Shell Expansion and Network Integrity
+To prevent network configuration corruption during container startup, the OSH Backend utilizes a dedicated startup script (`start-osh.sh`) that explicitly disables shell globbing (`set -f`). This ensures that wildcards used in the `socksNonProxyHosts` and `http.nonProxyHosts` JVM properties (e.g., `10.*`) are not expanded into filenames by the container's shell, which would otherwise redirect local control traffic into the Tailscale SOCKS5 proxy and cause connection failures.
+
 ### Persistent Local CA and TLS Certificates
 The OSCAR architecture relies on a PEM-first cryptographic foundation managed completely within the Docker deployment ecosystem.
 - **Dynamic Runtime Generation**: Instead of baking SSL certificates into public Docker images or relying on proprietary Java generators, the `init-secrets` ephemeral container automatically generates standard OpenSSL PEM certificates (`ca.pem`, `server.pem`) upon the very first system boot.

@@ -276,6 +276,9 @@ public class FileOutput<FFMPEGConfigType extends FFMPEGConfig> extends AbstractS
 
         //AVFormatContext inputContext = this.parentSensor.getProcessor().getAvFormatContext();
         outputContext = avformat.avformat_alloc_context();
+        if (outputContext == null || outputContext.isNull()) {
+            throw new IOException("avformat_alloc_context() failed");
+        }
 
         if ((ret = avformat_alloc_output_context2(outputContext, null, null, this.fileName)) < 0) {
             logFFmpeg(ret);

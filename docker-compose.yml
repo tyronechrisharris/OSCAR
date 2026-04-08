@@ -61,7 +61,7 @@ services:
         echo "webrtc: no" >> /mtx-secrets/mediamtx.yml;
         echo "srt: no" >> /mtx-secrets/mediamtx.yml;
         echo "" >> /mtx-secrets/mediamtx.yml;
-        echo "# Global Path Settings" >> /mtx-secrets/mediamtx.yml;
+        echo "# Path Settings" >> /mtx-secrets/mediamtx.yml;
         echo "paths:" >> /mtx-secrets/mediamtx.yml;
         echo "  all:" >> /mtx-secrets/mediamtx.yml;
       fi;
@@ -121,7 +121,6 @@ services:
       - TRUSTSTORE=/secrets/truststore.jks
       - TRUSTSTORE_TYPE=JKS
       - SHOW_CMD=true
-      # CRITICAL FIX 1: Forces backend to use the shared secrets volume
       - KEYSTORE_PASSWORD_FILE=/secrets/.app_secrets
       - TRUSTSTORE_PASSWORD_FILE=/secrets/.app_secrets
       - MEDIAMTX_API_USER=${MEDIAMTX_API_USER:-}
@@ -162,10 +161,9 @@ services:
     depends_on:
       init-secrets:
         condition: service_completed_successfully
-    environment:
-      - MTX_CONFPATH=/etc/mediamtx/mediamtx.yml
     volumes:
       - mtx_secrets:/etc/mediamtx:ro
+    command: ["/etc/mediamtx/mediamtx.yml"]
     restart: unless-stopped
 
   tailscale:

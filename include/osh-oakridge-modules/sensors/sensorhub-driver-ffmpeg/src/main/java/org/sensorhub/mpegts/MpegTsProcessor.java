@@ -271,6 +271,10 @@ public class MpegTsProcessor extends Thread {
 
                 // Create a new AV Format Context for I/O
                 avFormatContext = avformat.avformat_alloc_context();
+                if (avFormatContext == null || avFormatContext.isNull()) {
+                    logger.error("avformat_alloc_context() failed");
+                    return false;
+                }
 
                 int returnCode = avformat.avformat_open_input(avFormatContext, streamSource, null, options);
 

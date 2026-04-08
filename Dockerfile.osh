@@ -17,7 +17,10 @@ COPY ./osh-node-oscar/logback.xml /app/logback.xml
 COPY ./osh-node-oscar/config.json /app/config.json
 COPY ./osh-node-oscar/config /app/config
 
+# Copy startup script
+COPY start-osh.sh /app/start-osh.sh
+RUN chmod +x /app/start-osh.sh
+
 # The ENTRYPOINT implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
-# JAVA_OPTS is used to pass memory limits from the .env file and route outbound traffic through Tailscale.
-# set -f is used to disable filename expansion (globbing) to prevent '*' in JAVA_OPTS from being expanded by the shell.
-ENTRYPOINT ["/bin/bash", "-c", "set -f; echo 'Waiting 30 seconds for PostGIS spatial extensions to settle...'; sleep 30; cd /app; java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db"]
+# It utilizes a dedicated startup script to safely expand JAVA_OPTS and disable shell globbing.
+ENTRYPOINT ["/bin/bash", "/app/start-osh.sh"]

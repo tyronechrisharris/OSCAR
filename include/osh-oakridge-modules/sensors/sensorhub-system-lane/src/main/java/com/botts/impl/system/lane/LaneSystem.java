@@ -116,7 +116,17 @@ public class LaneSystem extends SensorSystem {
 
     private HttpClient getMediaMtxClient() {
         return HttpClient.newBuilder()
-                .proxy(ProxySelector.of(null)) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
+                .proxy(new ProxySelector() {
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        return List.of(Proxy.NO_PROXY);
+                    }
+
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                        getLogger().error("MediaMTX API connection failed at {}: {}", uri, ioe.getMessage());
+                    }
+                })
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
     }
@@ -186,10 +196,14 @@ public class LaneSystem extends SensorSystem {
                         try {
                             String pathName = buildMediaMtxPathName(config, index);
                             configureMediaMtxProxy(config, pathName);
-                            createFFmpegModule(config);
-                            // Track the relationship for cleanup using deterministic UID
-                            String ffmpegUID = "urn:osh:sensor:ffmpeg:" + config.serialNumber;
-                            activeMtxPaths.put(ffmpegUID, pathName);
+                            var ffmpegModule = createFFmpegModule(config);
+                            // Track the relationship for cleanup using the actual uniqueID from the initialized module
+                            String ffmpegUID = ffmpegModule.getUniqueIdentifier();
+                            if (ffmpegUID != null) {
+                                activeMtxPaths.put(ffmpegUID, pathName);
+                            } else {
+                                getLogger().warn("Could not determine uniqueID for FFmpeg sensor {}, path tracking may fail", config.name);
+                            }
                         } catch (Exception e) {
                             getLogger().error("Failed to async provision MediaMTX proxy for camera {}: {}", config.name, e.getMessage());
                         }
@@ -386,7 +400,7 @@ public class LaneSystem extends SensorSystem {
         }
     }
 
-    private FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
+    private synchronized FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
         // Get ffmpeg submodule with the same unique serial num
         // If there is a module registered for this serial number, then the driver was already registered
         var ffmpegModuleOpt = getMembers().values().stream().filter(
@@ -503,7 +517,7 @@ public class LaneSystem extends SensorSystem {
         newMember.config = config;
         var newSubmodule = (AbstractModule<?>) addSubsystem(newMember);
 
-        // CRITICAL FIX: Synchronously initialize the submodule so its uniqueID is generated
+        // Synchronously initialize the submodule so its uniqueID is generated
         // before any other part of the system (like registration or path tracking) attempts to access it.
         newSubmodule.init();
 
