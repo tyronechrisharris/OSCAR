@@ -50,20 +50,29 @@ services:
         echo $$USER > /mtx-secrets/.mediamtx_api_user;
 
         echo "# MediaMTX Configuration for OSCAR (Auto-Generated)" > /mtx-secrets/mediamtx.yml;
-        echo "api: yes" >> /mtx-secrets/mediamtx.yml;
+        echo "api: true" >> /mtx-secrets/mediamtx.yml;
         echo "apiAddress: :9997" >> /mtx-secrets/mediamtx.yml;
-        echo "apiUser: $$USER" >> /mtx-secrets/mediamtx.yml;
-        echo "apiPass: $$PASS" >> /mtx-secrets/mediamtx.yml;
+        echo "writeQueueSize: 1024" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "authMethod: internal" >> /mtx-secrets/mediamtx.yml;
+        echo "authInternalUsers:" >> /mtx-secrets/mediamtx.yml;
+        echo "- user: $$USER" >> /mtx-secrets/mediamtx.yml;
+        echo "  pass: $$PASS" >> /mtx-secrets/mediamtx.yml;
+        echo "  permissions:" >> /mtx-secrets/mediamtx.yml;
+        echo "  - action: api" >> /mtx-secrets/mediamtx.yml;
         echo "" >> /mtx-secrets/mediamtx.yml;
         echo "# Protocols (Optimized for high density)" >> /mtx-secrets/mediamtx.yml;
-        echo "rtmp: no" >> /mtx-secrets/mediamtx.yml;
-        echo "hls: no" >> /mtx-secrets/mediamtx.yml;
-        echo "webrtc: no" >> /mtx-secrets/mediamtx.yml;
-        echo "srt: no" >> /mtx-secrets/mediamtx.yml;
+        echo "rtmp: false" >> /mtx-secrets/mediamtx.yml;
+        echo "hls: false" >> /mtx-secrets/mediamtx.yml;
+        echo "webrtc: false" >> /mtx-secrets/mediamtx.yml;
+        echo "srt: false" >> /mtx-secrets/mediamtx.yml;
+        echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "pathDefaults:" >> /mtx-secrets/mediamtx.yml;
+        echo "  source: publisher" >> /mtx-secrets/mediamtx.yml;
         echo "" >> /mtx-secrets/mediamtx.yml;
         echo "# Path Settings" >> /mtx-secrets/mediamtx.yml;
         echo "paths:" >> /mtx-secrets/mediamtx.yml;
-        echo "  all:" >> /mtx-secrets/mediamtx.yml;
+        echo "  all_others:" >> /mtx-secrets/mediamtx.yml;
       fi;
       '
 
