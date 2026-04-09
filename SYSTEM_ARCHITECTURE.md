@@ -32,7 +32,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
    *   **Setup**: Runs the complete stack locally with increased JVM and database memory limits.
 3. **Scenario C: "Enterprise Central Hub" (50 Lanes / 100 Cameras, Distributed LAN)**
    *   **Hardware**: Machine 1 (App Server, 16GB RAM), Machine 2 (DB Server, 16GB RAM)
-   *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below. **Native Ubuntu Deployments**: For high-density UDP streaming, Linux launch scripts automatically apply `sysctl` kernel tuning (UDP buffers, file limits) and `ufw` firewall rules to permit containerized backend communication with the host MediaMTX proxy (port 9997).
+   *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below. **Native Ubuntu Deployments**: For high-density UDP streaming, Linux launch scripts automatically apply `sysctl` kernel tuning (UDP buffers, file limits) and `ufw` firewall rules to permit containerized backend communication with the host MediaMTX proxy (port 9997). Additionally, FFmpeg sensors utilize authenticated RTSP connection strings to communicate with the host-bound MediaMTX proxy.
 
 ### Default Port Configuration:
 - **Caddy Reverse Proxy (within Tailscale namespace)**: Operates entirely inside the sidecar's networking context. It does not map ports to the host file directly, but dynamically secures ports `80` (HTTP) and `443` (HTTPS) over the mesh.

@@ -111,7 +111,17 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxRtspBase() {
         String ip = getMediaMtxIp();
-        return (ip == null) ? null : "rtsp://" + ip + ":8554/";
+        if (ip == null) return null;
+
+        String user = getEnvOrFile("MEDIAMTX_API_USER");
+        String pass = getEnvOrFile("MEDIAMTX_API_PASS");
+
+        if (user != null && !user.isBlank() && pass != null && !pass.isBlank()) {
+            // Encode the credentials into the RTSP URL
+            return "rtsp://" + user + ":" + pass + "@" + ip + ":8554/";
+        }
+
+        return "rtsp://" + ip + ":8554/";
     }
 
     private HttpClient getMediaMtxClient() {

@@ -60,6 +60,8 @@ services:
         echo "  pass: $$PASS" >> /mtx-secrets/mediamtx.yml;
         echo "  permissions:" >> /mtx-secrets/mediamtx.yml;
         echo "  - action: api" >> /mtx-secrets/mediamtx.yml;
+        echo "  - action: read" >> /mtx-secrets/mediamtx.yml;
+        echo "  - action: publish" >> /mtx-secrets/mediamtx.yml;
         echo "" >> /mtx-secrets/mediamtx.yml;
         echo "# Protocols (Optimized for high density)" >> /mtx-secrets/mediamtx.yml;
         echo "rtmp: false" >> /mtx-secrets/mediamtx.yml;
