@@ -131,7 +131,7 @@ public class PostgisUtils {
             return Instant.MAX;
         } else {
             if(truncated) {
-                return Instant.parse(time).truncatedTo(ChronoUnit.SECONDS);
+                return Instant.parse(time);
             } else {
                 return Instant.parse(time);
             }
@@ -227,7 +227,7 @@ public class PostgisUtils {
         if (min.getEpochSecond() < MIN_INSTANT.getEpochSecond()) {
             rangeValue.append("-infinity");
         } else {
-            rangeValue.append(PostgisUtils.writeInstantToString(min.truncatedTo(ChronoUnit.SECONDS), false));
+            rangeValue.append(PostgisUtils.writeInstantToString(min, false));
         }
 
         rangeValue.append(",");
@@ -235,7 +235,7 @@ public class PostgisUtils {
         if (max.getEpochSecond() > MAX_INSTANT.getEpochSecond()) {
             rangeValue.append("infinity");
         } else {
-            rangeValue.append(PostgisUtils.writeInstantToString(max.truncatedTo(ChronoUnit.SECONDS), false));
+            rangeValue.append(PostgisUtils.writeInstantToString(max, false));
         }
         rangeValue.append("]");
         range.setValue(rangeValue.toString());
