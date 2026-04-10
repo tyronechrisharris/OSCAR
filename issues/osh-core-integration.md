@@ -3,23 +3,34 @@
 ## Overview
 Integrate upstream core framework improvements while strictly maintaining our bifurcated authentication model and deterministic initialization lifecycle.
 
-## Integration Details
+## Actionable Items
 
-### 1. Internationalization (i18n) Backend
-Upstream changes in `sensorhub-webui-core` introduce new UI elements (dialogs, labels).
-- **Mandate**: All new strings must be added to `sensorhub-core/src/main/resources/messages.properties`.
-- **Propagation**: Use the `messages_*.properties` translation utility to ensure all 23+ supported languages are updated.
-- **Vaadin Hooks**: Use `I18N.get("key")` for all component captions and descriptions in Java code.
+### 1. Enhanced JSON Parsing
+- **Action**: Apply changes to `include/osh-core/lib-ogc/swe-common-core/src/main/java/org/vast/swe/fast/JsonDataParserGson.java`.
+- **Logic**: Ensure `varSizeArray.getElementType().setData(itemData)` is called during array processing to fix variable-size item handling.
+- **Recommended Code**:
+  ```java
+  if (varSizeArray != null && varSizeArray.hasData() && varSizeArray.getData() instanceof DataBlockList) {
+      // ... loop items
+      varSizeArray.getElementType().setData(itemData);
+      globalIdx += eltProcessor.process(itemData, 0);
+  }
+  ```
 
-### 2. Security & Authentication
-- **TOTP Persistence**: Ensure improvements to `SecurityManager` or `BasicSecurityRealm` do not break the `twoFactorSecret` persistence in `security.json`.
-- **Bifurcated Auth**: Under no circumstances should machine-to-machine (M2M) routes like `/sensorhub/sos` be redirected to the TOTP login page. They must remain secured via API Keys (Bearer tokens).
+### 2. Backend Internationalization
+- **Action**: Add new UI keys introduced by upstream to `include/osh-core/sensorhub-core/src/main/resources/messages.properties`.
+- **Action**: Use the translation propagation utility (if available) or manually update `messages_*.properties`.
+- **Recommended Code**:
+  ```properties
+  # messages.properties
+  dialog.adjudication.success=Adjudication successful
+  dialog.adjudication.error=Adjudication failed
+  ```
 
-### 3. JSON Parsing (GSON)
-Upstream fixes in `JsonDataParserGson.java` improve handling of variable-sized arrays.
-- **Constraint**: Ensure this change does not introduce vulnerabilities when parsing large telemetry payloads from remote federated nodes.
+### 3. Security Manager Verification
+- **Action**: Audit `SecurityManagerImpl.java` to ensure upstream "Improvements" haven't introduced default credentials or bypassed TOTP checks.
+- **Constraint**: `isUninitialized()` must still check for the absence of `twoFactorSecret`.
 
 ## Verification
 - Run `./gradlew :sensorhub-core:test`.
-- Perform a "Nuclear Reset" (`docker compose down -v`) and verify the Setup Wizard still correctly enforces Admin password and TOTP initialization.
-- Verify that API Key authentication still works for OGC SOS endpoints.
+- Verify OGC SWE JSON parsing with complex variable-length arrays.

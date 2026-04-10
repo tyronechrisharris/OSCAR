@@ -3,28 +3,56 @@
 ## Overview
 Integrate upstream frontend changes including Sentry monitoring, PWA support, and enhanced Adjudication/WebID UI. We must preserve our hardened routing and i18n hooks.
 
-## Integration Details
+## Actionable Items
 
-### 1. Internationalization (i18n) Conversion
-The upstream patch introduces many hardcoded strings. These MUST be moved to `src/locales/en.json` and accessed via the `t()` hook.
-- **Adjudication UI**: Strings like "Detector Response Function", "Spectrum Type", and "Done Scanning" must be localized.
-- **WebID Analysis**: Localize "WebID Analysis Results Log" and log messages.
-- **Settings Menu**: The new settings menu in `CustomToolbar.tsx` must be fully localized (e.g., "settings", "Volume", "Audio Alarms").
+### 1. Update Dependencies and Build Config
+- **Action**: Update `web/oscar-viewer/package.json` to include `jsqr` and `qr-scanner`.
+- **Action**: Update `web/oscar-viewer/next.config.js` to wrap the configuration with `withSentryConfig`.
+- **Recommended Code**:
+  ```javascript
+  const { withSentryConfig } = require("@sentry/nextjs");
+  const nextConfig = { ... };
+  module.exports = withSentryConfig(nextConfig, { ... });
+  ```
 
-**Example Mapping:**
-- Upstream: `label="Detector Response Function"`
-- Oscar-Flat: `label={t('detectorResponseFunction')}`
+### 2. Internationalization (i18n) Mapping
+- **Action**: Scan `AdjudicationDetail.tsx`, `WebIdAnalysis.tsx`, and `CustomToolbar.tsx` for hardcoded strings.
+- **Action**: Add corresponding keys to `web/oscar-viewer/src/locales/en.json`.
+- **Recommended Code**:
+  - In `en.json`:
+    ```json
+    {
+      "detectorResponseFunction": "Detector Response Function",
+      "spectrumType": "Spectrum Type",
+      "doneScanning": "Done Scanning",
+      "webIdAnalysisLog": "WebID Analysis Results Log"
+    }
+    ```
+  - In TSX components:
+    ```tsx
+    import { useLanguage } from "@/contexts/LanguageContext";
+    const { t } = useLanguage();
+    // ...
+    <TextField label={t('detectorResponseFunction')} />
+    ```
 
-### 2. Security & Network Flow
-- **MQTT Stability**: Maintain the `keepalive: 15` in `mqttOpts` within `Store.tsx` or wherever the MQTT connection is initialized. Upstream might default to 60s, which causes status 1005 errors in our Tailscale/Caddy environment.
-- **Sentry Hardening**: Ensure the Sentry configuration in `next.config.js` and `sentry.*.config.ts` does not include sensitive environment variables or leak internal IP addresses in production logs.
-- **PWA Routing**: The Service Worker (`sw.js`) must be configured to EXCLUDE `/sensorhub/sos` and `/sensorhub/login` from offline caching to prevent security bypasses and stale telemetry.
+### 3. PWA & Service Worker Hardening
+- **Action**: Integrate `public/manifest.json` and `public/sw.js` changes.
+- **Action**: Modify `sw.js` to explicitly bypass caching for telemetry and auth routes.
+- **Recommended Code** (in `sw.js`):
+  ```javascript
+  self.addEventListener('fetch', (event) => {
+    if (event.request.url.includes('/sensorhub/sos') || event.request.url.includes('/sensorhub/login')) {
+      return; // Do not cache
+    }
+  });
+  ```
 
-### 3. PWA & WebID Consistency
-- Upstream adds `jsqr` and `qr-scanner`. Ensure these dependencies are correctly added to `package.json`.
-- Preserve our custom logic in `WebIdAnalysis.tsx` that handles the local configuration proxy at `public/config/spectroscopy-info.json` for air-gapped deployments.
+### 4. Adjudication UI Logic
+- **Action**: Integrate the new `Grid`, `Dialog`, and `Select` components into `AdjudicationDetail.tsx`.
+- **Action**: Ensure the "QR Scanner" button triggers the `Dialog` correctly.
 
 ## Verification
-- `npm run build` and `npm run lint` must pass.
-- Verify that switching languages in the Admin UI correctly updates all new upstream UI elements.
-- Verify PWA installability on a mobile browser (simulated or real).
+- Run `npm install` and `npm run build` in `web/oscar-viewer`.
+- Verify the PWA manifest is detected in Chrome DevTools.
+- Toggle languages and ensure all new adjudication labels update correctly.

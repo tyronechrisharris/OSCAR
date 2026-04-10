@@ -3,21 +3,33 @@
 ## Overview
 Focus on the PostGIS persistence layer hardening and FFmpeg driver updates, ensuring high-precision timestamp support is preserved.
 
-## Integration Details
+## Actionable Items
 
-### 1. PostGIS Security Hardening
-Upstream introduces `insertObsPreparedQuery` using `PreparedStatement` with `?` placeholders.
-- **Alignment**: This is a critical security improvement against SQL injection for JSONB payloads.
-- **Precision Mandate**: Ensure that the `PHENOMENON_TIME` and `RESULT_TIME` columns continue to support nanosecond resolution. If upstream uses standard `TIMESTAMP`, we must verify it doesn't truncate the data compared to our previous `TIMESTAMPTZ` implementation (see `PostgisUtils.java` in our codebase).
-- **Constraint**: Maintain `sslmode=require` in the JDBC connection string managed by `ConnectionManager`.
+### 1. PostGIS PreparedStatement Hardening
+- **Action**: Update `QueryBuilderObsStore.java` to include `insertObsPreparedQuery`.
+- **Action**: Update `PostgisObsStoreImpl.java` to use `prepareStatement` for observations.
+- **Recommended Code** (in `QueryBuilderObsStore.java`):
+  ```java
+  public String insertObsPreparedQuery() {
+      return "INSERT INTO "+this.getStoreTableName()+" " +
+             "(id,"+DATASTREAM_ID+", "+FOI_ID+", "+PHENOMENON_TIME+", "+RESULT_TIME+", "+RESULT+") " +
+             "VALUES (?::int8,?::int8,?::int8,?::timestamp,?::timestamp,?::jsonb) " +
+             "ON CONFLICT ("+DATASTREAM_ID+", COALESCE("+FOI_ID+", -1::bigint), "+PHENOMENON_TIME+", "+RESULT_TIME+") DO NOTHING";
+  }
+  ```
 
-### 2. FFmpeg & MediaMTX Integration
-- **Sidecar Routing**: Upstream FFmpeg driver updates must be compatible with our MediaMTX sidecar running in `network_mode: host`.
-- **Proxy Bypass**: Any Java `HttpClient` used for REST control of MediaMTX (port 9997) MUST be configured with `.proxy(ProxySelector.of(null))` to avoid being trapped by the Tailscale SOCKS5 proxy.
+### 2. Timestamp Precision Preservation
+- **Action**: Ensure `PostgisUtils.java` is used for binding parameters in `fillPreparedAddStatement`.
+- **Action**: Verify that `?::timestamp` doesn't truncate the `TIMESTAMPTZ` values we use in `oscar-flat`. If necessary, change to `?::timestamptz`.
 
-### 3. ICommProvider Changes
-- Ensure that `TCPCommProvider` and related classes in `osh-addons-comm` respect the `socksNonProxyHosts` whitelist to allow communication with local physical RPM sensors.
+### 3. String Escaping for Batch Paths
+- **Action**: In `PostgisObsStoreImpl.java`, ensure single quotes are escaped when interpolating JSONB for the non-prepared batch path.
+- **Recommended Code**:
+  ```java
+  String escapedBlock = serializedBlock.replace("'", "''");
+  values.put("6", "'"+escapedBlock+"'");
+  ```
 
 ## Verification
 - Run `./gradlew :sensorhub-datastore-postgis:test`.
-- Verify that occupancy data stored in PostGIS retains nanosecond precision in the `PHENOMENON_TIME` column.
+- Connect to the DB and verify that `phenomenon_time` column has nanosecond precision (e.g., `2024-01-01 12:00:00.123456789`).
