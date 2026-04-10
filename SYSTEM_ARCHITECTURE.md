@@ -13,7 +13,7 @@ OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation p
 - **PostGIS Database**: PostgreSQL with PostGIS extensions for persistent storage.
 - **Client Web UI**: React/Frontend viewer.
 - **Tailscale Sidecar**: A dedicated container running Tailscale to manage the local mesh network, handling proxy egress/ingress.
-- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. Configuration is automatically generated and hardened at runtime.
+- **MediaMTX Sidecar**: A dedicated RTSP media proxy sidecar running on the host network (`network_mode: "host"`) that intercepts raw IP camera streams and forwards them reliably to the OSH FFmpeg sensors. To ensure stability and security for 100 high-density streams, specific image versions are pinned (e.g., `1.17.1`), and configuration is explicitly loaded via the container `command` argument from the `mtx_secrets` volume at runtime. The configuration is optimized with an increased `writeQueueSize` (1024) and explicitly disabled unused protocols to minimize overhead.
 
 ## Hybrid Volume Architecture
 To balance security and usability, the containerized OSCAR stack utilizes a hybrid volume strategy:
@@ -32,7 +32,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
    *   **Setup**: Runs the complete stack locally with increased JVM and database memory limits.
 3. **Scenario C: "Enterprise Central Hub" (50 Lanes / 100 Cameras, Distributed LAN)**
    *   **Hardware**: Machine 1 (App Server, 16GB RAM), Machine 2 (DB Server, 16GB RAM)
-   *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below.
+   *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below. **Native Ubuntu Deployments**: For high-density UDP streaming, Linux launch scripts automatically apply `sysctl` kernel tuning (UDP buffers, file limits) and `ufw` firewall rules to permit containerized backend communication with the host MediaMTX proxy (port 9997). Additionally, FFmpeg sensors utilize authenticated RTSP connection strings to communicate with the host-bound MediaMTX proxy.
 
 ### Default Port Configuration:
 - **Caddy Reverse Proxy (within Tailscale namespace)**: Operates entirely inside the sidecar's networking context. It does not map ports to the host file directly, but dynamically secures ports `80` (HTTP) and `443` (HTTPS) over the mesh.
@@ -40,14 +40,15 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **PostGIS Database**: `5432` (Internal Docker Network only)
 - **MQTT Server (HiveMQ)**: WebSockets on `/mqtt` (via proxy)
-- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` fallback. Requires HTTP Basic Auth)
+- **MediaMTX API (HTTP)**: `9997` (Bound to host, internal REST control via `MEDIAMTX_IP` routed through the `host.docker.internal` gateway. Requires HTTP Basic Auth)
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
 - **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
 - **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
-- **MQTT Connectivity**: The system maintains stable MQTT connections over WebSockets. Both the OSH backend and the reverse proxy are configured with an increased 10-minute idle timeout to prevent frequent disconnections in high-latency environments (e.g., Tailscale mesh).
+- **MQTT Connectivity**: The system maintains stable MQTT connections over WebSockets. Both the OSH backend and the reverse proxy are configured with an increased 10-minute idle timeout to prevent frequent disconnections in high-latency environments (e.g., Tailscale mesh). Additionally, the frontend MQTT client implements a proactive 15-second keepalive interval to ensure the connection remains active during periods of telemetry inactivity.
+- **OSH Backend Hardening**: The OSH container utilizes a dedicated startup script (`start-osh.sh`) that disables shell globbing (`set -f`) before launching the JVM. This prevents the shell from unintentionally expanding wildcards in `$JAVA_OPTS` (such as `10.*` in proxy exclusion lists), ensuring network configuration integrity.
 - **Certificate Management**: OSCAR operates entirely on a dynamic PEM-first cryptographic root. On first boot, the `init-secrets` container utilizes OpenSSL to generate a 20-year Root CA (`ca.pem`) and a 10-year server certificate (`server.pem`). To maintain ecosystem compatibility, these PEMs are natively bundled into PKCS12 and JKS formats and stored securely in the Docker `oscar_secrets` volume, eliminating the need to bake private keys into deployment images or rely on local Java generators.
 
 ## Deployment and Lifecycle Commands

@@ -146,7 +146,8 @@ export class LaneMapEntry {
             let mqttOpts: any = {
                 shared: true,
                 prefix: this.parentNode.csAPIEndpoint,
-                endpointUrl: endpointUrl
+                endpointUrl: endpointUrl,
+                keepalive: 15
             }
             if (useProxyToken) {
                 mqttOpts.username = "__proxy_token__";
@@ -212,7 +213,8 @@ export class LaneMapEntry {
         let mqttOpts: any = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl
+            endpointUrl: endpointUrl,
+            keepalive: 15
         }
         if (useProxyToken) {
             mqttOpts.username = "__proxy_token__";
@@ -255,7 +257,8 @@ export class LaneMapEntry {
         let mqttOpts: any = {
             shared: true,
             prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl
+            endpointUrl: endpointUrl,
+            keepalive: 15
         }
         if (useProxyToken) {
             mqttOpts.username = "__proxy_token__";

@@ -53,8 +53,7 @@ import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -112,12 +111,32 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxRtspBase() {
         String ip = getMediaMtxIp();
-        return (ip == null) ? null : "rtsp://" + ip + ":8554/";
+        if (ip == null) return null;
+
+        String user = getEnvOrFile("MEDIAMTX_API_USER");
+        String pass = getEnvOrFile("MEDIAMTX_API_PASS");
+
+        if (user != null && !user.isBlank() && pass != null && !pass.isBlank()) {
+            // Encode the credentials into the RTSP URL
+            return "rtsp://" + user + ":" + pass + "@" + ip + ":8554/";
+        }
+
+        return "rtsp://" + ip + ":8554/";
     }
 
     private HttpClient getMediaMtxClient() {
         return HttpClient.newBuilder()
-                .proxy(HttpClient.Builder.NO_PROXY) // CRITICAL: bypass SOCKS5 tailscale proxy for local traffic
+                .proxy(new ProxySelector() {
+                    @Override
+                    public List<Proxy> select(URI uri) {
+                        return List.of(Proxy.NO_PROXY);
+                    }
+
+                    @Override
+                    public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+                        getLogger().error("MediaMTX API connection failed at {}: {}", uri, ioe.getMessage());
+                    }
+                })
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
     }
@@ -188,8 +207,13 @@ public class LaneSystem extends SensorSystem {
                             String pathName = buildMediaMtxPathName(config, index);
                             configureMediaMtxProxy(config, pathName);
                             var ffmpegModule = createFFmpegModule(config);
-                            // Track the relationship for cleanup
-                            activeMtxPaths.put(ffmpegModule.getUniqueIdentifier(), pathName);
+                            // Track the relationship for cleanup using the actual uniqueID from the initialized module
+                            String ffmpegUID = ffmpegModule.getUniqueIdentifier();
+                            if (ffmpegUID != null) {
+                                activeMtxPaths.put(ffmpegUID, pathName);
+                            } else {
+                                getLogger().warn("Could not determine uniqueID for FFmpeg sensor {}, path tracking may fail", config.name);
+                            }
                         } catch (Exception e) {
                             getLogger().error("Failed to async provision MediaMTX proxy for camera {}: {}", config.name, e.getMessage());
                         }
@@ -290,7 +314,7 @@ public class LaneSystem extends SensorSystem {
             ffmpegConfig.connection.connectionString = getMediaMtxRtspBase() + pathName;
             ffmpegConfig.connection.useTCP = true;
         } catch (IOException e) {
-            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.getMessage());
+            getLogger().error("Failed to reach MediaMTX API at {}. FFmpeg sensor will attempt to connect to the raw camera URI directly. Exception: {}", getMediaMtxAddPathsApiBase(), e.toString(), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             getLogger().error("Interrupted while configuring MediaMTX camera proxy for {}. Falling back to raw camera URI.", pathName);
@@ -386,7 +410,7 @@ public class LaneSystem extends SensorSystem {
         }
     }
 
-    private FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
+    private synchronized FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
         // Get ffmpeg submodule with the same unique serial num
         // If there is a module registered for this serial number, then the driver was already registered
         var ffmpegModuleOpt = getMembers().values().stream().filter(
@@ -502,6 +526,10 @@ public class LaneSystem extends SensorSystem {
         var newMember = new SensorSystemConfig.SystemMember();
         newMember.config = config;
         var newSubmodule = (AbstractModule<?>) addSubsystem(newMember);
+
+        // Synchronously initialize the submodule so its uniqueID is generated
+        // before any other part of the system (like registration or path tracking) attempts to access it.
+        newSubmodule.init();
 
         // Wait for loaded module, then notify listeners of config changed. QOL for admin UI
         threadPool.execute(() -> {

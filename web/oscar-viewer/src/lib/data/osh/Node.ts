@@ -133,7 +133,8 @@ export class Node implements INode {
         let mqttOpts: any = {
             shared: true,
             prefix: this.csAPIEndpoint,
-            endpointUrl: endpointUrl
+            endpointUrl: endpointUrl,
+            keepalive: 15
         }
 
         if (useProxyToken) {
