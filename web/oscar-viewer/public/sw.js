@@ -38,6 +38,12 @@ self.addEventListener('push', (event) => {
     }
 });
 
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.includes('/sensorhub/sos') || event.request.url.includes('/sensorhub/login')) {
+        return; // Do not cache telemetry or auth
+    }
+});
+
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 

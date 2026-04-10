@@ -2,12 +2,14 @@
 
 import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from '@mui/material';
 import {useEffect, useState} from 'react';
+import {useLanguage} from "@/contexts/LanguageContext";
 
 export default function DetectorResponseFunction(props: {
     onSelect: (value: string) => void, // Return selected value
     selectVal: string
 }) {
 
+    const { t } = useLanguage();
     const [drfChoices, setDrfChoices] = useState<string[]>([]);
 
     const handleChange = (event: SelectChangeEvent) => {
@@ -39,11 +41,11 @@ export default function DetectorResponseFunction(props: {
 
     return (
         <FormControl size="small" fullWidth>
-            <InputLabel id="label">Detector Response Function</InputLabel>
+            <InputLabel id="label">{t('detectorResponseFunction')}</InputLabel>
             <Select
                 variant="outlined"
                 id="label"
-                label="Detector Response Function"
+                label={t('detectorResponseFunction')}
                 value={props.selectVal}
                 onChange={handleChange}
                 MenuProps={{

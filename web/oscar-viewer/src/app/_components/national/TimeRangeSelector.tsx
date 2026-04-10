@@ -55,6 +55,7 @@ export default function TimeRangeSelect(props: {
                     }
                 }}
                 autoWidth
+                fullWidth
                 style={{minWidth: "8em"}}
                 sx={{
                     color: "text.primary",

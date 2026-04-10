@@ -7,7 +7,6 @@ import DataRow from "../_components/event-details/DataRow";
 import MiscTable from "../_components/event-details/MiscTable";
 import {useSelector} from "react-redux";
 import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasource";
-import AdjudicationDetail from "@/app/_components/adjudication/AdjudicationDetail";
 import {LaneMapEntry} from "@/lib/data/oscar/LaneCollection";
 import {selectEventPreview} from "@/lib/state/EventPreviewSlice";
 import {DataSourceContext} from "@/app/contexts/DataSourceContext";
@@ -16,12 +15,14 @@ import {useReactToPrint} from "react-to-print";
 import EventMedia from "../_components/event-preview/EventMedia";
 import CircularProgress from "@mui/material/CircularProgress";
 import {useLanguage} from "@/contexts/LanguageContext";
+import AdjudicationDetail from "../_components/adjudication/AdjudicationDetail";
 
 
 export default function EventDetailsPage() {
 
     const eventPreview = useSelector(selectEventPreview);
     const laneMapRef = useContext(DataSourceContext).laneMapRef;
+    const laneEntry = laneMapRef.current?.get(eventPreview.eventData?.laneId);
     const [localDSMap, setLocalDSMap] = useState<Map<string, typeof ConSysApi[]>>(new Map<string, typeof ConSysApi[]>());
     const [datasourcesReady, setDatasourcesReady] = useState<boolean>(false);
 

@@ -147,6 +147,13 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                         return prevAdjData;
                     });
 
+                    setAdjData(prevAdjData => {
+                        if (prevAdjData) {
+                            prevAdjData.occupancyObsId = occupancyObservation[0].id;
+                        }
+                        return prevAdjData;
+                    });
+
                 } catch (err) {
                     console.error(err);
                     setAdjSnackMsg('Error loading observation.');
@@ -197,7 +204,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
             const timeoutId = setTimeout(() => {
                 if (!videoElement.current) {
                     console.error("Video element not found");
-                    setAdjSnackMsg("Failed to initialize camera");
+                    setAdjSnackMsg(t('failedToInitializeCamera'));
                     setOpenSnack(true);
                     return;
                 }
@@ -226,7 +233,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
 
                 scanner.current.start().catch((err) => {
                     console.error("Error starting scanner:", err);
-                    setAdjSnackMsg("Failed to start camera");
+                    setAdjSnackMsg(t('failedToStartCamera'));
                     setColorStatus('error');
                     setOpenSnack(true);
                 });
@@ -281,6 +288,8 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
         setSecondaryInspection(value);
         setAdjData(tAdjData);
     }
+
+
 
     const handleDrfSelection = (fileIndex: number) => (value: string) => {
         setUploadedFiles(prevFiles =>
@@ -714,7 +723,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                                                                             onChange={handleSynthesizeBackground(index)}
                                                                         />
                                                                     }
-                                                                    label={<Typography variant="body2">Synthesize Background</Typography>}
+                                                                    label={<Typography variant="body2">{t('synthesizeBackground')}</Typography>}
                                                                     sx={{mr: 0}}
                                                                 />
 
@@ -796,7 +805,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                                                                         onChange={handleScannedDataSynthesizeBackground(index)}
                                                                     />
                                                                 }
-                                                                label={<Typography variant="body2">Synthesize Background</Typography>}
+                                                                label={<Typography variant="body2">{t('synthesizeBackground')}</Typography>}
                                                                 sx={{mr: 0}}
                                                             />
                                                         )

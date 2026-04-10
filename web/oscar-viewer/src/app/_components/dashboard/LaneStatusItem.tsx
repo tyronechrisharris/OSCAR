@@ -14,6 +14,7 @@ import {useLanguage} from "@/contexts/LanguageContext";
 export default function LaneStatusItem(props: {
     id: number;
     name: string;
+    parentNode: string;
     isOnline: boolean;
     isTamper: boolean;
     isFault: boolean;
@@ -31,7 +32,7 @@ export default function LaneStatusItem(props: {
                    backgroundColor: (props.isTamper ? "secondaryHighlight" : props.isFault ? "info" : "inherit")
                }}
         >
-            <Tooltip title={props.name} arrow placement="bottom">
+            <Tooltip title={`${props.parentNode}- ${props.name}`} arrow placement="bottom">
                 <Stack direction={"row"} spacing={1} sx={{ alignItems: 'center', justifyContent: 'flex-start', width: '100%'}}>
 
                     <Typography variant="body1" style={{fontSize: 12, textWrap: 'nowrap',  }}>{props.name.length <= 15 ? props.name : (props.name.substr(0, 15)) }</Typography>

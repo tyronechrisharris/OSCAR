@@ -27,7 +27,7 @@ export default function WebIdAnalysis(props: {
     const logColumns: GridColDef<WebIdAnalysisResult>[] = [
         {
             field: 'time',
-            headerName: 'Timestamp',
+            headerName: t('timestamp'),
             minWidth: 140,
             flex: 1,
             type: 'string',
@@ -42,91 +42,91 @@ export default function WebIdAnalysis(props: {
         },
         {
             field: 'name',
-            headerName: 'Name',
+            headerName: t('name'),
             minWidth: 100,
             flex: 1,
             valueGetter: (value, row) => row.isotopes?.map((i: IWebIdIsotope) => i.name).join(', '),
         },
         {
             field: 'type',
-            headerName: 'Type',
+            headerName: t('type'),
             minWidth: 80,
             flex: 0.8,
             valueGetter: (value, row) => row.isotopes?.map((i: IWebIdIsotope) => i.type).join(', '),
         },
         {
             field: 'confidence',
-            headerName: 'Confidence',
+            headerName: t('confidence'),
             minWidth: 90,
             flex: 0.8,
             valueGetter: (value, row) => row.isotopes?.map((i: IWebIdIsotope) => i.confidence).join(', '),
         },
         {
             field: 'confidenceStr',
-            headerName: 'Confidence String',
+            headerName: t('confidenceStr'),
             minWidth: 120,
             flex: 1,
             valueGetter: (value, row) => row.isotopes?.map((i: IWebIdIsotope) => i.confidenceStr).join(', '),
         },
         {
             field: 'countRate',
-            headerName: 'Count Rate',
+            headerName: t('countRate'),
             minWidth: 90,
             flex: 0.8,
             valueGetter: (value, row) => row.isotopes?.map((i: IWebIdIsotope) => i.countRate).join(', '),
         },
         {
             field: 'isotopeString',
-            headerName: 'Isotope String',
+            headerName: t('isotopeString'),
             minWidth: 100,
             flex: 1,
             type: 'string',
         },
         {
             field: 'numIsotopes',
-            headerName: '# Isotopes',
+            headerName: t('numIsotopes'),
             minWidth: 80,
             flex: 0.6,
             type: 'number',
         },
         {
             field: 'numAnalysisWarning',
-            headerName: '# Warnings',
+            headerName: t('numWarnings'),
             minWidth: 80,
             flex: 0.6,
             type: 'string',
         },
         {
             field: 'analysisWarning',
-            headerName: 'Analysis Warning',
+            headerName: t('analysisWarning'),
             minWidth: 120,
             flex: 1,
             type: 'string',
         },
         {
             field: 'chiSquare',
-            headerName: 'Chi Square',
+            headerName: t('chiSquare'),
             minWidth: 90,
             flex: 0.7,
             type: 'number',
         },
         {
             field: 'detectorResponseFunction',
-            headerName: 'DRF',
+            headerName: t('drf'),
             minWidth: 80,
             flex: 0.6,
             type: 'string',
         },
         {
             field: 'errorMessage',
-            headerName: 'Error Message',
+            headerName: t('errorMessage'),
             minWidth: 100,
             flex: 1,
             type: 'string',
         },
         {
             field: 'estimatedDose',
-            headerName: 'Est. Dose',
+            headerName: t('estDose'),
             minWidth: 80,
             flex: 0.6,
             type: 'number',
@@ -213,7 +213,7 @@ export default function WebIdAnalysis(props: {
         <>
             <Stack spacing={2} sx={{ width: '100%' }}>
                 <Stack direction={"column"} spacing={1}>
-                    <Typography variant="h5">{t('webIdAnalysisLog') || "WebID Analysis Results Log"}</Typography>
+                    <Typography variant="h5">{t('webIdAnalysisLog')}</Typography>
                 </Stack>
                 <Box sx={{ width: '100%' }}>
                     <DataGrid

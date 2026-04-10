@@ -84,6 +84,22 @@ export function isSpeedDataStream(datastream: typeof DataStream): boolean {
     return datastream.properties.observedProperties.some((p: any) => p?.definition?.includes(SPEED_DEF));
 }
 
+export function isForegroundDataStream(datastream: typeof DataStream): boolean {
+    return datastream.properties.observedProperties[0]?.definition?.includes(DURATION_DEF)
+        && datastream.properties.observedProperties[2]?.definition?.includes(LINEARSPEC_DEF)
+        && datastream.properties.observedProperties[9]?.definition?.includes(DOSE_DEF);
+}
+export function isBackgroundDataStream(datastream: typeof DataStream): boolean {
+    return datastream.properties.observedProperties[0]?.definition?.includes(DURATION_DEF)
+        && datastream.properties.observedProperties[2]?.definition?.includes(LINEARSPEC_DEF)
+        && datastream.properties.observedProperties.length < 10;
+}
+
+export function isRs350DataStream(datastream: typeof DataStream): boolean {
+    return datastream.properties.observedProperties[0]?.definition?.includes(DURATION_DEF)
+        && datastream.properties.observedProperties[2]?.definition?.includes(LINEARSPEC_DEF)
+        && datastream.properties.observedProperties[9]?.definition?.includes(DOSE_DEF);
+}
 export function isThresholdDataStream(datastream: typeof DataStream): boolean {
 
     if (!hasDefinitionProperties(datastream))
@@ -130,6 +146,12 @@ export function isAdjudicationControlStream(controlStream: typeof ControlStream)
     return controlStream.properties.controlledProperties.some((p: any) => p?.definition?.includes(ADJ_DEF));
 }
 
+export function isWebIdAnalysisDataStream(datastream: typeof DataStream): boolean {
+    if (!hasDefinitionProperties(datastream))
+        return false;
+
+    return datastream.properties.observedProperties[0].definition.includes(WEB_ID_DEF);
+}
 
 export function isHLSVideoControlStream(controlStream: typeof ControlStream): boolean {
     if (!hasDefinitionProperties(controlStream))
