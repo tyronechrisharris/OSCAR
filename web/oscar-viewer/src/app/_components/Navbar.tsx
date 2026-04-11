@@ -363,7 +363,7 @@ export default function Navbar({children}: { children: React.ReactNode }) {
                                 <IconButton
                                     color="inherit"
                                     aria-label={t('openNotifications')}
-                                    onClick={handleMenuOpen}
+                                    onClick={handleSettingsMenuOpen}
                                 >
                                     {savedVolume === 0 ? <NotificationsOffIcon/> : <NotificationsRoundedIcon/>}
                                 </IconButton>
