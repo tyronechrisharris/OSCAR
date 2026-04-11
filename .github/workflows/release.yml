@@ -210,4 +210,5 @@ jobs:
             build/distributions/${{ env.TAG_NAME }}.zip
             docker-compose.yml
             .env.example
+            dist/release/launch-all.sh
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}

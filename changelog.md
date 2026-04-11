@@ -177,3 +177,6 @@ Release 2.2 request, no updates since 1.3.7.
 - Enforced 'Proxy.NO_PROXY' and 'ProxySelector.of(null)' for all internal/local network traffic to bypass global SOCKS5 proxies.
 - Mapped all new upstream strings to the i18n framework (en.json) for full localization support.
 - Updated Living Wiki documentation to reflect v3.3.1 architecture and security hardening.
+- Updated 'release.yml' to support automated 'latest' releases on merge and flexible manual triggers.
+- Designated Ubuntu Server 24.04.4 LTS as the preferred deployment environment.
+- Included 'launch-all.sh' in release artifacts.
