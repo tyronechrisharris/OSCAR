@@ -268,7 +268,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     }
 
     const handleAdjudicationSelect = (value: AdjudicationCode) => {
-        let tAdjData: AdjudicationData = adjData;
+        let tAdjData: AdjudicationData = { ...adjData };
         tAdjData.adjudicationCode = AdjudicationCodes.getCodeObjByLabel(value.label);
 
         setAdjData(tAdjData);
@@ -276,14 +276,14 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     }
 
     const handleIsotopeSelect = (value: string[]) => {
-        let tAdjData = adjData;
+        let tAdjData = { ...adjData };
         tAdjData.isotopes = value;
         setIsotope(value);
         setAdjData(tAdjData);
     }
 
     const handleInspectionSelect = (value: string) => {
-        let tAdjData = adjData;
+        let tAdjData = { ...adjData };
         tAdjData.secondaryInspectionStatus = value;
         setSecondaryInspection(value);
         setAdjData(tAdjData);

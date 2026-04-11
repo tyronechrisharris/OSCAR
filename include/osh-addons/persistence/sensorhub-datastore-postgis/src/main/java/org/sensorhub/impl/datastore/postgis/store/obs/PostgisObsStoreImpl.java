@@ -210,12 +210,7 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
         String escapedBlock = serializedBlock.replace("'", "''");
         values.put("6", "'"+escapedBlock+"'");
 
-        // Map the ? placeholders in insertObsQuery to ${1}, ${2}, etc. for StringSubstitutor
         String query = queryBuilder.insertObsQuery();
-        for (int i = 1; i <= 6; i++) {
-            query = query.replaceFirst("\\?", "\\${" + i + "}");
-        }
-
         StringSubstitutor sub = new StringSubstitutor(values);
         return sub.replace(query);
     }
