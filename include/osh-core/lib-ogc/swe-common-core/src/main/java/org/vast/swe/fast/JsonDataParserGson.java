@@ -339,6 +339,7 @@ public class JsonDataParserGson extends AbstractDataParser
                 for (int i = 0; i < arraySize; i++)
                 {
                     var itemData = arrayData.get(i);
+                    varSizeArray.getElementType().setData(itemData);
                     globalIdx += eltProcessor.process(itemData, 0);
                 }
                 index = globalIdx;

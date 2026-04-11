@@ -209,11 +209,10 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
         // Escape single quotes for safe SQL interpolation (used by batch path)
         String escapedBlock = serializedBlock.replace("'", "''");
         values.put("6", "'"+escapedBlock+"'");
-        values.put("11", "'"+escapedBlock+"'");
 
         // Map the ? placeholders in insertObsQuery to ${1}, ${2}, etc. for StringSubstitutor
         String query = queryBuilder.insertObsQuery();
-        for (int i = 1; i <= 11; i++) {
+        for (int i = 1; i <= 6; i++) {
             query = query.replaceFirst("\\?", "\\${" + i + "}");
         }
 
