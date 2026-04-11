@@ -54,3 +54,9 @@ The system does not ship with default administrative credentials.
   - **Machine/API Routes (SOS, SPS, WebSockets)**: Secured via long-lived API Keys. Keys are provided via `Authorization: Bearer <key>` or `X-API-Key` headers. These routes return standard `401/403` status codes instead of redirects if authentication fails.
 - **API Key Management**: Administrators can generate, view (once), and revoke API keys via the Admin UI. Keys are hashed (PBKDF2) before storage.
 - **Secure Provisioning**: Automated utilities (`provision-node.sh` and `provision-node.bat`) are provided for secure key distribution via Tailscale. See [Federation Provisioning](docs/FEDERATION_PROVISIONING.md) and [Tailscale Configuration](docs/TAILSCALE_CONFIGURATION.md) for detailed instructions and security requirements.
+
+## Preferred Operating System: Ubuntu Server 24.04 LTS
+For optimal security and performance, **Ubuntu Server 24.04.4 LTS** is the designated preferred environment.
+- **Firewall Isolation**: The 'launch-all.sh' script provides automated UFW configuration to secure the MediaMTX control link.
+- **Performance**: Native Docker execution on Linux avoids the overhead and networking complexities of Docker Desktop on Windows/macOS.
+- **Hardening**: Standard POSIX permissions and kernel optimizations are utilized to protect sensitive secrets and handle high-bandwidth telemetry.
