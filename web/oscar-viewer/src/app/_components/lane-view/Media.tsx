@@ -116,6 +116,18 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         setVideoStreams(uniqueVideoControlStreams)
     }
 
+    const handleNextPage = () => {
+        if (currentPage < videoStreams.length - 1) {
+            setCurrentPage(prev => prev + 1);
+        }
+    }
+
+    const handlePreviousPage = () => {
+        if (currentPage > 0) {
+            setCurrentPage(prev => prev - 1)
+        }
+    }
+
 
     useEffect(() => {
         if (!datasources)

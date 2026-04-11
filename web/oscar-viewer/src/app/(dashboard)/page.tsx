@@ -109,7 +109,7 @@ export default function DashboardPage() {
         <Grid container spacing={2} width={"100%"} height={"auto"}>
             <Grid item container xs={12} lg={8} sx={{ gap: 2, minWidth: 0, height: "100%" }}>
                 <Grid item xs={12}>
-                    <Paper variant='outlined' sx={{ height: "auto%", minHeight: 275 }}>
+                    <Paper variant='outlined' sx={{ height: "auto", minHeight: 275 }}>
                         <LaneStatus dataSourcesByLane={dataSourcesByLane} initialLanes={statusList} />
                     </Paper>
                 </Grid>
