@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -1625,7 +1626,10 @@ public class ConSysApiClient
         {
             this.instance = new ConSysApiClient();
             if (isHttpClientAvailable)
+            {
                 this.httpClientBuilder = HttpClient.newBuilder();
+                this.httpClientBuilder.proxy(ProxySelector.of(null));
+            }
 
             try
             {

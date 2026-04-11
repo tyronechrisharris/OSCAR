@@ -2,6 +2,8 @@ package uk.co.envsys.sensorhub.sensor.meteobridge;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -136,11 +138,13 @@ public class MeteobridgeOutput extends AbstractSensorOutput<MeteobridgeSensor> {
 		MeteobridgeReadings result = null;
 		
 		// Read and parse the data from the socket
-		try(Socket bridgeSocket = new Socket(host_address, 5557);
-			InputStream socketStream = bridgeSocket.getInputStream()) {
-			String socketData = stringFromInputStream(socketStream);
-			result = MeteobridgeReadings.fromXML(socketData);
-		} 
+		try(Socket bridgeSocket = new Socket(Proxy.NO_PROXY)) {
+			bridgeSocket.connect(new InetSocketAddress(host_address, 5557));
+			try (InputStream socketStream = bridgeSocket.getInputStream()) {
+				String socketData = stringFromInputStream(socketStream);
+				result = MeteobridgeReadings.fromXML(socketData);
+			}
+		}
 		
 		// Create the data block from the parsed results
 		int componentIndex = 0;

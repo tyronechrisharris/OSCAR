@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -57,6 +58,7 @@ public class TSTARDriver extends AbstractSensorModule<TSTARConfig> {
                 .build();
 
         HttpResponse<String> response = HttpClient.newBuilder()
+                .proxy(ProxySelector.of(null))
                 .build()
                 .send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -80,6 +82,7 @@ public class TSTARDriver extends AbstractSensorModule<TSTARConfig> {
                 .build();
 
         HttpResponse<String> response = HttpClient.newBuilder()
+                .proxy(ProxySelector.of(null))
                 .build()
                 .send(request, HttpResponse.BodyHandlers.ofString());
 

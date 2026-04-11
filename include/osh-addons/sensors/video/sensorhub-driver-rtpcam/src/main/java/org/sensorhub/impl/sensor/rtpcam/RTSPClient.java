@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -95,7 +96,7 @@ public class RTSPClient
         this.passwd = passwd;
         
         InetAddress rtspServerIP = InetAddress.getByName(serverHost);
-        this.rtspSocket = new Socket();
+        this.rtspSocket = new Socket(Proxy.NO_PROXY);
         rtspSocket.connect(new InetSocketAddress(rtspServerIP, serverPort), timeout);
         rtspSocket.setSoTimeout(timeout); // read timeout
         

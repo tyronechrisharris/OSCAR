@@ -164,3 +164,16 @@ Release 2.2 request, no updates since 1.3.7.
 - [#94](https://github.com/Botts-Innovative-Research/osh-oakridge-buildnode/issues/94)
   Incorrect Video Timeframe Display Leading to Playback Failure
 - Aspect alarming events should now appear with charts/video in the event-preview and event-details
+
+## [v3.3.1-Integration] - 2025-01-30
+### Added
+- Integrated upstream v3.3.1 logic across all submodules.
+- New RS350 occupancy process support via 'sensorhub-process-occupancy'.
+- WebID QR scanning and spectroscopic analysis workflow.
+- RS350 spectrum playback support in the frontend.
+### Changed
+- Hardened PostGIS persistence layer with 'PreparedStatement' to prevent SQL injection.
+- Upgraded PostGIS datastore to use 'TIMESTAMPTZ' for nanosecond resolution telemetry.
+- Enforced 'Proxy.NO_PROXY' and 'ProxySelector.of(null)' for all internal/local network traffic to bypass global SOCKS5 proxies.
+- Mapped all new upstream strings to the i18n framework (en.json) for full localization support.
+- Updated Living Wiki documentation to reflect v3.3.1 architecture and security hardening.
