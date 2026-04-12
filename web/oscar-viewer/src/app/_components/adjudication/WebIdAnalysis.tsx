@@ -16,6 +16,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function WebIdAnalysis(props: {
     event: EventTableData;
+    onLogUpdate?: (log: WebIdAnalysisResult[]) => void;
 }) {
     const { t } = useLanguage();
     const laneMapRef = useContext(DataSourceContext).laneMapRef;
@@ -206,6 +207,9 @@ export default function WebIdAnalysis(props: {
     useEffect(() => {
         let filteredLog = webIdLog.filter((data) => data?.occupancyObsId ==  props.event.occupancyObsId);
         setFilteredLog(filteredLog);
+        if (props.onLogUpdate) {
+            props.onLogUpdate(filteredLog);
+        }
     }, [webIdLog]);
 
 

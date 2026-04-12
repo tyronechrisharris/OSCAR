@@ -44,6 +44,8 @@ import {CloseIcon} from "next/dist/client/components/react-dev-overlay/internal/
 import DetectorResponseFunction from "./DetectorResponseFunction";
 import SpectrumTypeSelector from "@/app/_components/adjudication/SpectrumTypeSelector";
 import WebIdAnalysis from "@/app/_components/adjudication/WebIdAnalysis";
+import WebIdAnalysisResult from "@/lib/data/oscar/adjudication/WebId";
+import {FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {useSelector} from "react-redux";
 import {RootState} from "@/lib/state/Store";
 import {selectLaneMap} from "@/lib/state/OSCARLaneSlice";
@@ -87,6 +89,8 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     const videoElement = useRef<HTMLVideoElement>(null);
     const [scannedData, setScannedData] = useState<ScannedDataWithWebId[]>([]);
     const scanner = useRef<QrScanner>();
+    const [webIdEvidence, setWebIdEvidence] = useState<WebIdAnalysisResult[]>([]);
+    const [selectedEvidence, setSelectedEvidence] = useState<string>('');
 
     const laneMapRef = useContext(DataSourceContext).laneMapRef;
 
@@ -336,6 +340,29 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
 
     const handleScannedDataDelete = (index: number) => {
         setScannedData(prev => prev.filter((_, i) => i !== index));
+    }
+
+    const handleWebIdLogUpdate = (log: WebIdAnalysisResult[]) => {
+        setWebIdEvidence(log);
+    }
+
+    const handleEvidenceSelection = (event: any) => {
+        const selectedId = event.target.value;
+        setSelectedEvidence(selectedId);
+
+        const evidence = webIdEvidence.find(e => e.id === selectedId);
+        if (evidence) {
+            let isotopes = evidence.isotopes.map(i => i.name);
+            handleIsotopeSelect(isotopes);
+
+            let evidenceNotes = `WebID Evidence Analysis: ${evidence.isotopeString} (Confidence: ${evidence.isotopes[0]?.confidenceStr ?? 'N/A'})`;
+            setFeedback(prev => prev ? prev + "\n" + evidenceNotes : evidenceNotes);
+            setAdjData(prev => {
+                const cloned = prev.clone();
+                cloned.feedback = prev.feedback ? prev.feedback + "\n" + evidenceNotes : evidenceNotes;
+                return cloned;
+            });
+        }
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -604,6 +631,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
             <Grid item xs={12}>
                 <WebIdAnalysis
                     event={props.event}
+                    onLogUpdate={handleWebIdLogUpdate}
                 />
             </Grid>
 
@@ -830,7 +858,32 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                 )}
             </Grid>
 
-            <Grid item container xs={12} spacing={2} alignItems="center" justifyContent="space-between">
+            <Grid item xs={12}>
+                <Typography variant="h5">
+                    {t('evidenceCollection')}
+                </Typography>
+            </Grid>
+
+            <Grid item container xs={12} spacing={2} alignItems="center">
+                {webIdEvidence.length > 0 && (
+                    <Grid item xs={12} sm={6}>
+                        <FormControl size="small" fullWidth>
+                            <InputLabel id="evidence-label">{t('webIdEvidence')}</InputLabel>
+                            <Select
+                                labelId="evidence-label"
+                                value={selectedEvidence}
+                                label={t('webIdEvidence')}
+                                onChange={handleEvidenceSelection}
+                            >
+                                {webIdEvidence.map((evidence) => (
+                                    <MenuItem key={evidence.id} value={evidence.id}>
+                                        {evidence.time} - {evidence.isotopeString}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                )}
                 <Grid item xs={"auto"}>
                     <Stack direction="row" spacing={2} alignItems="center">
                         <Button

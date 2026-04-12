@@ -167,6 +167,7 @@ public class WebIdAnalysis {
         int index = 0;
 
         dataBlock.setTimeStamp(index++, analysis.getSampleTime());
+        dataBlock.setStringValue(index++, analysis.getOccupancyObsId() == null ? "" : analysis.getOccupancyObsId());
 
         // isotopes
         int numIsotopes = analysis.getIsotopes().size();
@@ -187,13 +188,6 @@ public class WebIdAnalysis {
             dataBlock.setFloatValue(index++, isotope.getCountRate());
         }
 
-        // populate other fields
-        dataBlock.setStringValue(index++, analysis.getIsotopeString() == null || analysis.getIsotopeString().isBlank() ? "" : analysis.getIsotopeString());
-        dataBlock.setStringValue(index++, analysis.getDrf() == null || analysis.getDrf().isBlank() ? "" : analysis.getDrf());
-        dataBlock.setDoubleValue(index++, analysis.getEstimatedDose());
-        dataBlock.setDoubleValue(index++, analysis.getChi2());
-        dataBlock.setStringValue(index++, analysis.getErrorMessage() == null || analysis.getErrorMessage().isBlank() ? "" : analysis.getErrorMessage());
-
         // analysis warnings
         int numWarnings = analysis.getAnalysisWarnings().size();
         dataBlock.setIntValue(index++, numWarnings);
@@ -209,7 +203,13 @@ public class WebIdAnalysis {
             dataBlock.setStringValue(index++, warning);
         }
 
-        dataBlock.setStringValue(index, analysis.getOccupancyObsId().isBlank() ? "" : analysis.getOccupancyObsId());
+        // populate other fields
+        dataBlock.setDoubleValue(index++, analysis.getEstimatedDose());
+        dataBlock.setDoubleValue(index++, analysis.getChi2());
+        dataBlock.setIntValue(index++, analysis.getAnalysisError());
+        dataBlock.setStringValue(index++, analysis.getErrorMessage() == null || analysis.getErrorMessage().isBlank() ? "" : analysis.getErrorMessage());
+        dataBlock.setStringValue(index++, analysis.getDrf() == null || analysis.getDrf().isBlank() ? "" : analysis.getDrf());
+        dataBlock.setStringValue(index++, analysis.getIsotopeString() == null || analysis.getIsotopeString().isBlank() ? "" : analysis.getIsotopeString());
 
         return dataBlock;
     }
@@ -218,6 +218,7 @@ public class WebIdAnalysis {
         int index = 0;
 
         var timestamp = dataBlock.getTimeStamp(index++);
+        var occupancyObsId = dataBlock.getStringValue(index++);
 
         // isotopes
         int numIsotopes = dataBlock.getIntValue(index++);
@@ -239,13 +240,6 @@ public class WebIdAnalysis {
             isotopes.add(isotope);
         }
 
-        // other fields
-        var isotopeStr = dataBlock.getStringValue(index++);
-        var drf = dataBlock.getStringValue(index++);
-        var estimatedDose = dataBlock.getDoubleValue(index++);
-        var chi2 = dataBlock.getDoubleValue(index++);
-        var errorMessage = dataBlock.getStringValue(index++);
-
         // warnings
         int numWarnings = dataBlock.getIntValue(index++);
         List<String> warnings = new ArrayList<>();
@@ -254,18 +248,25 @@ public class WebIdAnalysis {
             warnings.add(warning);
         }
 
-        var occupancyObsId = dataBlock.getStringValue(index);
+        // other fields
+        var estimatedDose = dataBlock.getDoubleValue(index++);
+        var chi2 = dataBlock.getDoubleValue(index++);
+        var analysisError = dataBlock.getIntValue(index++);
+        var errorMessage = dataBlock.getStringValue(index++);
+        var drf = dataBlock.getStringValue(index++);
+        var isotopeStr = dataBlock.getStringValue(index++);
 
         return new WebIdAnalysis.Builder()
                 .sampleTime(timestamp)
+                .occupancyObsId(occupancyObsId)
                 .isotopes(isotopes)
-                .isotopeString(isotopeStr)
-                .drf(drf)
+                .analysisWarnings(warnings)
                 .estimatedDose(estimatedDose)
                 .chi2(chi2)
+                .analysisError(analysisError)
                 .errorMessage(errorMessage)
-                .analysisWarnings(warnings)
-                .occupancyObsId(occupancyObsId)
+                .drf(drf)
+                .isotopeString(isotopeStr)
                 .build();
     }
 }

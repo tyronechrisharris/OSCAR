@@ -22,10 +22,26 @@ export default function DetectorResponseFunction(props: {
     }, []);
 
     async function fetchDrfValues(){
-        const url = "https://full-spectrum.sandia.gov/api/v1/info";
+        // Try local config first for air-gapped support
+        const localConfigUrl = "/config/spectroscopy-info.json";
+        const sandiaUrl = "https://full-spectrum.sandia.gov/api/v1/info";
 
         try {
-            const response = await fetch(url, { method: 'GET' });
+            const localResponse = await fetch(localConfigUrl);
+            if (localResponse.ok) {
+                const config = await localResponse.json();
+                if (config.allowed_detectors && config.allowed_detectors.length > 0) {
+                    setDrfChoices(config.allowed_detectors);
+                    console.log('Using local DRF choices from spectroscopy-info.json');
+                    return;
+                }
+            }
+        } catch (err) {
+            console.warn('Local spectroscopy-info.json not found or invalid, falling back to Sandia API.');
+        }
+
+        try {
+            const response = await fetch(sandiaUrl, { method: 'GET' });
 
             if (!response.ok) {
                 console.error('Could not reach Sandia spectrum values.');
@@ -35,7 +51,7 @@ export default function DetectorResponseFunction(props: {
             const results = await response.json();
             setDrfChoices(results?.Options[0].possibleValues ?? []);
         } catch (error) {
-            console.error('Failed to fetch DRF values:', error);
+            console.error('Failed to fetch DRF values from Sandia:', error);
         }
     }
 

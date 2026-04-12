@@ -41,4 +41,7 @@ public class OSCARServiceConfig extends ServiceConfig {
     @DisplayInfo(label = "Stats Frequency (min)", desc = "Frequency at which statistics will be published")
     public int statsFrequencyMinutes = 60;
 
+    @DisplayInfo(label = "WebID API Root", desc = "The API root for Sandia Full Spectrum")
+    public String webIdApiRoot = "https://full-spectrum.sandia.gov/api/v1";
+
 }
