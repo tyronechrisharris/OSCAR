@@ -92,4 +92,17 @@ export default class AdjudicationData implements IAdjudicationData {
     getCodeValue(): number {
         return this.adjudicationCode.code;
     }
+
+    clone(): AdjudicationData {
+        const clone = new AdjudicationData(this.time, this.occupancyCount, this.occupancyObsId);
+        clone.id = this.id;
+        clone.feedback = this.feedback;
+        clone.adjudicationCode = this.adjudicationCode;
+        clone.isotopes = [...this.isotopes];
+        clone.secondaryInspectionStatus = this.secondaryInspectionStatus;
+        clone.filePaths = [...this.filePaths];
+        clone.vehicleId = this.vehicleId;
+        clone.username = this.username;
+        return clone;
+    }
 }

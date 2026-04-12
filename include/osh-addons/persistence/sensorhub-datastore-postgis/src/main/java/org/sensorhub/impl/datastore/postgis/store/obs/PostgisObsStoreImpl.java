@@ -409,24 +409,26 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
 
             try (PreparedStatement findStmt = connection.prepareStatement(queryBuilder.findByUniqueFieldsQuery())) {
 
+                findStmt.setLong(1, obs.getDataStreamID().getIdAsLong());
+
                 if (obs.hasFoi()) {
-                    findStmt.setLong(1, obs.getFoiID().getIdAsLong());
+                    findStmt.setLong(2, obs.getFoiID().getIdAsLong());
                 } else {
-                    findStmt.setNull(1, Types.BIGINT);
+                    findStmt.setNull(2, Types.BIGINT);
                 }
 
                 if (obs.getPhenomenonTime() != null) {
                     String d = PostgisUtils.getPgTimestampFromInstant(obs.getPhenomenonTime());
-                    findStmt.setTimestamp(2, Timestamp.valueOf(d));
+                    findStmt.setTimestamp(3, Timestamp.valueOf(d));
                 } else {
-                    findStmt.setNull(2, Types.TIMESTAMP);
+                    findStmt.setNull(3, Types.TIMESTAMP);
                 }
 
                 if (obs.getResultTime() != null) {
                     String d = PostgisUtils.getPgTimestampFromInstant(obs.getResultTime());
-                    findStmt.setTimestamp(3, Timestamp.valueOf(d));
+                    findStmt.setTimestamp(4, Timestamp.valueOf(d));
                 } else {
-                    findStmt.setNull(3, Types.TIMESTAMP);
+                    findStmt.setNull(4, Types.TIMESTAMP);
                 }
 
                 try (ResultSet rs = findStmt.executeQuery()) {

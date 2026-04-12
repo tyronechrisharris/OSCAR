@@ -142,14 +142,9 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
 
                     setAdjData(prevAdjData => {
                         if (prevAdjData) {
-                            prevAdjData.occupancyObsId = occupancyObservation[0].id;
-                        }
-                        return prevAdjData;
-                    });
-
-                    setAdjData(prevAdjData => {
-                        if (prevAdjData) {
-                            prevAdjData.occupancyObsId = occupancyObservation[0].id;
+                            const cloned = prevAdjData.clone();
+                            cloned.occupancyObsId = occupancyObservation[0].id;
+                            return cloned;
                         }
                         return prevAdjData;
                     });
@@ -268,7 +263,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     }
 
     const handleAdjudicationSelect = (value: AdjudicationCode) => {
-        let tAdjData: AdjudicationData = { ...adjData };
+        let tAdjData = adjData.clone();
         tAdjData.adjudicationCode = AdjudicationCodes.getCodeObjByLabel(value.label);
 
         setAdjData(tAdjData);
@@ -276,14 +271,14 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     }
 
     const handleIsotopeSelect = (value: string[]) => {
-        let tAdjData = { ...adjData };
+        let tAdjData = adjData.clone();
         tAdjData.isotopes = value;
         setIsotope(value);
         setAdjData(tAdjData);
     }
 
     const handleInspectionSelect = (value: string) => {
-        let tAdjData = { ...adjData };
+        let tAdjData = adjData.clone();
         tAdjData.secondaryInspectionStatus = value;
         setSecondaryInspection(value);
         setAdjData(tAdjData);
@@ -346,7 +341,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
 
-        let tempAdjData = adjData;
+        let tempAdjData = adjData.clone();
 
         if (name === 'vehicleId') {
             setVehicleId(value);
@@ -380,7 +375,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
 
         const phenomenonTime = new Date().toISOString();
 
-        let tempAdjData: AdjudicationData = adjData;
+        let tempAdjData = adjData.clone();
 
         tempAdjData.setTime(phenomenonTime);
         tempAdjData.setFilePaths(uploadedFiles.map(f => f.file.name));

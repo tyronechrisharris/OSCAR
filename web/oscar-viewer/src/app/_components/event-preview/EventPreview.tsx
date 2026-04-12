@@ -123,7 +123,7 @@ export function EventPreview() {
         }
 
         const phenomenonTime = new Date().toISOString();
-        const comboData = adjudication;
+        const comboData = adjudication.clone();
 
         comboData.setFeedback(notes);
         comboData.setTime(phenomenonTime);
