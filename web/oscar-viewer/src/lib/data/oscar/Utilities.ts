@@ -143,14 +143,16 @@ export function isAdjudicationControlStream(controlStream: typeof ControlStream)
     if (!hasDefinitionProperties(controlStream))
         return false;
 
-    return controlStream.properties.controlledProperties.some((p: any) => p?.definition?.includes(ADJ_DEF));
+    return (controlStream.properties.definition === ADJ_DEF) ||
+        controlStream.properties.controlledProperties.some((p: any) => p?.definition?.includes(ADJ_DEF));
 }
 
 export function isWebIdAnalysisDataStream(datastream: typeof DataStream): boolean {
     if (!hasDefinitionProperties(datastream))
         return false;
 
-    return datastream.properties.observedProperties[0].definition.includes(WEB_ID_DEF);
+    return (datastream.properties.definition === WEB_ID_DEF) ||
+        datastream.properties.observedProperties.some((p: any) => p?.definition?.includes(WEB_ID_DEF));
 }
 
 export function isHLSVideoControlStream(controlStream: typeof ControlStream): boolean {
