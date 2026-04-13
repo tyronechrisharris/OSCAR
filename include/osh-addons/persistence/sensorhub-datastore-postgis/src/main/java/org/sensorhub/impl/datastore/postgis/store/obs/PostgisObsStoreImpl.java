@@ -418,15 +418,13 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
                 }
 
                 if (obs.getPhenomenonTime() != null) {
-                    String d = PostgisUtils.getPgTimestampFromInstant(obs.getPhenomenonTime());
-                    findStmt.setTimestamp(3, Timestamp.valueOf(d));
+                    findStmt.setTimestamp(3, Timestamp.from(obs.getPhenomenonTime()), UTC_LOCAL);
                 } else {
                     findStmt.setNull(3, Types.TIMESTAMP);
                 }
 
                 if (obs.getResultTime() != null) {
-                    String d = PostgisUtils.getPgTimestampFromInstant(obs.getResultTime());
-                    findStmt.setTimestamp(4, Timestamp.valueOf(d));
+                    findStmt.setTimestamp(4, Timestamp.from(obs.getResultTime()), UTC_LOCAL);
                 } else {
                     findStmt.setNull(4, Types.TIMESTAMP);
                 }
@@ -451,15 +449,13 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
                 }
 
                 if (obs.getPhenomenonTime() != null) {
-                    String d = PostgisUtils.getPgTimestampFromInstant(obs.getPhenomenonTime());
-                    preparedStatement.setTimestamp(3, Timestamp.valueOf(d));
+                    preparedStatement.setTimestamp(3, Timestamp.from(obs.getPhenomenonTime()), UTC_LOCAL);
                 } else {
                     preparedStatement.setNull(3, Types.TIMESTAMP);
                 }
 
                 if (obs.getResultTime() != null) {
-                    String d = PostgisUtils.getPgTimestampFromInstant(obs.getResultTime());
-                    preparedStatement.setTimestamp(4, Timestamp.valueOf(d));
+                    preparedStatement.setTimestamp(4, Timestamp.from(obs.getResultTime()), UTC_LOCAL);
                 } else {
                     preparedStatement.setNull(4, Types.TIMESTAMP);
                 }
@@ -472,7 +468,7 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
                 );
 
                 PGobject jsonObject = new PGobject();
-                jsonObject.setType("json");
+                jsonObject.setType("jsonb");
                 jsonObject.setValue(serializedBlock);
 
                 preparedStatement.setObject(5, jsonObject);

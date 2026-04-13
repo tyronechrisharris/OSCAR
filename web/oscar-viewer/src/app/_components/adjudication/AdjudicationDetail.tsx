@@ -646,7 +646,8 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
             <Grid item xs={12}>
                 <AdjudicationLog
                     event={props.event}
-                    node={laneMapRef.current.get(props.event.laneId)?.parentNode}
+                    shouldFetch={shouldFetchLogs}
+                    onFetch={onFetchComplete}
                 />
             </Grid>
 

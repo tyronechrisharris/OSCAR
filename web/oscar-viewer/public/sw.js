@@ -39,8 +39,11 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.url.includes('/sensorhub/sos') || event.request.url.includes('/sensorhub/login')) {
-        return; // Do not cache telemetry or auth
+    const url = event.request.url;
+    // Explicitly deny caching for telemetry (SOS) and authentication routes
+    // to ensure real-time accuracy and security.
+    if (url.includes('/sensorhub/sos') || url.includes('/sensorhub/login')) {
+        return;
     }
 });
 

@@ -109,7 +109,7 @@ public class QueryBuilderObsStore extends QueryBuilder {
     public String findByUniqueFieldsQuery() {
         return "SELECT id FROM " + this.getStoreTableName() + " WHERE " +
                 DATASTREAM_ID + " = ? AND " +
-                FOI_ID + " = ? AND " +
+                "COALESCE(" + FOI_ID + ", -1::bigint) = COALESCE(?, -1::bigint) AND " +
                 PHENOMENON_TIME + " = ? AND " +
                 RESULT_TIME + " = ?";
     }
