@@ -92,9 +92,6 @@ tools_subprojects.files.each { File f ->
 
 FileTree process_submodules = fileTree("$gradle.oshOakridgeModules/processing").include('**/build.gradle')
 process_submodules.files.each { File f ->
-    // Project sensorhub-process-rs350-occupancy is included below
-    if (f.toString().contains('sensorhub-process-rs350-occupancy')) return;
-
     File projectFolder = f.parentFile
     if (projectFolder != rootDir) {
         String projectName = ':' + projectFolder.name
@@ -102,9 +99,6 @@ process_submodules.files.each { File f ->
         project(projectName).projectDir = projectFolder
     }
 }
-
-include ':sensorhub-process-rs350-occupancy'
-project(':sensorhub-process-rs350-occupancy').projectDir = file("$gradle.oshOakridgeModules/processing/sensorhub-process-rs350-occupancy")
 
 FileTree service_submodules = fileTree("$gradle.oshOakridgeModules/services").include('**/build.gradle')
 service_submodules.files.each { File f ->
