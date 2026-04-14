@@ -180,5 +180,17 @@
   "drf": "DRF",
   "errorMessage": "Error Message",
   "estDose": "Est. Dose",
-  "notificationPreferences": "Notification Preferences"
+  "notificationPreferences": "Notification Preferences",
+  "uploadToWebId": "Upload to WebID",
+  "noFilesToUploadToWebId": "No new files to upload to WebID.",
+  "webIdUploadSuccess": "Files uploaded to WebID successfully.",
+  "failedToFetchControlStreams": "Failed to fetch control streams from the node.",
+  "selectDrfBeforeUpload": "Please select a Detector Response Function for all WebID files.",
+  "laneNotFound": "Lane not found.",
+  "uploaded": "Uploaded",
+  "clearAll": "Clear All",
+  "scannedCodes": "Scanned Codes",
+  "confirmAdjudicationTitle": "Confirm Adjudication",
+  "confirmAndSubmit": "Confirm & Submit",
+  "attachedFiles": "Attached Files"
 }
