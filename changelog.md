@@ -101,7 +101,6 @@ This is the official first release of 3.0.0
 - [#43 Implement Report Generation](https://github.com/Botts-Innovative-Research/osh-oakridge-buildnode/issues/43)
 - [#48 Switched Database from H2 to PostgresSQL ](https://github.com/Botts-Innovative-Research/osh-oakridge-buildnode/issues/48)
 - [#53 Streamlined Initial Configuration via Spreadsheet Import](https://github.com/Botts-Innovative-Research/osh-oakridge-buildnode/issues/53)
-- Set up Sentry Testing
 - Added Unit Tests for all drivers - (Rapiscan, Aspect, FFMpeg, Lane System)
 - Set up Client testing using Cypress
 - Added GitHub Actions for testing
