@@ -50,6 +50,7 @@ dependencies {
 
     implementation project(':security-utils')
 
+    implementation 'io.sentry:sentry-logback:8.25.0'
 
     // For MQTT
     implementation project(':sensorhub-service-consys-mqtt')
