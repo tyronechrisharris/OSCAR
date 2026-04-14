@@ -205,12 +205,15 @@ export default function WebIdAnalysis(props: {
 
 
     useEffect(() => {
-        let filteredLog = webIdLog.filter((data) => data?.occupancyObsId ==  props.event.occupancyObsId);
-        setFilteredLog(filteredLog);
+        const filtered = webIdLog.filter((data) => data?.occupancyObsId === props.event.occupancyObsId);
+        setFilteredLog(filtered);
+    }, [webIdLog, props.event.occupancyObsId]);
+
+    useEffect(() => {
         if (props.onLogUpdate) {
             props.onLogUpdate(filteredLog);
         }
-    }, [webIdLog]);
+    }, [filteredLog, props.onLogUpdate]);
 
 
     return (

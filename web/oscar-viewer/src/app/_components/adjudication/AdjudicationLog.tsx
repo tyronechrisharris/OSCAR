@@ -154,55 +154,47 @@ export default function AdjudicationLog(props: {
 
 
     async function fetchObservations(controlStream: typeof ControlStream) {
-        if (!controlStream) return;
-
+        // TODO: Paginate this
         let commandStatuses = await controlStream.searchStatus(new ControlStreamFilter({ statusCode: "COMPLETED" }), 100);
 
-        const allAdjudications: AdjudicationData[] = [];
         while (commandStatuses.hasNext()) {
             let cmdRes = await commandStatuses.nextPage();
 
             let adjDataArr = cmdRes.map((obs: any) => {
-                if (!obs?.results || !obs.results[0]?.data)
+                if (!obs?.results)
                     return null;
 
-                let results = obs.results[0].data;
+                let results = obs?.results[0].data;
                 let data = new AdjudicationData(obs.reportTime, props.event.occupancyCount, results.occupancyObsId);
                 data.setFeedback(results.feedback);
-                data.setIsotopes(results.isotopes || []);
+                data.setIsotopes(results.isotopes ?? NaN);
                 data.setSecondaryInspectionStatus(results.secondaryInspectionStatus);
                 data.setAdjudicationCode(AdjudicationCodes.getCodeObjByIndex(results.adjudicationCode));
-                data.setVehicleId(results.vehicleId || "");
-                data.setFilePaths(results.filePaths || []);
-                data.setTime(obs.reportTime);
+                data.setVehicleId(results.vehicleId ?? NaN);
+                data.setFilePaths(results.filePaths ?? NaN)
+                data.setTime(obs.reportTime)
                 data.setOccupancyCount(props.event.occupancyCount);
                 data.setOccupancyObsId(results.occupancyObsId);
-                data.setUser(results.username || "Unknown");
-                return data;
-            }).filter((d: any) => d !== null) as AdjudicationData[];
-
-            allAdjudications.push(...adjDataArr);
+                data.setUser(results.username ?? NaN)
+                return data
+            });
+            setAdjLog(adjDataArr);
         }
-        setAdjLog(allAdjudications);
         props.onFetch();
     }
 
     useEffect(() => {
-        let filtered = adjLog.filter((adjData) => adjData?.occupancyObsId === props.event.occupancyObsId);
-        setFilteredLog(filtered);
-    }, [adjLog, props.event.occupancyObsId]);
+        let filteredLog = adjLog.filter((adjData) => adjData?.occupancyObsId ==  props.event.occupancyObsId);
+        setFilteredLog(filteredLog);
+    }, [adjLog]);
 
     useEffect(() => {
-        let timer: NodeJS.Timeout;
-        if (props.shouldFetch && laneAdjControlStream) {
-            timer = setTimeout(() => {
+        if (props.shouldFetch) {
+            setTimeout(() => {
                 fetchObservations(laneAdjControlStream);
             }, 10000);
         }
-        return () => {
-            if (timer) clearTimeout(timer);
-        };
-    }, [props.shouldFetch, laneAdjControlStream]);
+    }, [props.shouldFetch]);
 
 
     return (

@@ -23,7 +23,6 @@
         </encoder>
     </appender>
 
-    <appender name="Sentry" class="io.sentry.logback.SentryAppender"/>
 
     <root level="info">
         <appender-ref ref="STDOUT" />
