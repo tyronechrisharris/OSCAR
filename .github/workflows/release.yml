@@ -54,6 +54,8 @@ jobs:
         run: |
           chmod +x ./build-all.sh
           ./build-all.sh
+          echo "Contents of build/distributions:"
+          ls -lah build/distributions || true
 
       - name: Determine Release Details
         id: release_info
@@ -131,8 +133,16 @@ jobs:
         run: |
           DOCKER_USER="${{ secrets.DOCKER_USERNAME }}"
 
-          # Find the generated zip artifact
-          ZIP_FILE=$(ls build/distributions/*.zip | head -n 1)
+          shopt -s nullglob
+          ZIPS=(build/distributions/*.zip)
+          if [ ${#ZIPS[@]} -eq 0 ]; then
+            echo "No release zip found in build/distributions"
+            echo "Debug listing:"
+            find build -maxdepth 3 -type f | sort || true
+            exit 1
+          fi
+
+          ZIP_FILE="${ZIPS[0]}"
           echo "Extracting $ZIP_FILE for Docker build context..."
 
           # Extract the zip to a temporary folder

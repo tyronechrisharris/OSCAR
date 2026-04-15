@@ -5,7 +5,10 @@ version = '1.1.0'
 dependencies {
     implementation 'org.sensorhub:sensorhub-core:' + oshCoreVersion
 
-    implementation project(':sensorhub-utils-rad')
+    // OSCARServiceModule now implements IWebIdProvider from sensorhub-utils-rad,
+    // so this dependency is part of the service module's public API and must be
+    // exposed to downstream consumers such as sensorhub-webui-oscar.
+    api project(':sensorhub-utils-rad')
     implementation project(':sensorhub-service-bucket')
 
     implementation project(':sensorhub-system-lane') // Lane for loading via spreadsheet
