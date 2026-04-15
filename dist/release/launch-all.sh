@@ -7,6 +7,14 @@ if ! command -v docker >/dev/null 2>&1; then
     sh -c "exit 1"
 fi
 
+# Ensure FFmpeg is installed (Debian/Ubuntu only check for now)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if ! command -v ffmpeg >/dev/null 2>&1; then
+        echo "FFmpeg is not installed. Installing..."
+        sudo apt-get update && sudo apt-get install -y ffmpeg
+    fi
+fi
+
 # Optimize kernel parameters for high-density UDP camera streaming (Linux only)
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Optimizing kernel parameters for high-density UDP streaming..."
@@ -15,6 +23,38 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo sysctl -w net.core.wmem_max=26214400
     sudo sysctl -w net.core.wmem_default=26214400
     sudo sysctl -w fs.file-max=1000000
+fi
+
+# Pre-flight check: ensure hivemq-config directory and logback.xml exist
+# This prevents Docker from creating logback.xml as a directory during volume mount.
+if [ ! -d "hivemq-config" ]; then
+    echo "Creating hivemq-config directory..."
+    mkdir -p hivemq-config
+fi
+
+if [ ! -f "hivemq-config/logback.xml" ]; then
+    echo "Creating hivemq-config/logback.xml..."
+    cat << 'INNER_EOF' > hivemq-config/logback.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- general logging in console -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{0} [%thread] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Suppress verbose auth/session debug logs -->
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="WARN" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="WARN" />
+
+</configuration>
+INNER_EOF
 fi
 
 # 1. Launch Docker Compose FIRST so the networks are actually created
