@@ -8,10 +8,12 @@ import org.sensorhub.api.common.BigId;
 import org.sensorhub.api.common.IdEncoder;
 import org.sensorhub.api.datastore.DataStoreException;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
+import org.sensorhub.api.datastore.obs.DataStreamKey;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.sensorhub.impl.sensor.SensorSystem;
 import org.sensorhub.impl.system.SystemDatabaseTransactionHandler;
 import org.sensorhub.impl.utils.rad.model.Occupancy;
+import org.sensorhub.impl.utils.rad.model.OccupancyExtended;
 import org.sensorhub.impl.utils.rad.model.WebIdAnalysis;
 import org.sensorhub.impl.utils.rad.output.N42Output;
 import org.slf4j.Logger;
@@ -70,10 +72,10 @@ public class WebIdAnalyzer {
         if (webIdContext.isMultipartRequest()) {
             try {
                 if (webIdContext.hasForegroundFileName() && isN42(webIdContext.foregroundFileName)) {
-                    n42output.onNewMessage(new String(webIdContext.foregroundData, charset), objectDir.resolve(webIdContext.getForegroundFileName()).toString());
+                    n42output.onNewMessage(new String(webIdContext.foregroundData, charset), objectDir.resolve(webIdContext.getForegroundFileName()).toString(), webIdContext.getOccupancyObsId());
                 }
                 if (webIdContext.hasBackgroundFileName() && isN42(webIdContext.backgroundFileName)) {
-                    n42output.onNewMessage(new String(webIdContext.backgroundData, charset), objectDir.resolve(webIdContext.getBackgroundFileName()).toString());
+                    n42output.onNewMessage(new String(webIdContext.backgroundData, charset), objectDir.resolve(webIdContext.getBackgroundFileName()).toString(), webIdContext.getOccupancyObsId());
                 }
             } catch (Exception e) {
                 logger.error("Failed to parse multipart request", e);
@@ -81,7 +83,7 @@ public class WebIdAnalyzer {
         } else {
             if (key.endsWith(".n42")) {
                 try {
-                    n42output.onNewMessage(new String(webIdContext.foregroundData, charset), objectDir.resolve(key).toString());
+                    n42output.onNewMessage(new String(webIdContext.foregroundData, charset), objectDir.resolve(key).toString(), webIdContext.getOccupancyObsId());
                 } catch (Exception e) {
                     logger.error("Failed to parse N42 file: {}", key, e);
                 }
@@ -89,7 +91,7 @@ public class WebIdAnalyzer {
         }
     }
 
-    private void publishN42(String laneUid, String n42Data, String fileName) {
+    private void publishN42(String laneUid, String n42Data, String fileName, String occupancyObsId) {
         if (!isN42(fileName))
             return;
 
@@ -108,7 +110,7 @@ public class WebIdAnalyzer {
             return;
         }
         try {
-            n42output.onNewMessage(n42Data, fileName);
+            n42output.onNewMessage(n42Data, fileName, occupancyObsId);
         } catch (Exception e) {
             logger.error("Failed to parse N42 file: {}", laneUid, e);
         }
@@ -158,7 +160,7 @@ public class WebIdAnalyzer {
             String n42FileName = sourceFileName.replaceAll("\\.[^.]+$", ".n42");
             logger.info("Cambio conversion succeeded for offline file: {} -> {}", sourceFileName, n42FileName);
             String sanitized = sanitizeInterSpecNamespace(new String(n42Bytes, StandardCharsets.UTF_8));
-            publishN42(webIdContext.laneUid, sanitized, n42FileName);
+            publishN42(webIdContext.laneUid, sanitized, n42FileName, webIdContext.getOccupancyObsId());
         } catch (Throwable e) {
             logger.error("Cambio conversion failed for offline file: {}", key, e);
         }
@@ -166,6 +168,7 @@ public class WebIdAnalyzer {
 
     private WebIdAnalysis processWebIdAnalysis(WebIdRequestContext webIdContext) {
 
+        WebIdAnalysis analysis = null;
         try {
             if (webIdContext.foregroundData == null)
                 throw new IllegalArgumentException("Foreground data is null");
@@ -173,7 +176,6 @@ public class WebIdAnalyzer {
             // Check if this is QR code data (RADDATA:// format)
             boolean isQrCodeData = isRadDataQrCode(webIdContext.foregroundData);
 
-            WebIdAnalysis analysis;
             // Try sending to WebID first with raw data
             try {
                 var request = createWebIdRequest(webIdContext);
@@ -205,7 +207,7 @@ public class WebIdAnalyzer {
                     fileName = sourceFileName.replaceAll("\\.[^.]+$", "") + ".n42";
                 }
 
-                publishN42(webIdContext.laneUid, sanitizeInterSpecNamespace(new String(n42Bytes, StandardCharsets.UTF_8)), fileName);
+                publishN42(webIdContext.laneUid, sanitizeInterSpecNamespace(new String(n42Bytes, StandardCharsets.UTF_8)), fileName, webIdContext.getOccupancyObsId());
 
                 WebIdRequest.Builder requestBuilder = new WebIdRequest.Builder()
                         .foreground(new ByteArrayInputStream(n42Bytes))
@@ -293,10 +295,17 @@ public class WebIdAnalyzer {
                         return analysis;
                     }
 
-                    var occupancy = Occupancy.toOccupancy(obs.getResult());
+                    var ds = obsStore.getDataStreams().get(new DataStreamKey(obs.getDataStreamID()));
+                    if (ds == null) {
+                        logger.error("No datastream found for occupancy observation when updating WebId obs ID: {}", webIdContext.occupancyObsId);
+                        return analysis;
+                    }
+
+                    var occupancyRecord = ds.getRecordStructure();
+                    var occupancy = OccupancyExtended.readOccupancy(occupancyRecord, obs.getResult());
                     occupancy.addWebIdObsId(encodedWebIdObsId);
 
-                    DataBlock newOccupancyResult = Occupancy.fromOccupancy(occupancy);
+                    DataBlock newOccupancyResult = OccupancyExtended.writeOccupancy(occupancyRecord, occupancy);
                     obs.getResult().setUnderlyingObject(newOccupancyResult.getUnderlyingObject());
                     obs.getResult().updateAtomCount();
 
@@ -309,7 +318,7 @@ public class WebIdAnalyzer {
         } catch (Exception e) {
             logger.error("WebId analysis processing failed", e);
         }
-        return null;
+        return analysis;
     }
 
     private WebIdRequest createWebIdRequest(WebIdRequestContext webIdContext) {

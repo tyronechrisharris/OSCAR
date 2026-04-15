@@ -19,6 +19,7 @@ import com.botts.impl.process.rs350.occupancy.Rs350OccupancyProcessModule;
 import net.opengis.swe.v20.*;
 import org.sensorhub.api.data.DataEvent;
 import org.sensorhub.api.data.IDataProducer;
+import org.sensorhub.api.data.IStreamingDataInterface;
 import org.sensorhub.api.event.IEventHandler;
 import org.sensorhub.api.event.IEventListener;
 import org.sensorhub.api.processing.IProcessModule;
@@ -31,18 +32,18 @@ import org.vast.process.DataQueue;
 import org.vast.process.ProcessException;
 import org.vast.sensorML.SMLHelper;
 
-public class OccupancyProcessInterface extends OccupancyOutput<IDataProducer> {
+public class OccupancyProcessInterface implements IStreamingDataInterface {
     final IProcessModule<?> parentProcess;
     final IEventHandler eventHandler;
     static String OUTPUT_NAME = OccupancyOutput.NAME;
     DataComponent outputDef;
     DataEncoding outputEncoding;
     DataBlock lastRecord;
-    Occupancy lastOccupancy;
+    OccupancyExtended lastOccupancy;
     long lastRecordTime = Long.MIN_VALUE;
     double avgSamplingPeriod = 1.0;
-    volatile boolean doPublish = false;
     int avgSampleCount = 0;
+    volatile boolean doPublish = false;
 
     public void doPublish() {
         doPublish = true;
@@ -61,15 +62,13 @@ public class OccupancyProcessInterface extends OccupancyOutput<IDataProducer> {
             if (!sourceComponent.hasData()) {
                 return;
             }
+
             DataBlock data = sourceComponent.getData();
             OccupancyExtended occupancy = OccupancyExtended.toOccupancy(data);
 
-            if (lastOccupancy == null || lastOccupancy.getSamplingTime() != occupancy.getSamplingTime()) {
+            if (lastOccupancy == null || Double.compare(lastOccupancy.getSamplingTime(), occupancy.getSamplingTime()) != 0) {
                 lastOccupancy = occupancy;
-                // This handles publishing too (parent setData → augmentPublish,
-                // which we override below to serialize extended datablocks).
-                setData(occupancy);
-                eventHandler.publish(new DataEvent(System.currentTimeMillis(), OccupancyProcessInterface.this, dataBlock));
+                publishOccupancy(occupancy);
                 doPublish = false;
             }
         }
@@ -78,10 +77,9 @@ public class OccupancyProcessInterface extends OccupancyOutput<IDataProducer> {
     /**
      * Output interface to facilitate connection between process outputs and output queue.
      * <p>
-     * Overrides the inherited {@link OccupancyOutput#dataStruct} with the extended
-     * record schema (base occupancy fields + {@code alarmCategoryCode}) so that both
-     * the published datablock and the registered datastream schema carry the alarm
-     * category string reported by the RS350 driver.
+     * Uses the extended occupancy record schema (base occupancy fields +
+     * {@code alarmCategoryCode}) so both the published datablock and the registered
+     * datastream schema carry the RS350 alarm category string end-to-end.
      *
      * @param parentProcess OSH process module
      * @param outputDescriptor output to connect to data queue
@@ -90,53 +88,39 @@ public class OccupancyProcessInterface extends OccupancyOutput<IDataProducer> {
      */
     public OccupancyProcessInterface(IProcessModule<?> parentProcess, AbstractSWEIdentifiable outputDescriptor, DataEncoding encoding) throws ProcessingException
     {
-        super(parentProcess);
-        // Replace the base (16-field) record with the extended (17-field) record so
-        // the augmentPublish path serializes datablocks that match the schema
-        // persisted for the datastream. See OccupancyExtended.createExtendedRecordStructure.
-        this.dataStruct = OccupancyExtended.createExtendedRecordStructure();
         this.parentProcess = parentProcess;
         this.eventHandler = new BasicEventHandler();
 
         if (outputDescriptor != null) {
             this.outputDef = SMLHelper.getIOComponent(outputDescriptor);
-            lastOccupancy = OccupancyExtended.toOccupancy(outputDef.createDataBlock());
-            if (encoding != null)
+            if (encoding != null) {
                 this.outputEncoding = encoding;
-            else
+            } else {
                 this.outputEncoding = SMLHelper.getIOEncoding(outputDescriptor);
-
-
-            try {
-                if (parentProcess instanceof Rs350OccupancyProcessModule rs350Module) {
-                    DataComponent execOutput = rs350Module.wrapperProcess.getOutputComponent(outputDef.getName());
-                    rs350Module.wrapperProcess.connect(execOutput, outputQueue);
-                }
-            } catch (ProcessException e) {
-                throw new ProcessingException("Error while connecting output " + outputDef.getName(), e);
             }
+        } else {
+            this.outputDef = OccupancyExtended.createExtendedRecordStructure();
+            this.outputEncoding = new org.vast.data.TextEncodingImpl(",", "\n");
+        }
+
+        lastOccupancy = OccupancyExtended.toOccupancy(outputDef.createDataBlock());
+
+        try {
+            if (parentProcess instanceof Rs350OccupancyProcessModule rs350Module) {
+                DataComponent execOutput = rs350Module.wrapperProcess.getOutputComponent(outputDef.getName());
+                rs350Module.wrapperProcess.connect(execOutput, outputQueue);
+            }
+        } catch (ProcessException e) {
+            throw new ProcessingException("Error while connecting output " + outputDef.getName(), e);
         }
     }
 
-    /**
-     * Override the parent's publish path so datablocks are serialized via
-     * {@link OccupancyExtended#fromOccupancy(OccupancyExtended)} — the base
-     * {@link OccupancyOutput#augmentPublish(Occupancy)} uses
-     * {@link Occupancy#fromOccupancy(Occupancy)} which produces a base-schema
-     * datablock that's missing the trailing {@code alarmCategoryCode} field and
-     * therefore does not match the datastream schema registered for the RS350
-     * occupancy output.
-     */
-    @Override
-    protected void augmentPublish(Occupancy occupancy) {
-        augmentOccupancy(occupancy);
-
-        if (occupancy instanceof OccupancyExtended extended) {
-            dataBlock = OccupancyExtended.fromOccupancy(extended);
+    private void publishOccupancy(Occupancy occupancy) {
+        OccupancyExtended extended;
+        if (occupancy instanceof OccupancyExtended occupancyExtended) {
+            extended = occupancyExtended;
         } else {
-            // Wrap any plain Occupancy as an extended one with an empty category so
-            // the datablock still matches the extended schema.
-            OccupancyExtended wrapper = (OccupancyExtended) new OccupancyExtended.Builder()
+            extended = (OccupancyExtended) new OccupancyExtended.Builder()
                     .alarmCategory("")
                     .samplingTime(occupancy.getSamplingTime())
                     .occupancyCount(occupancy.getOccupancyCount())
@@ -151,17 +135,30 @@ public class OccupancyProcessInterface extends OccupancyOutput<IDataProducer> {
                     .videoPaths(occupancy.getVideoPaths())
                     .webIdObsIds(occupancy.getWebIdObsIds())
                     .build();
-            dataBlock = OccupancyExtended.fromOccupancy(wrapper);
         }
 
-        dataStruct.setData(dataBlock);
-        latestRecord = dataBlock;
+        lastRecord = OccupancyExtended.fromOccupancy(extended);
+        outputDef.setData(lastRecord);
 
         long now = System.currentTimeMillis();
         updateSamplingPeriod(now);
-        latestRecordTime = now;
+        lastRecordTime = now;
 
-        eventHandler.publish(new DataEvent(now, this, dataBlock));
+        eventHandler.publish(new DataEvent(now, this, lastRecord));
+    }
+
+    private void updateSamplingPeriod(long now) {
+        if (lastRecordTime == Long.MIN_VALUE) {
+            return;
+        }
+
+        double deltaT = (now - lastRecordTime) / 1000.0;
+        avgSampleCount++;
+        if (avgSampleCount == 1) {
+            avgSamplingPeriod = deltaT;
+        } else {
+            avgSamplingPeriod += (deltaT - avgSamplingPeriod) / avgSampleCount;
+        }
     }
 
     @Override

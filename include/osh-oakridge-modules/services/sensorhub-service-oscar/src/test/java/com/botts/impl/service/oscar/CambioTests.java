@@ -1,6 +1,6 @@
 package com.botts.impl.service.oscar;
 
-import com.botts.impl.service.oscar.cambio.*;
+import org.sensorhub.impl.utils.rad.cambio.*;
 import gov.sandia.specutils.ParserType;
 import gov.sandia.specutils.SaveSpectrumAsType;
 import gov.sandia.specutils.SpecUtilsNativeLoader;

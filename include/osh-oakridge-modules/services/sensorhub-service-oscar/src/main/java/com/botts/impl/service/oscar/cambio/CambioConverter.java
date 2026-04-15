@@ -15,6 +15,11 @@ public class CambioConverter {
     public CambioConverter() {
     }
 
+    private static void ensureNativeAvailable() throws CambioException {
+        if (!SpecUtilsNativeLoader.isAvailable())
+            throw new CambioException("SpecUtils native library is not loaded. Cambio conversion unavailable.");
+    }
+
     public Set<String> getSupportedInputFormats() {
         Set<String> formats = new LinkedHashSet<>();
         formats.add("n42");
@@ -71,6 +76,7 @@ public class CambioConverter {
     }
 
     public SpectrumInfo readSpectrumInfo(File inputFile, ParserType parserType) throws CambioException {
+        ensureNativeAvailable();
         SpecFile specFile = new SpecFile();
         try {
             if (!specFile.load_file(inputFile.getAbsolutePath(), parserType, "")) {
@@ -99,6 +105,7 @@ public class CambioConverter {
     }
 
     public ConversionResult convert(ConversionRequest request) throws CambioException {
+        ensureNativeAvailable();
         File tempInputFile = null;
         SpecFile specFile = new SpecFile();
 
@@ -168,6 +175,7 @@ public class CambioConverter {
     }
 
     public byte[] convertToN42(InputStream inputStream, String filename) throws CambioException {
+        ensureNativeAvailable();
         return convertToN42(inputStream, filename, ParserType.Auto);
     }
 

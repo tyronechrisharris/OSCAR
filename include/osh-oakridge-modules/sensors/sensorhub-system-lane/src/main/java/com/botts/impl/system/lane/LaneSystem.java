@@ -925,11 +925,12 @@ public class LaneSystem extends SensorSystem {
             rs350Config.serialNumber = getConfiguration().uniqueID;
             rs350Config.moduleClass = RS350Sensor.class.getCanonicalName();
 
-            var comm = rs350Config.commSettings = new TCPCommProviderConfig();
+            TCPCommProviderConfig comm = new TCPCommProviderConfig();
             comm.protocol.remoteHost = rs350RPMConfig.remoteHost;
             comm.protocol.remotePort = rs350RPMConfig.remotePort;
             comm.connection.connectTimeout = 5000;
             comm.connection.reconnectAttempts = 10;
+            rs350Config.commSettings = comm;
             config = rs350Config;
         } else {
             reportError("RPM Config specified is invalid, config must be of type AspectRPMConfig, RapiscanRPMConfig or RS350RPMConfig", new IllegalArgumentException());

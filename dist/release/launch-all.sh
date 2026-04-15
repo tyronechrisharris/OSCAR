@@ -7,14 +7,6 @@ if ! command -v docker >/dev/null 2>&1; then
     sh -c "exit 1"
 fi
 
-# Ensure FFmpeg is installed (Debian/Ubuntu only check for now)
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if ! command -v ffmpeg >/dev/null 2>&1; then
-        echo "FFmpeg is not installed. Installing..."
-        sudo apt-get update && sudo apt-get install -y ffmpeg
-    fi
-fi
-
 # Optimize kernel parameters for high-density UDP camera streaming (Linux only)
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Optimizing kernel parameters for high-density UDP streaming..."

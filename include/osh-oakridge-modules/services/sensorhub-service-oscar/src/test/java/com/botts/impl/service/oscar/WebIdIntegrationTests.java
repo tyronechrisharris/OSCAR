@@ -2,8 +2,8 @@ package com.botts.impl.service.oscar;
 
 import com.botts.impl.service.bucket.BucketService;
 import com.botts.impl.service.bucket.BucketServiceConfig;
-import com.botts.impl.service.oscar.webid.WebIdClient;
-import com.botts.impl.service.oscar.webid.WebIdRequest;
+import org.sensorhub.impl.utils.rad.webid.WebIdClient;
+import org.sensorhub.impl.utils.rad.webid.WebIdRequest;
 import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
 import com.botts.impl.system.lane.AdjudicationControl;
 import com.botts.impl.system.lane.Descriptor;
