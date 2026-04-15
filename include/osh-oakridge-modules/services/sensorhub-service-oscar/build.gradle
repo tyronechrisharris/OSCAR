@@ -22,6 +22,21 @@ dependencies {
     testImplementation 'org.sensorhub:sensorhub-service-consys:' + oshCoreVersion
 }
 
+
+sourceSets {
+    main {
+        java {
+            // Use the shared RAD-utils implementations for WebID/Cambio/specutils.
+            // Keep only the service-local WebIdResourceHandler in this bundle.
+            exclude 'com/botts/impl/service/oscar/cambio/**'
+            exclude 'com/botts/impl/service/oscar/webid/WebIdClient.java'
+            exclude 'com/botts/impl/service/oscar/webid/WebIdRequest.java'
+            exclude 'com/botts/impl/service/oscar/webid/WebIdAnalysisException.java'
+            exclude 'gov/sandia/specutils/**'
+        }
+    }
+}
+
 // add info to OSGi manifest
 osgi {
     manifest {

@@ -25,7 +25,10 @@ public class SpecUtilsNativeLoader {
             synchronized (SpecUtilsNativeLoader.class) {
                 if (!loaded) {
                     try {
-                        System.loadLibrary("SpecUtils");
+                        try {
+                            System.loadLibrary("SpecUtils");
+                        } catch (UnsatisfiedLinkError ignored) {
+                        }
                         System.loadLibrary("SpecUtilsJni");
                         available = true;
                     } catch (UnsatisfiedLinkError e) {
