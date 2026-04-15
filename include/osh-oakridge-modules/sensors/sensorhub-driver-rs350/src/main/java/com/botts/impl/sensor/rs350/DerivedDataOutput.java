@@ -25,8 +25,15 @@ public class DerivedDataOutput extends OutputBase {
     }
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350DerivedData() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        createOrRenewDataBlock();
+        if (acceptsMessage(message)) {
+            createOrRenewDataBlock();
+        }
     }
 }

@@ -53,9 +53,14 @@ public class LocationOutput extends OutputBase {
 //    }
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350ForegroundMeasurement() != null && msg.getRs350ForegroundMeasurement().getLat() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        if (message.getRs350ForegroundMeasurement().getLat() != null) {
+        if (acceptsMessage(message)) {
 
             createOrRenewDataBlock();
 

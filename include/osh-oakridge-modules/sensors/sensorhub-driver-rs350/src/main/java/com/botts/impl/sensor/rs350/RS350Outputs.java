@@ -23,5 +23,8 @@ public class RS350Outputs {
 
     @DisplayInfo(label = "Alarm", desc = "Includes Derived Data and Alarm Data")
     public boolean enableAlarmOutput = true;
+
+    @DisplayInfo(label = "Connection Status", desc = "Connectivity status of the sensor")
+    public boolean enableConnectionStatus = true;
 }
 

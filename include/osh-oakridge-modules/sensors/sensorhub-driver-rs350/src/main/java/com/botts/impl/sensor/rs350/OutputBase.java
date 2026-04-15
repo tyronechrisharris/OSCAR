@@ -7,6 +7,7 @@ import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataRecord;
+import com.botts.impl.sensor.rs350.messages.RS350Message;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 
 public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> implements MessageHandler.MessageListener {
@@ -23,6 +24,13 @@ public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> imple
      * and data types.
      */
     protected abstract void init();
+
+    /**
+     * Checks if this output accepts the given message for processing.
+     * @param msg the message to check
+     * @return true if the output accepts the message, false otherwise
+     */
+    public abstract boolean acceptsMessage(RS350Message msg);
 
     @Override
     public DataComponent getRecordDescription() {

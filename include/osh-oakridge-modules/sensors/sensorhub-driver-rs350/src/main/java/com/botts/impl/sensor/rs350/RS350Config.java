@@ -18,4 +18,13 @@ public class RS350Config extends SensorConfig {
     @DisplayInfo.Required
     @DisplayInfo(label = "Outputs", desc = "Configuration options for source data outputs from driver")
     public RS350Outputs outputs = new RS350Outputs();
+
+    @DisplayInfo(label = "Enable WebID Integration", desc = "Enables integration with WebID for isotope analysis")
+    public boolean enableWebId = false;
+
+    @DisplayInfo(label = "Enable WebID Bucket Archival", desc = "Enables archival of WebID analysis results to the bucket service")
+    public boolean enableWebIdArchival = false;
+
+    @DisplayInfo(label = "Enable Connection Status", desc = "Enables the connection status output to monitor driver connectivity")
+    public boolean enableConnectionStatus = true;
 }

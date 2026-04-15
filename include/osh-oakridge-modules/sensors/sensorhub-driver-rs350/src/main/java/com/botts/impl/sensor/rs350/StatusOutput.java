@@ -87,9 +87,14 @@ public class StatusOutput extends OutputBase {
     }
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350InstrumentCharacteristics() != null && msg.getRs350Item() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        if (message.getRs350InstrumentCharacteristics() != null) {
+        if (acceptsMessage(message)) {
 
             createOrRenewDataBlock();
 

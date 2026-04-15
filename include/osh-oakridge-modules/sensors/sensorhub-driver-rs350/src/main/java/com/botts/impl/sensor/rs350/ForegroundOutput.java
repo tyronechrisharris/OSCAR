@@ -72,9 +72,14 @@ public class ForegroundOutput extends OutputBase {
 
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350ForegroundMeasurement() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        if (message.getRs350ForegroundMeasurement() != null) {
+        if (acceptsMessage(message)) {
 
             createOrRenewDataBlock();
 

@@ -117,11 +117,18 @@ public class MessageHandler {
 
             if (currentMessage != null && !currentMessage.isEmpty()) {
 
-
-
                 try {
                     RadInstrumentDataType radInstrumentDataType = radHelper.getRadInstrumentData(currentMessage);
-                    listeners.forEach(messageListener -> messageListener.onNewMessage(new RS350Message(radInstrumentDataType)));
+                    RS350Message rs350Message = new RS350Message(radInstrumentDataType);
+                    listeners.forEach(messageListener -> {
+                        if (messageListener instanceof OutputBase) {
+                            if (((OutputBase) messageListener).acceptsMessage(rs350Message)) {
+                                messageListener.onNewMessage(rs350Message);
+                            }
+                        } else {
+                            messageListener.onNewMessage(rs350Message);
+                        }
+                    });
                 }
                 catch (Exception e){
 //                    System.out.println("Current Message: ");

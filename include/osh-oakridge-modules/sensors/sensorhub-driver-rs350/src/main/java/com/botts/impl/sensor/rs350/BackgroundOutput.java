@@ -70,9 +70,14 @@ public class BackgroundOutput extends OutputBase {
 //    }
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350BackgroundMeasurement() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        if (message.getRs350BackgroundMeasurement() != null) {
+        if (acceptsMessage(message)) {
 
             createOrRenewDataBlock();
 

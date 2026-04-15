@@ -32,6 +32,8 @@ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
 
     AlarmOutput alarmOutput;
 
+    ConnectionStatusOutput connectionStatusOutput;
+
 //    RS350MessageHandler messageHandler;
     MessageHandler messageHandler;
 
@@ -85,6 +87,12 @@ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
             alarmOutput = new AlarmOutput(this);
             addOutput(alarmOutput, false);
             alarmOutput.init();
+        }
+
+        if (config.outputs.enableConnectionStatus) {
+            connectionStatusOutput = new ConnectionStatusOutput(this);
+            addOutput(connectionStatusOutput, false);
+            connectionStatusOutput.init();
         }
     }
 
@@ -150,6 +158,9 @@ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
             messageHandler.addMessageListener(alarmOutput);
         }
 
+        if (config.outputs.enableConnectionStatus) {
+            connectionStatusOutput.publishStatus(true);
+        }
 
 
 //        messageHandler = new RS350MessageHandler(this, msgIn, locationOutput, statusOutput, backgroundOutput, foregroundOutput, alarmOutput);
@@ -159,6 +170,10 @@ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
 
     @Override
     protected void doStop() throws SensorHubException {
+
+        if (config.outputs.enableConnectionStatus && connectionStatusOutput != null) {
+            connectionStatusOutput.publishStatus(false);
+        }
 
         if (commProvider != null) {
 

@@ -71,9 +71,14 @@ public class AlarmOutput extends OutputBase {
 
 
     @Override
+    public boolean acceptsMessage(RS350Message msg) {
+        return msg.getRs350RadAlarm() != null;
+    }
+
+    @Override
     public void onNewMessage(RS350Message message) {
 
-        if (message.getRs350RadAlarm() != null) {
+        if (acceptsMessage(message)) {
 
             createOrRenewDataBlock();
 
