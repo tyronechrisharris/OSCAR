@@ -14,6 +14,9 @@ export const metadata: Metadata = {
         statusBarStyle: "default",
         title: "OSCAR Viewer",
     },
+    other: {
+        "mobile-web-app-capable": "yes",
+    },
     icons: {
         icon: {
             url: '/icons/icon-96x96.png',

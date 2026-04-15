@@ -170,6 +170,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
                                     height={videoHeight}
                                     controls
                                     muted
+                                    autoPlay
                                     playsInline
                                 >
                                     <source src={`${tls}://${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${video.trim()}`} type="video/mp4" />

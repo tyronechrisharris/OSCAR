@@ -154,6 +154,7 @@ services:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
+      - ./dist/config/standard/logback.xml:/app/hivemq-config/logback.xml:ro
       - oscar_secrets:/secrets:ro
       - mtx_secrets:/mtx_secrets:ro
     networks:

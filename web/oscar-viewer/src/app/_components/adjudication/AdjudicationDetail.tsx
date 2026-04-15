@@ -557,7 +557,7 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
         let newFileNames: any[] = [];
 
         const encoded = btoa(`${node.auth.username}:${node.auth.password}`);
-        const protocol = node.isSecure ? 'https://' : 'http://';
+        const protocol = node.isSecure ? 'https://' : '//';
 
         const webIdFiles = filePaths.filter(f => f.webIdEnabled);
         const foregroundFile = webIdFiles.find(f => f.spectrumType === 'foreground');
@@ -1071,6 +1071,9 @@ export default function AdjudicationDetail(props: { event: EventTableData }) {
                     >
                         <video
                             ref={videoElement}
+                            muted
+                            autoPlay
+                            playsInline
                             style={{
                                 width: "100%",
                                 height: "100%",

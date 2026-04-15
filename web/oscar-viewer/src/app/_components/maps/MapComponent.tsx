@@ -241,7 +241,8 @@ export default function MapComponent() {
     }, [locationList, isInit]);
 
     const getSiteDiagramPath = (path: string, node: INode) => {
-        return node.isSecure ? `https://${node.address}:${node.port}${node.oshPathRoot}/buckets/${path}` : `http://${node.address}:${node.port}${node.oshPathRoot}/buckets/${path}`;
+        const protocol = node.isSecure ? 'https://' : '//';
+        return `${protocol}${node.address}:${node.port}${node.oshPathRoot}/buckets/${path}`;
     }
 
     useEffect(() => {

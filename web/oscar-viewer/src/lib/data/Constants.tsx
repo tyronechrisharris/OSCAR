@@ -75,8 +75,8 @@ export enum Protocols {
     WSS = "wss"
 }
 
-const smlUri = "http://sensorml.com/ont/swe/property/";
-const radUri = "http://www.opengis.net/def/"
+const smlUri = "//sensorml.com/ont/swe/property/";
+const radUri = "//www.opengis.net/def/"
 
 export const SENSOR_LOCATION_DEF = radUri + "property/OGC/0/SensorLocation";
 export const LOCATION_VECTOR_DEF = smlUri + "LocationVector";

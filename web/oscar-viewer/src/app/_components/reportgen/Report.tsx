@@ -130,9 +130,9 @@ export default function ReportGeneratorView(){
                             if (statusCode === 'ACCEPTED') {
                                 const reportPath = message?.results?.[0]?.data?.reportPath;
                                 if (reportPath) {
-                                    const isTls = selectedNode.isSecure ? 'https://' : 'http://';
+                                    const protocol = selectedNode.isSecure ? 'https://' : '//';
                                     setGeneratedURL(
-                                        `${isTls}${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${reportPath}`
+                                        `${protocol}${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${reportPath}`
                                     );
                                 }
                                 setSnackMessage("Report created successfully");
@@ -160,9 +160,9 @@ export default function ReportGeneratorView(){
                     return;
                 }
                 else if (json.statusCode === "ACCEPTED") {
-                    const isTls = selectedNode.isSecure ? 'https://' : 'http://';
+                    const protocol = selectedNode.isSecure ? 'https://' : '//';
                     setGeneratedURL(
-                        `${isTls}${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${json.results[0].data.reportPath}`
+                        `${protocol}${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${json.results[0].data.reportPath}`
                     );
                     setSnackMessage("Report created successfully");
                     setSeverity("success");
