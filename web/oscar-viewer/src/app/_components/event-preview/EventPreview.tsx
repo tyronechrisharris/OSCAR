@@ -8,6 +8,7 @@
 import {
     Box,
     Button,
+    Grid,
     IconButton,
     Snackbar,
     SnackbarCloseReason,
@@ -79,7 +80,6 @@ export function EventPreview() {
     const [openSnack, setOpenSnack] = useState(false);
     const [colorStatus, setColorStatus] = useState('')
 
-    const [localSelectedEvent, setLocalSelectedEvent] = useState<EventTableData>(eventPreview.eventData);
 
     const handleAdjudicationCode = (value: AdjudicationCode) => {
         let newAdjData: IAdjudicationData = {
@@ -93,14 +93,12 @@ export function EventPreview() {
             secondaryInspectionStatus: secondaryInspection,
             filePaths: [],
             occupancyObsId: eventPreview.eventData.occupancyObsId,
-            alarmingSystemUid: eventPreview.eventData.rpmSystemId
         }
 
         let adjudicationData = new AdjudicationData(
             new Date().toISOString(),
             eventPreview.eventData.occupancyCount,
             eventPreview.eventData.occupancyObsId,
-            eventPreview.eventData.rpmSystemId
         );
 
         adjudicationData.setFeedback(notes);
@@ -125,7 +123,7 @@ export function EventPreview() {
         }
 
         const phenomenonTime = new Date().toISOString();
-        const comboData = adjudication;
+        const comboData = adjudication.clone();
 
         comboData.setFeedback(notes);
         comboData.setTime(phenomenonTime);
@@ -137,9 +135,6 @@ export function EventPreview() {
         await submitAdjudication(currLaneEntry, comboData)
     }
 
-    useEffect(() => {
-        setLocalSelectedEvent(eventPreview.eventData);
-    }, [eventPreview.eventData]);
 
     const submitAdjudication = async(currLaneEntry: any, comboData: any) => {
         try{
@@ -176,8 +171,6 @@ export function EventPreview() {
                 eventPreview.eventData.occupancyObsId = occupancyObservation[0].id;
                 eventPreview.eventData.rpmSystemId = ds.properties["system@id"];
                 comboData.occupancyObsId = occupancyObservation[0].id;
-                comboData.alarmingSystemUid = ds.properties["system@id"];
-
 
             }
 
@@ -249,7 +242,6 @@ export function EventPreview() {
 
         router.push("/event-details");
     }
-
 
     useEffect(() => {
         if (eventPreview.eventData?.occupancyCount !== prevEventIdRef.current) {

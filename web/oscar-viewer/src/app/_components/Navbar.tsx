@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from 'react';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {CSSObject, styled, Theme} from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -24,18 +24,24 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
-
+import SettingsIcon from '@mui/icons-material/Settings';
 import MediationIcon from '@mui/icons-material/Mediation';
-import {Menu, MenuItem, Slider, Stack, Tooltip} from '@mui/material';
+import {FormControlLabel, Menu, MenuItem, Slider, Stack, Switch, Tooltip} from '@mui/material';
 import Link from 'next/link';
-import {Download, VolumeDown, VolumeUp} from "@mui/icons-material";
+import {Download, InsertChart, VolumeDown, VolumeUp} from "@mui/icons-material";
 import AlarmAudio from "@/app/_components/AlarmAudio";
 import {selectAlarmAudioVolume, setAlarmAudioVolume} from "@/lib/state/OSCARClientSlice";
 import {useDispatch, useSelector} from "react-redux";
+import { useBreakpoint } from '../providers';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRouter } from 'next/navigation';
+import {setEventPreview, setSelectedRowId} from "@/lib/state/EventPreviewSlice";
+import {setSelectedEvent} from "@/lib/state/EventDataSlice";
+import {setEventData} from "@/lib/state/EventDetailsSlice";
 
 const drawerWidth = 240;
+const drawerWidthMobile = 200;
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -70,20 +76,31 @@ const DrawerHeader = styled('div')(({theme}) => ({
 
 interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
+    isDesktop?: boolean;
 }
 
 const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({theme, open}) => ({
+    shouldForwardProp: (prop) => prop !== 'open' && prop !== "isDesktop"
+})<AppBarProps>(({theme, open, isDesktop}) => ({
     zIndex: theme.zIndex.drawer + 1,
+    // Exit transition
     transition: theme.transitions.create(['width', 'margin'], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
     }),
-    ...(open && {
+    ...((open && isDesktop) && {
         marginLeft: drawerWidth,
         width: `calc(100% - ${drawerWidth}px)`,
+        // Entrance transition
         transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+    }),
+    ...((open && !isDesktop) && {
+        width: `calc(100% - ${drawerWidthMobile}px)`,
+        // Entrance transition
+        transition: theme.transitions.create(['transform'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
         }),
@@ -108,25 +125,83 @@ const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})
 );
 
 export default function Navbar({children}: { children: React.ReactNode }) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // Anchor element for notification menu
-    const menuOpen = Boolean(anchorEl); // Open state for notification menu
+    const { isDesktop } = useBreakpoint();
+
+    const [settingsAnchorEl, setSettingsAnchorEl] = useState<null | HTMLElement>(null); // Anchor element for settings menu
+    const settingsMenuOpen = Boolean(settingsAnchorEl); // Open state for settings menu
+
     const [drawerOpen, setDrawerOpen] = useState(false);  // Open state for navigation drawer
     const { t } = useLanguage();
 
     const dispatch = useDispatch();
-
-
+    const router = useRouter();
     const savedVolume = useSelector(selectAlarmAudioVolume);
 
-    // Handle opening menu
-    const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl(event.currentTarget);
+    const handleSettingsMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setSettingsAnchorEl(event.currentTarget);
     };
 
-    // Handle closing menu
-    const handleMenuClose = () => {
-        setAnchorEl(null);
+    const handleSettingsMenuClose = () => {
+        setSettingsAnchorEl(null);
     };
+    const [notificationsEnabled, setNotificationsEnabled] = useState<NotificationPermission>('default');
+
+    useEffect(() => {
+        console.log('[Navbar] Mounting');
+
+        if ('Notification' in window) {
+            setNotificationsEnabled(Notification.permission);
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('[PWA] Service Worker registered:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('[PWA] Service Worker registration failed:', error);
+                });
+
+            const handleServiceWorkerMessage = (event: MessageEvent) => {
+                if (event.data?.type === 'VIEW_ALARM' && event.data.eventData) {
+                    const eventData = event.data.eventData;
+                    dispatch(setEventPreview({ isOpen: true, eventData }));
+                    dispatch(setSelectedRowId(eventData.id));
+                    dispatch(setSelectedEvent(eventData));
+                    dispatch(setEventData(eventData));
+                    router.push('/event-details');
+                }
+            };
+
+            navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+            return () => {
+                navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            };
+        } else {
+            console.warn('[PWA] Service Worker not supported');
+        }
+    }, [dispatch, router]);
+
+    // fix where u can actually turn notifications off
+    const handleNotifications = async () => {
+        if (!('Notification' in window)) {
+            alert('Notifications are not supported in this browser');
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+        setNotificationsEnabled(permission);
+
+        if (permission === 'granted') {
+            new Notification('Notifications enabled', {
+                body: 'You will now receive OSCAR notifications'
+            });
+        }
+    }
 
     // Handle opening drawer
     const handleDrawerOpen = () => {
@@ -170,7 +245,7 @@ export default function Navbar({children}: { children: React.ReactNode }) {
         },
         {
             title: t('reportGenerator'),
-            icon: <Download/>,
+            icon: <InsertChart/>,
             href: "/report",
         },
     ]
@@ -183,6 +258,72 @@ export default function Navbar({children}: { children: React.ReactNode }) {
             href: "/servers",
         }
     ]
+
+    // Drawer contents used for permanent and temporary variant
+    const drawerContent = (
+        <>
+            <DrawerHeader>
+                <IconButton onClick={handleDrawerClose} aria-label="close drawer">
+                    <ChevronLeftIcon/>
+                </IconButton>
+            </DrawerHeader>
+            <Divider/>
+            <List>
+                {menuItems.map((item) => (
+                    <Link href={item.href} passHref key={item.title} onClick={!isDesktop ? handleDrawerClose : null}>
+                        <ListItem disablePadding sx={{display: 'block'}}>
+                            <ListItemButton
+                                sx={{
+                                    minHeight: 48,
+                                    justifyContent: drawerOpen ? 'initial' : 'center',
+                                    px: 2.5,
+                                }}
+                            >
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 0,
+                                        mr: drawerOpen ? 3 : 'auto',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText primary={item.title} sx={{opacity: drawerOpen ? 1 : 0}}/>
+                            </ListItemButton>
+                        </ListItem>
+                    </Link>
+                ))}
+            </List>
+            <Divider/>
+            <List>
+                {settingsItems.map((item) => (
+                    <Link href={item.href} passHref key={item.title} onClick={!isDesktop ? handleDrawerClose : null}>
+                        <ListItem disablePadding sx={{display: 'block'}}>
+                            <ListItemButton
+                                sx={{
+                                    minHeight: 48,
+                                    justifyContent: drawerOpen ? 'initial' : 'center',
+                                    px: 2.5,
+                                }}
+                            >
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 0,
+                                        mr: drawerOpen ? 3 : 'auto',
+                                        justifyContent: 'center',
+                                    }}
+                                >
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText primary={item.title} sx={{opacity: drawerOpen ? 1 : 0}}/>
+                            </ListItemButton>
+                        </ListItem>
+                    </Link>
+                ))}
+            </List>
+            <Divider/>
+        </>
+    )
 
     return (
         <Box sx={{display: 'flex'}}>
@@ -197,6 +338,7 @@ export default function Navbar({children}: { children: React.ReactNode }) {
                     borderBottom: "solid",
                     borderColor: "action.selected"
                 }}
+                isDesktop={isDesktop}
             >
                 <Toolbar>
                     <IconButton
@@ -221,7 +363,7 @@ export default function Navbar({children}: { children: React.ReactNode }) {
                                 <IconButton
                                     color="inherit"
                                     aria-label={t('openNotifications')}
-                                    onClick={handleMenuOpen}
+                                    onClick={handleSettingsMenuOpen}
                                 >
                                     {savedVolume === 0 ? <NotificationsOffIcon/> : <NotificationsRoundedIcon/>}
                                 </IconButton>
@@ -231,12 +373,12 @@ export default function Navbar({children}: { children: React.ReactNode }) {
                 </Toolbar>
             </AppBar>
             <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={menuOpen}
-                onClose={handleMenuClose}
+                id="settings-menu"
+                anchorEl={settingsAnchorEl}
+                open={settingsMenuOpen}
+                onClose={handleSettingsMenuClose}
                 MenuListProps={{
-                    'aria-labelledby': 'basic-button',
+                    'aria-labelledby': 'settings-button',
                 }}
                 anchorOrigin={{
                     vertical: 'bottom',

@@ -42,10 +42,10 @@ export default function AdjudicationSelect(props: {
 
     return (
         <FormControl size="small" fullWidth>
-            <InputLabel id="label" sx={{"&.MuiInputLabel-root": {color: style}}}>{t('adjudicated')}</InputLabel>
+            <InputLabel id="adjudication-select-label" sx={{"&.MuiInputLabel-root": {color: style}}}>{t('adjudicated')}</InputLabel>
             <Select
                 variant="outlined"
-                id="label"
+                labelId="adjudication-select-label"
                 label={t('adjudicated')}
                 value={props.adjCode.label}
                 onChange={handleChangeAdjCode}

@@ -23,15 +23,18 @@
         </encoder>
     </appender>
 
-    <appender name="Sentry" class="io.sentry.logback.SentryAppender"/>
-
     <root level="info">
         <appender-ref ref="STDOUT" />
-        <appender-ref ref="Sentry" />
     </root>
+
     <logger name="org.sensorhub" level="info">
         <appender-ref ref="MODULE_FILE" />
     </logger>
+
+    <!-- Suppress verbose auth/session debug logs -->
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="info" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="info" />
+
     <logger name="org.eclipse.jetty" level="warn" />
     <logger name="org.vast" level="warn"/>
 

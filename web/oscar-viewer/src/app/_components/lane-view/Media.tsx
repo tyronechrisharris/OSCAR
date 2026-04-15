@@ -116,6 +116,18 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
         setVideoStreams(uniqueVideoControlStreams)
     }
 
+    const handleNextPage = () => {
+        if (currentPage < videoStreams.length - 1) {
+            setCurrentPage(prev => prev + 1);
+        }
+    }
+
+    const handlePreviousPage = () => {
+        if (currentPage > 0) {
+            setCurrentPage(prev => prev - 1)
+        }
+    }
+
 
     useEffect(() => {
         if (!datasources)
@@ -126,33 +138,8 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
             await datasources?.gamma?.connect();
             await datasources?.threshold?.connect();
         }
-
         connectDataSources();
-
-        // return () => {
-        //     if (datasources?.neutron?.isConnected())
-        //         datasources.neutron.disconnect();
-        //
-        //     if (datasources?.gamma?.isConnected())
-        //         datasources.gamma.disconnect();
-        //
-        //     if (datasources?.threshold?.isConnected())
-        //         datasources.threshold.disconnect();
-        // }
-
     }, [datasources, currentLane]);
-
-    const handleNextPage = () =>{
-        if (currentPage < videoStreams.length - 1) {
-            setCurrentPage(prev => prev + 1);
-        }
-    }
-
-    const handlePreviousPage = () =>{
-        if (currentPage > 0) {
-            setCurrentPage(prev => prev - 1)
-        }
-    }
 
     return (
         <Paper variant='outlined' sx={{ width: "100%" }}>

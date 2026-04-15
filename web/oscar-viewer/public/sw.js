@@ -38,6 +38,15 @@ self.addEventListener('push', (event) => {
     }
 });
 
+self.addEventListener('fetch', (event) => {
+    const url = event.request.url;
+    // Explicitly deny caching for telemetry (SOS) and authentication routes
+    // to ensure real-time accuracy and security.
+    if (url.includes('/sensorhub/sos') || url.includes('/sensorhub/login')) {
+        return;
+    }
+});
+
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 

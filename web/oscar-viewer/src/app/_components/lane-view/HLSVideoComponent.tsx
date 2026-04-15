@@ -87,6 +87,9 @@ export default function HLSVideoComponent({videoSource, selectedNode}: {videoSou
             ref={videoRef}
             width="100%"
             height="500px"
+            muted
+            autoPlay
+            playsInline
         />
     )
 }

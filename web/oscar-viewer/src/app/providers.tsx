@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ThemeProvider, createTheme, useMediaQuery } from "@mui/material";
+import { Box, ThemeProvider, createTheme, useMediaQuery, useTheme } from "@mui/material";
 import {ReactNode, Suspense, useMemo} from "react";
 import CssBaseline from '@mui/material/CssBaseline';
 import { getTheme } from "@/app/style/theme";
@@ -42,4 +42,23 @@ export default function Providers({ children }: { children: ReactNode }) {
       </LanguageProvider>
     </Suspense>
   );
+}
+
+// Handle breakpoints for desktop vs. tablets vs. mobile displays
+export const useBreakpoint = () => {
+  const theme = useTheme();
+
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isTablet = useMediaQuery(theme.breakpoints.up("md"));
+  const isSmallTablet = useMediaQuery(theme.breakpoints.up("sm"))
+
+  const size = isDesktop ? "desktop" : isTablet ? "tablet" : isSmallTablet ? "smallTablet" : "mobile"
+
+  return {
+    size,
+    isMobile: size === "mobile",
+    isSmallTablet: size === "smallTablet",
+    isTablet: size === "tablet",
+    isDesktop: size === "desktop",
+  };
 }

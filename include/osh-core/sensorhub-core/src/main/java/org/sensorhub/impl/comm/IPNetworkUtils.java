@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -178,7 +179,7 @@ public class IPNetworkUtils
         InetAddress ip = resolveHost(host, timeOut);
         int ellapsed = (int)(System.currentTimeMillis() - t0); 
                 
-        try (Socket soc = new Socket())
+        try (Socket soc = new Socket(Proxy.NO_PROXY))
         {
             soc.connect(new InetSocketAddress(ip, port), timeOut - ellapsed);
         }

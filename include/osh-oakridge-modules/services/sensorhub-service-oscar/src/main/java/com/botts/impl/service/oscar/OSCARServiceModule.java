@@ -25,6 +25,8 @@ import com.botts.impl.service.oscar.spreadsheet.SpreadsheetHandler;
 import com.botts.impl.service.oscar.stats.StatisticsControl;
 import com.botts.impl.service.oscar.stats.StatisticsOutput;
 import com.botts.impl.service.oscar.video.VideoRetention;
+import com.botts.impl.service.oscar.webid.WebIdClient;
+import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
@@ -53,6 +55,7 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
     SpreadsheetHandler spreadsheetHandler;
     VideoRetention videoRetention;
     DatabasePurger databasePurger;
+    WebIdResourceHandler webIdResourceHandler;
 
     @Override
     protected void doInit() throws SensorHubException {
@@ -79,6 +82,12 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
         createControls();
 
         sitemapDiagramHandler = new SitemapDiagramHandler(getBucketService(), siteInfoOutput, this);
+
+        if (bucketService != null) {
+            WebIdClient webIdClient = new WebIdClient(config.webIdApiRoot);
+            webIdResourceHandler = new WebIdResourceHandler(bucketStore, getParentHub(), webIdClient);
+            bucketService.registerObjectHandler(webIdResourceHandler);
+        }
 
         if (getConfiguration().videoRetentionConfig != null) {
             int frameCount = getConfiguration().videoRetentionConfig.enableFrameRetention ? getConfiguration().videoRetentionConfig.frameRetentionCount : 0;

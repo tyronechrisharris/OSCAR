@@ -22,6 +22,7 @@ import {selectLastToggleState, setToggleState} from "@/lib/state/LaneViewSlice";
 import ConSysApi from "osh-js/source/core/datasource/consysapi/ConSysApi.datasource";
 import StatusTable from "../_components/lane-view/StatusTable";
 import {useLanguage} from "@/contexts/LanguageContext";
+import RS350BackpackView from "../_components/lane-view/RS350BackpackView";
 
 
 export default function LaneViewPage() {
@@ -108,9 +109,11 @@ export default function LaneViewPage() {
     }, [laneMapRef, currentLane, laneMapRef.current.size]);
 
     return (
-        <Stack spacing={2} direction={"column"}>
-            <Grid container spacing={2} alignItems="center">
-                <Grid item xs={"auto"} >
+        <Grid container spacing={2} width={"100%"}>
+
+            {/* HEADER */}
+            <Grid item container xs={12} spacing={2} alignItems={"center"}>
+                <Grid item>
                     <BackButton/>
                 </Grid>
                 <Grid item xs>
@@ -121,59 +124,61 @@ export default function LaneViewPage() {
                 </Grid>
             </Grid>
 
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
-                <Paper variant='outlined' sx={{ width: "100%"}}>
-                    {dataSourcesByLane &&
-                        <LaneStatus dataSourcesByLane={dataSourcesByLane}/>
-                    }
-                </Paper>
-            </Grid>
-
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
-                <Media
-                    datasources={{
-                        gamma: gammaDS,
-                        neutron: neutronDS,
-                        threshold: thresholdDS,
-                    }}
-
-                    currentLane={currentLane}
-                />
-
-            </Grid>
-
-            <Grid item container spacing={2} sx={{ width: "100%" }}>
-                <Paper variant='outlined' sx={{ width: "100%", height: "100%", padding: 2}}>
-                    <Grid container direction="column" sx={{ width: "100%"}}>
-                        <Grid item sx={{ display: "flex", justifyContent: "center", padding: 1 }}>
-                            <ToggleButtonGroup
-                                size="small"
-                                orientation="horizontal"
-                                onChange={handleToggle}
-                                exclusive
-                                value={toggleView}
-                                sx={{
-                                    boxShadow: 1,
-                                    '& .MuiToggleButton-root': {
-                                        margin: 0.5,
-                                        padding: "5px",
-                                    },
-                                }}
-                            >
-                                {toggleButtons}
-                            </ToggleButtonGroup>
-                        </Grid>
-                        <Grid item sx={{ width: "100%", height: 800, display: toggleView === 'occupancy' ? 'block' : 'none' }}>
-                            <EventTable tableMode={'lanelog'} laneMap={laneMap} viewLane viewAdjudicated currentLane={currentLane}/>
-                        </Grid>
-                        <Grid item sx={{ width: "100%", height: 800, display: toggleView === 'fault' ? 'block' : 'none' }}>
-                            {entry && (
-                                <StatusTable currentLane={currentLane} entry={entry} />
-                            )}
-                        </Grid>
+            {entry?.isRS350Backpack ? (
+                <RS350BackpackView entry={entry} currentLane={currentLane} laneMap={laneMap}/>
+            ) : (
+                <>
+                    <Grid item xs={12}>
+                        {dataSourcesByLane &&
+                            <LaneStatus dataSourcesByLane={dataSourcesByLane}/>
+                        }
                     </Grid>
-                </Paper>
-            </Grid>
-        </Stack>
+
+                    <Grid item xs={12}>
+                        <Media
+                            datasources={{
+                                gamma: gammaDS,
+                                neutron: neutronDS,
+                                threshold: thresholdDS,
+                            }}
+                            currentLane={currentLane}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Paper variant='outlined' sx={{ width: "100%", height: "100%", padding: 0}}>
+                            <Grid container sx={{ width: "100%"}}>
+                                <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", padding: 2 }}>
+                                    <ToggleButtonGroup
+                                        size="small"
+                                        orientation="horizontal"
+                                        onChange={handleToggle}
+                                        exclusive
+                                        value={toggleView}
+                                        sx={{
+                                            boxShadow: 1,
+                                            '& .MuiToggleButton-root': {
+                                                margin: 0.5,
+                                                padding: "5px",
+                                            },
+                                        }}
+                                    >
+                                        {toggleButtons}
+                                    </ToggleButtonGroup>
+                                </Grid>
+                                <Grid item sx={{ width: "100%", height: 800, display: toggleView === 'occupancy' ? 'block' : 'none' }}>
+                                    <EventTable tableMode={'lanelog'} laneMap={laneMap} viewLane viewAdjudicated currentLane={currentLane}/>
+                                </Grid>
+                                <Grid item sx={{ width: "100%", height: 800, display: toggleView === 'fault' ? 'block' : 'none' }}>
+                                    {entry && (
+                                        <StatusTable currentLane={currentLane} entry={entry} />
+                                    )}
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                    </Grid>
+                </>
+            )}
+        </Grid>
     );
 }

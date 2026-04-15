@@ -59,8 +59,10 @@ public class RemoveObsFilterQuery extends BaseObsFilterQuery<RemoveFilterQueryGe
             if (temporalFilter.isLatestTime()) {
                 throw new UnsupportedOperationException("PhenomenonTimeFilter does not support Latest for REMOVE operation");
             } else {
+                String min = PostgisUtils.checkAndGetValidInstant(temporalFilter.getMin());
+                String max = PostgisUtils.checkAndGetValidInstant(temporalFilter.getMax());
                 addCondition(
-                        "tsrange('"+temporalFilter.getMin()+"','"+temporalFilter.getMax()+"', '[]') @> "+this.tableName+".phenomenonTime");
+                        "tsrange('" + escapeSqlString(min) + "','" + escapeSqlString(max) + "', '[]') @> " + this.tableName + ".phenomenonTime");
             }
         }
     }
@@ -73,9 +75,16 @@ public class RemoveObsFilterQuery extends BaseObsFilterQuery<RemoveFilterQueryGe
                 String min = PostgisUtils.checkAndGetValidInstant(temporalFilter.getMin());
                 String max = PostgisUtils.checkAndGetValidInstant(temporalFilter.getMax());
                 addCondition(
-                        "tsrange('"+min+"','"+max+"', '[]') @> "+this.tableName+".resultTime");
+                        "tsrange('" + escapeSqlString(min) + "','" + escapeSqlString(max) + "', '[]') @> " + this.tableName + ".resultTime");
             }
         }
+    }
+
+    private String escapeSqlString(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("'", "''");
     }
 
     protected void handleFoiFilter(FoiFilter foiFilter, ObsFilter obsFilter) {

@@ -34,7 +34,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v ufw >/dev/null 2>&1; then
 
         if [ -n "$DOCKER_SUBNET" ]; then
             echo "Whitelisting Docker subnet: $DOCKER_SUBNET"
-            sudo ufw allow from "$DOCKER_SUBNET" to any port 9997 proto tcp
+            sudo ufw allow from "$DOCKER_SUBNET" to any port 9997 proto tcp && sudo ufw allow from "$DOCKER_SUBNET" to any port 8554 proto tcp
             sudo ufw reload
         else
             echo "Warning: Could not determine Docker subnet. Skipping UFW configuration."

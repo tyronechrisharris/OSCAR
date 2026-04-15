@@ -1,4 +1,4 @@
-# OSCAR System Architecture
+# OSCAR System Architecture (Based on OSH v3.3.1)
 
 ## Overview
 OSCAR (Open Source Central Alarm Station) is a monitoring system for radiation portal monitors based on the OpenSensorHub (OSH) framework.
@@ -45,7 +45,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 
 ### Network Flows:
 - **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
-- **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows.
+- **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows. New in v3.3.1 is an enhanced evidence tracking system that allows for asynchronous WebID analysis submission and persistence of multiple adjudications per occupancy.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
 - **MQTT Connectivity**: The system maintains stable MQTT connections over WebSockets. Both the OSH backend and the reverse proxy are configured with an increased 10-minute idle timeout to prevent frequent disconnections in high-latency environments (e.g., Tailscale mesh). Additionally, the frontend MQTT client implements a proactive 15-second keepalive interval to ensure the connection remains active during periods of telemetry inactivity.
 - **OSH Backend Hardening**: The OSH container utilizes a dedicated startup script (`start-osh.sh`) that disables shell globbing (`set -f`) before launching the JVM. This prevents the shell from unintentionally expanding wildcards in `$JAVA_OPTS` (such as `10.*` in proxy exclusion lists), ensuring network configuration integrity.
@@ -99,3 +99,14 @@ Cross-platform scripts are provided in the repository root for maintenance:
 - `restore.sh/bat`: Restores the database from a dump.
 
 These utilities respect the `DB_HOST` and `POSTGRES_PASSWORD_FILE` environment variables.
+
+## Recommended Operating Environment
+Ubuntu Server 24.04.4 LTS is the preferred and recommended environment for deploying the OSCAR stack.
+
+### Why Ubuntu 24.04 LTS?
+- **Bare Metal Performance**: Running Docker natively on Linux provides superior I/O and networking performance compared to virtualization layers like WSL2 (Windows) or Docker Desktop (macOS).
+- **Security & Hardening**: Linux allows for strict POSIX permission enforcement on sensitive files like '.app_secrets' and enables advanced firewall configurations (UFW) to protect internal service APIs.
+- **MediaMTX Control Link**: Due to host-level firewall and routing limitations on Windows and macOS, the OSH Backend may be unable to dynamically control the MediaMTX sidecar via its REST API (port 9997). This prevents automated path provisioning for IP cameras. On Ubuntu, the 'launch-all.sh' script automatically configures UFW to whitelist the Docker subnet for this authenticated control link.
+- **Graceful Degradation**: While the system gracefully falls back to direct camera connections on Windows and macOS, the benefits of the MediaMTX proxy (load balancing, stream stability) are best realized on Linux. For Windows/Mac users requiring these benefits, it is recommended to run the MediaMTX executable natively on the host rather than in a container.
+
+For detailed setup instructions, see [Ubuntu Server 24.04 Setup Guide](docs/ubuntu_setup.md).

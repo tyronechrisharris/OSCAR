@@ -215,3 +215,8 @@ For documentation on configuring a server on the OSCAR Client refer to the OSCAR
 - Version in `dist/config/standard/config.json`
 - Make sure no `pgdata` in `dist/release/postgis`
 - Build with `./build-all.sh` or `./build-all.bat`
+
+## Preferred Deployment Environment
+For production use, **Ubuntu Server 24.04.4 LTS** is the preferred and recommended operating system. Due to host-level network limitations on Windows and macOS, certain advanced features like automated MediaMTX path provisioning may require manual configuration or native host-executables. Docker on Linux provides the best security, performance, and automated orchestration for the OSCAR stack.
+
+See the [Ubuntu Server Setup Guide](docs/ubuntu_setup.md) for detailed instructions.

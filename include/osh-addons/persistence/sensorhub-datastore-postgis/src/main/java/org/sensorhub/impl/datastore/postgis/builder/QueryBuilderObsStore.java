@@ -41,16 +41,17 @@ public class QueryBuilderObsStore extends QueryBuilder {
     }
 
     public String createTableQuery() {
-        return "CREATE TABLE IF NOT EXISTS "+this.getStoreTableName()+
+        return "CREATE TABLE IF NOT EXISTS " + this.getStoreTableName() +
                 " (" +
-                "id bigint PRIMARY KEY,"+
-                DATASTREAM_ID +" bigint, "+
-                FOI_ID+" bigint,"+
-                PHENOMENON_TIME+" TIMESTAMP,"+
-                RESULT_TIME+" TIMESTAMP,"+
-                RESULT+" JSONB" + // VERSUS JSONB but the parser does not keep order
+                "id bigint PRIMARY KEY," +
+                DATASTREAM_ID + " bigint, " +
+                FOI_ID + " bigint," +
+                PHENOMENON_TIME + " TIMESTAMPTZ," +
+                RESULT_TIME + " TIMESTAMPTZ," +
+                RESULT + " JSONB" +
                 ")";
     }
+
     public String createDataIndexQuery() {
         return "CREATE INDEX "+this.getStoreTableName()+"_data_idx on "+this.getStoreTableName()+" USING GIN("+RESULT+")";
     }
@@ -81,23 +82,36 @@ public class QueryBuilderObsStore extends QueryBuilder {
 
     public String insertObsQuery() {
         return "INSERT INTO "+this.getStoreTableName()+" " +
-                "(id,"+DATASTREAM_ID+", "+FOI_ID+", "+PHENOMENON_TIME+", "+RESULT_TIME+", "+RESULT+") VALUES (?,?,?,?,?,?) "+
-                "ON CONFLICT ("+DATASTREAM_ID+", "+FOI_ID+", "+PHENOMENON_TIME+", "+RESULT_TIME+") DO "+
-                "UPDATE SET "+DATASTREAM_ID+" = ?, " +FOI_ID+" = ?, "+PHENOMENON_TIME+" = ?," +
-                " "+RESULT_TIME+" = ?, "+RESULT+" = ?";
+                "(id,"+DATASTREAM_ID+", "+FOI_ID+", "+PHENOMENON_TIME+", "+RESULT_TIME+", "+RESULT+") VALUES (${1},${2},${3},${4},${5},${6}) "+
+                "ON CONFLICT ("+DATASTREAM_ID+", COALESCE("+FOI_ID+", -1::bigint), "+PHENOMENON_TIME+", "+RESULT_TIME+") DO NOTHING";
+    }
+
+    public String insertObsPreparedQuery() {
+        return "INSERT INTO "+this.getStoreTableName()+" " +
+                "(id,"+DATASTREAM_ID+", "+FOI_ID+", "+PHENOMENON_TIME+", "+RESULT_TIME+", "+RESULT+") VALUES (?::int8,?::int8,?::int8,?::timestamptz,?::timestamptz,?::jsonb) "+
+                "ON CONFLICT ("+DATASTREAM_ID+", COALESCE("+FOI_ID+", -1::bigint), "+PHENOMENON_TIME+", "+RESULT_TIME+") DO NOTHING";
     }
 
     public String createUniqueConstraint() {
-        return "CREATE UNIQUE INDEX  IF NOT EXISTS "+this.getStoreTableName()+"_unique_constraint on "+this.getStoreTableName()+" (dataStreamID, foiID, phenomenonTime, resultTime)";
+        return "CREATE UNIQUE INDEX IF NOT EXISTS "+this.getStoreTableName()+"_unique_constraint on "+this.getStoreTableName()+" (" + DATASTREAM_ID + ", COALESCE(" + FOI_ID + ", -1::bigint), " + PHENOMENON_TIME + ", " + RESULT_TIME + ")";
     }
 
     public String updateByIdQuery() {
-        return "UPDATE "+this.getStoreTableName()+" SET "+DATASTREAM_ID+" = ?, " +
-                FOI_ID+" = ?, " +
-                PHENOMENON_TIME+" = ?, " +
-                RESULT_TIME+" = ?, " +
-                RESULT+" = ? " +
+        return "UPDATE " + this.getStoreTableName() + " SET " +
+                DATASTREAM_ID + " = ?, " +
+                FOI_ID + " = ?, " +
+                PHENOMENON_TIME + " = ?, " +
+                RESULT_TIME + " = ?, " +
+                RESULT + " = ? " +
                 "WHERE id = ?";
+    }
+
+    public String findByUniqueFieldsQuery() {
+        return "SELECT id FROM " + this.getStoreTableName() + " WHERE " +
+                DATASTREAM_ID + " = ? AND " +
+                "COALESCE(" + FOI_ID + ", -1::bigint) = COALESCE(?, -1::bigint) AND " +
+                PHENOMENON_TIME + " = ? AND " +
+                RESULT_TIME + " = ?";
     }
 
     public String getPhenomenonTimeRangeByDataStreamIdQuery(long dataStreamID) {
@@ -156,8 +170,8 @@ public class QueryBuilderObsStore extends QueryBuilder {
             if(max == Instant.MAX) {
                 maxTimestamp = "infinity";
             }
-            String sb = "tsrange((" + this.getStoreTableName() + "."+PHENOMENON_TIME+")::timestamp," +
-                    " (" + this.getStoreTableName()  + "."+PHENOMENON_TIME+")::timestamp)" +
+            String sb = "tstzrange((" + this.getStoreTableName() + "."+PHENOMENON_TIME+")::timestamptz," +
+                    " (" + this.getStoreTableName()  + "."+PHENOMENON_TIME+")::timestamptz)" +
                     " && '[" + minTimestamp + "," + maxTimestamp + "]'";
 
         return "SELECT COUNT(*) FROM "+this.getStoreTableName()+" "+sb;

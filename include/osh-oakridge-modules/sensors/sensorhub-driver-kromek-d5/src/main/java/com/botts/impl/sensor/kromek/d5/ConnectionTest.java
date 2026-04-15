@@ -18,6 +18,7 @@ import com.botts.impl.sensor.kromek.d5.reports.SerialReport;
 import com.fazecast.jSerialComm.SerialPort;
 import org.junit.Test;
 
+import java.net.Proxy;
 import java.net.Socket;
 
 import static com.botts.impl.sensor.kromek.d5.Shared.printCommPorts;
@@ -32,7 +33,8 @@ public class ConnectionTest {
         System.out.println("Connecting to " + ipAddress + " on port " + portNumber);
 
         // Create a TCP socket and connect to the server
-        try (Socket clientSocket = new Socket(ipAddress, portNumber)) {
+        try (Socket clientSocket = new Socket(Proxy.NO_PROXY)) {
+            clientSocket.connect(new java.net.InetSocketAddress(ipAddress, portNumber));
             System.out.println("Connected to server");
 
             var report = new KromekSerialRadiometricStatusReport();

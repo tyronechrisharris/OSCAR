@@ -94,3 +94,9 @@ When the Setup Wizard is completed, the changes to the `admin` user (password ha
 1.  **Serialization:** The `BasicSecurityRealmConfig` uses Gson to serialize user configurations (including `password` and `twoFactorSecret` fields from `BasicSecurityRealmConfig.UserConfig`) into JSON. Note that `BasicSecurityRealm.java` specifically handles *permissions* in `user_permissions.json` and `role_permissions.json`, while the overarching configuration state (the `users` array containing passwords/secrets) is inherently tied to the module's core JSON configuration (e.g., `config/modules/security.json`).
 2.  **Filesystem Storage:** The state is saved to the backend's filesystem.
 3.  **Survival Across Restarts:** Because these configuration files are written to the host filesystem (which should be mounted as a persistent volume in Docker), the updated `UserConfig` (with the hashed password and TOTP secret) is reloaded into memory during the `doInit()` phase of `BasicSecurityRealm` on the next boot, ensuring the system remains in an "Initialized" state.
+
+## 5. Deployment Context: Windows/Mac vs Linux
+As of v3.3.1, the OSCAR stack is optimized for **Ubuntu Server 24.04.4 LTS**.
+
+- **Linux (Preferred)**: Uses 'launch-all.sh' to optimize kernel network buffers and dynamically configure the UFW firewall for the MediaMTX API control link (port 9997). This allows for fully automated camera path management.
+- **Windows/Mac**: The system will boot but may fail to provision MediaMTX paths automatically due to Docker Desktop's host-firewall abstractions. The OSH backend gracefully falls back to direct RTSP camera connections in this scenario. For full proxy benefits on these platforms, running MediaMTX as a native host process is recommended.

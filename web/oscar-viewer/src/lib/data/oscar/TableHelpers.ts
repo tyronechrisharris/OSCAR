@@ -27,8 +27,10 @@ export class EventTableData implements IEventTableData {
     foiId: string;
     videoPaths: string[];
     adjudicatedIds: string[];
+    parentNode: string;
+    isRS350: boolean;
 
-    constructor(id: number, laneId: string, msgValue: any, occupancyObsId: string, foiId: string,  adjudicatedData: AdjudicationData | null = null) {
+    constructor(id: number, laneId: string, msgValue: any, occupancyObsId: string, foiId: string, parentNode: string, isRS350: boolean, adjudicatedData: AdjudicationData | null = null) {
         this.id = id
         this.laneId = laneId
         this.occupancyCount = msgValue.occupancyCount;
@@ -38,7 +40,11 @@ export class EventTableData implements IEventTableData {
         this.maxNeutron = msgValue.maxNeutron > -1 ? msgValue.maxNeutron : null;
         this.neutronBackground = msgValue.neutronBackground > -1 ? msgValue.neutronBackground : null;
         this.pillarOccupancy = msgValue.occupancyCount > -1 ? msgValue.occupancyCount : null;
-        if (msgValue.gammaAlarm && msgValue.neutronAlarm) {
+        // TODO Later convert all drivers to use a category code string
+        const rawAlarmCategory: string | undefined = msgValue.alarmCategoryCode;
+        if (rawAlarmCategory && rawAlarmCategory.trim().length > 0) {
+            this.status = rawAlarmCategory;
+        } else if (msgValue.gammaAlarm && msgValue.neutronAlarm) {
             this.status = "Gamma & Neutron";
         } else if (msgValue.gammaAlarm) {
             this.status = "Gamma";
@@ -53,6 +59,8 @@ export class EventTableData implements IEventTableData {
         this.videoPaths = msgValue.videoPaths;
         this.adjudicatedIds = msgValue.adjudicatedIds;
         this.secondaryInspection = this.setSecondaryStatus(msgValue.adjudicatedIds); //TODO: reference adjudicatedIds to get secondary status
+        this.parentNode = parentNode;
+        this.isRS350 = isRS350;
     }
 
     adjudicatedUser?: string;

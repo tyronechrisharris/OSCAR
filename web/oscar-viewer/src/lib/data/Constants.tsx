@@ -75,8 +75,8 @@ export enum Protocols {
     WSS = "wss"
 }
 
-const smlUri = "http://sensorml.com/ont/swe/property/";
-const radUri = "http://www.opengis.net/def/"
+const smlUri = "//sensorml.com/ont/swe/property/";
+const radUri = "//www.opengis.net/def/"
 
 export const SENSOR_LOCATION_DEF = radUri + "property/OGC/0/SensorLocation";
 export const LOCATION_VECTOR_DEF = smlUri + "LocationVector";
@@ -101,3 +101,10 @@ export const NATIONAL_DEF =  radUri + "NumOccupancies";
 export const START_DEF =  smlUri + "StartDateTime";
 export const END_DEF =  smlUri + "EndDateTime";
 export const HLS_VIDEO_DEF =  smlUri + "StreamControl";
+export const WEB_ID_DEF =  radUri + "WebIDAnalysis";
+export const DURATION_DEF =  radUri + "Duration";
+export const LINEARSPEC_DEF =  radUri + "LinearSpectrum";
+export const DOSE_DEF =  radUri + "Dose";
+export const REMARK_DEF =  radUri + "Remark";
+export const N42_DEF =  radUri + "Remark";
+export const N42_REPORT_DEF = radUri + "ForegroundReports"

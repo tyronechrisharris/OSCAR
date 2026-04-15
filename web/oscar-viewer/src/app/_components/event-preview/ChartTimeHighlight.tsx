@@ -73,12 +73,12 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
     ];
 
     useEffect(() => {
-        if ( chartViews.gamma )
+        if (chartViews.gamma)
             setTimeout(() => {
                 chartViews.gamma.chart.update();
             }, 300);
 
-        if ( chartViews.nsigma )
+        if (chartViews.nsigma)
             setTimeout(() => {
                 chartViews.nsigma.chart.update();
             }, 300);
@@ -86,13 +86,12 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
 
 
     useEffect(() => {
-
-        if ( !props.eventData || !props.datasources?.gamma || !props.datasources?.neutron ) {
+        if (!props.eventData || !props.datasources?.gamma || !props.datasources?.neutron) {
             console.warn("no datasources or event data");
             return;
         }
 
-        if ( props.datasources?.threshold && props?.latestGB )
+        if (props.datasources?.threshold && props?.latestGB)
             setHasNsigma(true);
 
 
@@ -107,12 +106,12 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
     const chartsInitializedRef = useRef(false);
 
     useEffect(() => {
-        if ( !props.eventData ) {
+        if (!props.eventData) {
             console.warn("No event data");
             return;
         }
 
-        if ( !layers ) {
+        if (!layers) {
             console.warn("No layers");
             return;
         }
@@ -173,10 +172,6 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
             nchart.options.plugins.annotation = chartAnnotation;
             nchart.update();
         }
-
-            // chartViews?.gamma?.chart.update();
-            // chartViews?.nsigma?.chart.update();
-            // chartViews?.neutron?.chart.update();
     }
 
     function updateChartElIds(eventData: EventTableData): string[] {
@@ -228,6 +223,25 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
         };
     }
 
+    /**
+     * Patches a ChartJsView instance so that its internal buffer is sorted by
+     * timestamp before each chart update, ensuring data points render in order
+     * even when the API returns them out of chronological order.
+     *
+     * TODO Probably should guarantee order in the API / datastore, or fix this in osh-js
+     */
+    const patchChartSorting = (chartView: any) => {
+        const originalUpdate = chartView.chart.update.bind(chartView.chart);
+        chartView.chart.update = (mode?: any) => {
+            for (const dataset of chartView.chart.data.datasets) {
+                if (dataset.data?.length > 1) {
+                    dataset.data.sort((a: any, b: any) => a.x - b.x);
+                }
+            }
+            originalUpdate(mode);
+        };
+    };
+
     const renderCharts = (layers: CurveLayers, elementIds: string[]) => {
 
         if (layers?.gamma && gammaChartViewRef?.current) {
@@ -254,6 +268,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                 }
             });
 
+            patchChartSorting(gammaChart);
             setChartViews(prev => ({...prev, gamma: gammaChart}));
         }
 
@@ -283,6 +298,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                 }
             });
 
+            patchChartSorting(neutronChart);
             setChartViews(prev => ({...prev, neutron: neutronChart}));
         }
 
@@ -311,7 +327,7 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                     }
                 }
             });
-
+            patchChartSorting(nsigmaChart);
             setChartViews(prev => ({...prev, nsigma: nsigmaChart}));
         }
     };
@@ -331,13 +347,6 @@ export default function ChartTimeHighlight(props: ChartInterceptProps) {
                     onChange={handleToggle}
                     exclusive
                     value={toggleView}
-                    sx={{
-                        boxShadow: 1,
-                        '& .MuiToggleButton-root': {
-                            margin: 0.5,
-                            padding: "5px",
-                        },
-                    }}
                 >
                     {gammaToggleButtons}
                 </ToggleButtonGroup>
