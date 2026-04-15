@@ -38,7 +38,11 @@ public class OccupancyOutput<SensorType extends ISensorModule<?>> extends VarRat
 
     public OccupancyOutput(SensorType parentSensor) {
         super(NAME, parentSensor, 4);
+        dataStruct = createRecordStructure();
+        dataEncoding = new TextEncodingImpl(",", "\n");
+    }
 
+    public static DataRecord createRecordStructure() {
         RADHelper radHelper = new RADHelper();
         var samplingTime = radHelper.createPrecisionTimeStamp();
         var occupancyCount = radHelper.createOccupancyCount();
@@ -56,8 +60,8 @@ public class OccupancyOutput<SensorType extends ISensorModule<?>> extends VarRat
         var webIdObsIdsCount = radHelper.createWebIdObsIdsCount();
         var webIdObsIds = radHelper.createWebIdObsIdsArray();
 
-        dataStruct = radHelper.createRecord()
-                .name(getName())
+        return radHelper.createRecord()
+                .name(NAME)
                 .label(LABEL)
                 .updatable(true)
                 .definition(RADHelper.getRadUri("Occupancy"))
@@ -78,8 +82,6 @@ public class OccupancyOutput<SensorType extends ISensorModule<?>> extends VarRat
                 .addField(webIdObsIdsCount.getName(), webIdObsIdsCount)
                 .addField(webIdObsIds.getName(), webIdObsIds)
                 .build();
-
-        dataEncoding = new TextEncodingImpl(",", "\n");
     }
 
     public void setData(Occupancy occupancy) {

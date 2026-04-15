@@ -21,10 +21,8 @@ public class StatusOutput extends OutputBase {
 
     @Override
     protected void init() {
-
         RADHelper radHelper = new RADHelper();
 
-        // OUTPUT
         dataStruct = radHelper.createRecord()
                 .name(getName())
                 .label("Status")
@@ -54,61 +52,30 @@ public class StatusOutput extends OutputBase {
                 .build();
 
         dataEncoding = new TextEncodingImpl(",", "\n");
-
-        // Time
-
-        // Battery Charge (%)
-        // RSI Scan Mode (string)
-        // RSI Scan Number (quantity)
-        // RSI Scan Timeout Number (quantity)
-        // RSI Analysis Enabled (quantity)
-        // Lin Energy Calibration (matrix) (N42 Helper)
-        // Cmp Energy Calibration (matrix) (N42 Helper)
-        // Location (location vector)
-    }
-
-    public void parseData(RS350Message msg) {
-        if (latestRecord == null)
-            dataBlock = dataStruct.createDataBlock();
-        else
-            dataBlock = latestRecord.renew();
-
-        latestRecordTime = System.currentTimeMillis() / 1000;
-
-        dataBlock.setLongValue(0, latestRecordTime);
-        dataBlock.setDoubleValue(1, msg.getRs350InstrumentCharacteristics().getBatteryCharge());
-        dataBlock.setStringValue(2, msg.getRs350Item().getRsiScanMode());
-        dataBlock.setDoubleValue(3, msg.getRs350Item().getRsiScanTimeoutNumber());
-        dataBlock.setStringValue(4, msg.getRs350Item().getRsiAnalysisEnabled());
-        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(msg.getRs350LinEnergyCalibration().getLinEnCal());
-        ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(msg.getRs350CmpEnergyCalibration().getCmpEnCal());
-
-        eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
     }
 
     @Override
-    public boolean acceptsMessage(RS350Message msg) {
-        return msg.getRs350InstrumentCharacteristics() != null && msg.getRs350Item() != null;
+    public boolean acceptsMessage(RS350Message message) {
+        return message.getRs350InstrumentCharacteristics() != null
+            && message.getRs350Item() != null
+            && message.getRs350LinEnergyCalibration() != null
+            && message.getRs350CmpEnergyCalibration() != null;
     }
 
     @Override
     public void onNewMessage(RS350Message message) {
+        createOrRenewDataBlock();
 
-        if (acceptsMessage(message)) {
+        latestRecordTime = System.currentTimeMillis() / 1000;
 
-            createOrRenewDataBlock();
+        dataBlock.setLongValue(0, latestRecordTime);
+        dataBlock.setDoubleValue(1, message.getRs350InstrumentCharacteristics().getBatteryCharge());
+        dataBlock.setStringValue(2, message.getRs350Item().getRsiScanMode());
+        dataBlock.setDoubleValue(3, message.getRs350Item().getRsiScanTimeoutNumber());
+        dataBlock.setStringValue(4, message.getRs350Item().getRsiAnalysisEnabled());
+        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350LinEnergyCalibration().getLinEnCal());
+        ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(message.getRs350CmpEnergyCalibration().getCmpEnCal());
 
-            latestRecordTime = System.currentTimeMillis() / 1000;
-
-            dataBlock.setLongValue(0, latestRecordTime);
-            dataBlock.setDoubleValue(1, message.getRs350InstrumentCharacteristics().getBatteryCharge());
-            dataBlock.setStringValue(2, message.getRs350Item().getRsiScanMode());
-            dataBlock.setDoubleValue(3, message.getRs350Item().getRsiScanTimeoutNumber());
-            dataBlock.setStringValue(4, message.getRs350Item().getRsiAnalysisEnabled());
-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350LinEnergyCalibration().getLinEnCal());
-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(message.getRs350CmpEnergyCalibration().getCmpEnCal());
-
-            eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
-        }
+        eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
     }
 }

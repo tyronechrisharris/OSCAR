@@ -3,11 +3,11 @@
  ******************************* END LICENSE BLOCK ***************************/
 package com.botts.impl.sensor.rs350;
 
+import com.botts.impl.sensor.rs350.messages.RS350Message;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
 import net.opengis.swe.v20.DataRecord;
-import com.botts.impl.sensor.rs350.messages.RS350Message;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 
 public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> implements MessageHandler.MessageListener {
@@ -26,11 +26,13 @@ public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> imple
     protected abstract void init();
 
     /**
-     * Checks if this output accepts the given message for processing.
-     * @param msg the message to check
-     * @return true if the output accepts the message, false otherwise
+     * Indicates whether this output can safely process the provided message.
+     * MessageHandler uses this to dispatch only to outputs whose required
+     * content is present, avoiding partial-message null dereferences.
      */
-    public abstract boolean acceptsMessage(RS350Message msg);
+    public boolean acceptsMessage(RS350Message message) {
+        return true;
+    }
 
     @Override
     public DataComponent getRecordDescription() {

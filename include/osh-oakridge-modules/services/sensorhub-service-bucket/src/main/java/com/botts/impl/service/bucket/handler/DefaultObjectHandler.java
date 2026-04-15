@@ -14,9 +14,11 @@ import java.util.regex.Pattern;
 public class DefaultObjectHandler implements IObjectHandler {
 
     protected final IBucketStore bucketStore;
+    protected final MultipartHandler multipartHandler;
 
     public DefaultObjectHandler(IBucketStore bucketStore) {
         this.bucketStore = bucketStore;
+        this.multipartHandler = new MultipartHandler(bucketStore);
     }
 
     @Override
@@ -52,13 +54,17 @@ public class DefaultObjectHandler implements IObjectHandler {
 
     @Override
     public void doPost(RequestContext ctx) throws IOException, SecurityException {
-        // /buckets/{bucketName}
         var bucketName = ctx.getBucketName();
         var sec = ctx.getSecurityHandler();
         sec.checkPermission(sec.getBucketPermission(bucketName).create);
 
         if (ctx.hasObjectKey())
             throw ServiceErrors.unsupportedOperation("You can only create an object from the root of a bucket");
+
+        if (ctx.isMultipartRequest()) {
+            multipartHandler.handleMultipartPost(ctx);
+            return;
+        }
 
         if (ctx.getHeaders().get("Content-Type") == null)
             throw ServiceErrors.badRequest("Content-Type header is required");
@@ -77,13 +83,17 @@ public class DefaultObjectHandler implements IObjectHandler {
         ctx.getResponse().setHeader("Location", ctx.getResourceURL(newObjectKey));
     }
 
-    // /buckets/{bucketName}/{newOrExistingObjectKey}
     @Override
     public void doPut(RequestContext ctx) throws IOException, SecurityException {
         var bucketName = ctx.getBucketName();
         var objectKey = ctx.getObjectKey();
         var sec = ctx.getSecurityHandler();
         sec.checkPermission(sec.getBucketPermission(bucketName).put);
+
+        if (ctx.isMultipartRequest()) {
+            multipartHandler.handleMultipartPut(ctx);
+            return;
+        }
 
         int successStatus = bucketStore.objectExists(bucketName, objectKey) ?
                 HttpServletResponse.SC_OK : HttpServletResponse.SC_CREATED;
@@ -98,7 +108,6 @@ public class DefaultObjectHandler implements IObjectHandler {
         ctx.getResponse().setHeader("Location", ctx.getResourceURL(objectKey));
     }
 
-    // /buckets/{bucketName}/{objectKey}
     @Override
     public void doDelete(RequestContext ctx) throws IOException, SecurityException {
         var bucketName = ctx.getBucketName();

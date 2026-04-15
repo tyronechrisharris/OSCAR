@@ -506,6 +506,14 @@ public class RADHelper extends GeoPosHelper {
                 .build();
     }
 
+    public Text createRemark(){
+        return createText()
+                .name("remark")
+                .label("Remark")
+                .definition(RADHelper.getRadUri("Remark"))
+                .build();
+    }
+
     public Quantity createSpeedMph(){
         return createQuantity()
                 .name("speedMPH")
@@ -568,6 +576,21 @@ public class RADHelper extends GeoPosHelper {
                 .build();
     }
 
+    public DataArray createLinearCalibration(){
+        return createArray()
+                .name("linearCalibration")
+                .label("Linear Calibration")
+                .definition(getRadUri("LinearCalibration"))
+                .withElement("linearCalibrationValues", createQuantity()
+                        .label("Linear Calibration Values")
+                        .definition(getRadUri("LinearCalibrationValues"))
+                        .description("Linear Calibration Values")
+                        .dataType(DataType.DOUBLE)
+                        .build())
+                .withFixedSize(3)
+                .build();
+    }
+
     public DataArray createCmpCalibration(){
         return createArray()
                 .name("cmpCalibration")
@@ -583,10 +606,28 @@ public class RADHelper extends GeoPosHelper {
                 .build();
     }
 
+    public DataArray createCompressedCalibration(){
+        return createArray()
+                .name("compressedCalibration")
+                .label("Compressed Calibration")
+                .definition(getRadUri("CompressedCalibration"))
+                .withElement("compressedCalibrationValues", createQuantity()
+                        .label("Compressed Calibration Values")
+                        .definition(getRadUri("CompressedCalibrationValues"))
+                        .dataType(DataType.DOUBLE)
+                        .build())
+                .withFixedSize(3)
+                .build();
+    }
+
     public Count createArraySize(String name, String fieldID){
+        return createArraySize(name, fieldID, name);
+    }
+
+    public Count createArraySize(String name, String fieldID, String label){
         return createCount()
                 .name(name)
-                .label(name)
+                .label(label)
                 .description("length of array")
                 .id(fieldID)
                 .build();
@@ -607,6 +648,20 @@ public class RADHelper extends GeoPosHelper {
                 .build();
     }
 
+    public DataArray createLinearSpectrum(){
+        return createArray()
+                .name("linearSpectrum")
+                .label("Linear Spectrum")
+                .definition(getRadUri("LinearSpectrum"))
+                .withVariableSize("linearSpectrumCount")
+                .withElement("linearSpectrumValues", createQuantity()
+                        .label("Linear Spectrum Values")
+                        .definition(getRadUri("LinearSpectrumValues"))
+                        .dataType(DataType.DOUBLE)
+                        .build())
+                .build();
+    }
+
     public DataArray createCmpSpectrum(String fieldID){
         return createArray()
                 .name("cmpSpectrum")
@@ -617,6 +672,20 @@ public class RADHelper extends GeoPosHelper {
                         .label("Cmp Spectrum Values")
                         .definition(getRadUri("CmpSpectrumVals"))
                         .description("Spectrum Values")
+                        .dataType(DataType.DOUBLE)
+                        .build())
+                .build();
+    }
+
+    public DataArray createCompressedSpectrum(){
+        return createArray()
+                .name("compressedSpectrum")
+                .label("Compressed Spectrum")
+                .definition(getRadUri("CompressedSpectrum"))
+                .withVariableSize("compressedSpectrumCount")
+                .withElement("compressedSpectrumValues", createQuantity()
+                        .label("Compressed Spectrum Values")
+                        .definition(getRadUri("CompressedSpectrumValues"))
                         .dataType(DataType.DOUBLE)
                         .build())
                 .build();
@@ -688,6 +757,22 @@ public class RADHelper extends GeoPosHelper {
                 .label("Dose")
                 .definition(getRadUri("Dose"))
                 .uomCode("uSv/h")
+                .build();
+    }
+
+    public Text createAlarmDescription(){
+        return createText()
+                .name("alarmDescription")
+                .label("Alarm Description")
+                .definition(getRadUri("AlarmDescription"))
+                .build();
+    }
+
+    public Quantity createDuration() {
+        return createQuantity()
+                .name("duration")
+                .label("Duration")
+                .definition(getRadUri("Duration"))
                 .build();
     }
 

@@ -12,18 +12,18 @@ import java.util.List;
 
 public class Occupancy {
 
-    protected double samplingTime;
-    protected int occupancyCount;
-    protected double startTime;
-    protected double endTime;
-    protected double neutronBackground;
-    protected boolean hasGammaAlarm;
-    protected boolean hasNeutronAlarm;
-    protected int maxGammaCount;
-    protected int maxNeutronCount;
-    protected List<String> adjudicatedIds = new ArrayList<>();
-    protected List<String> videoPaths = new ArrayList<>();
-    protected List<String> webIdObsIds = new ArrayList<>();
+    private double samplingTime;
+    private int occupancyCount;
+    private double startTime;
+    private double endTime;
+    private double neutronBackground;
+    private boolean hasGammaAlarm;
+    private boolean hasNeutronAlarm;
+    private int maxGammaCount;
+    private int maxNeutronCount;
+    private List<String> adjudicatedIds = new ArrayList<>();
+    private List<String> videoPaths = new ArrayList<>();
+    private List<String> webIdObsIds = new ArrayList<>();
 
     public int getOccupancyCount() {
         return occupancyCount;
@@ -160,8 +160,7 @@ public class Occupancy {
     }
 
     public static DataBlock fromOccupancy(Occupancy occupancy) {
-        OccupancyOutput<?> output = new OccupancyOutput<>(new SensorSystem());
-        DataComponent resultStructure = output.getRecordDescription();
+        DataComponent resultStructure = OccupancyOutput.createRecordStructure();
         DataBlock dataBlock = resultStructure.createDataBlock();
         dataBlock.updateAtomCount();
         resultStructure.setData(dataBlock);

@@ -1,0 +1,1890 @@
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/AlarmOutput.java b/src/main/java/com/botts/impl/sensor/rs350/AlarmOutput.java
+index 5e93452..a607146 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/AlarmOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/AlarmOutput.java
+@@ -26,7 +26,6 @@ public class AlarmOutput extends OutputBase {
+                 .name(getName())
+                 .label("Alarm")
+                 .definition(RADHelper.getRadUri("Alarm-output"))
+-                // Derived Data
+                 .addField("Sampling Time", radHelper.createPrecisionTimeStamp())
+                 .addField("Duration",
+                         radHelper.createQuantity()
+@@ -39,7 +38,6 @@ public class AlarmOutput extends OutputBase {
+                                 .label("Remark")
+                                 .definition(RADHelper.getRadUri("alarm-remark")))
+                 .addField("MeasurementClassCode", radHelper.createMeasurementClassCode())
+-                // RAD Alarm
+                 .addField("AlarmCategoryCode", radHelper.createAlarmCatCode())
+                 .addField("AlarmDescription",
+                         radHelper.createText()
+@@ -51,42 +49,28 @@ public class AlarmOutput extends OutputBase {
+         dataEncoding = new TextEncodingImpl(",", "\n");
+     }
+
+-//    public void parseData(RS350Message msg) {
+-//        if (latestRecord == null)
+-//            dataBlock = dataStruct.createDataBlock();
+-//        else
+-//            dataBlock = latestRecord.renew();
+-//
+-//        latestRecordTime = System.currentTimeMillis() / 1000;
+-//
+-//        dataBlock.setLongValue(0, msg.getRs350DerivedData().getStartDateTime() / 1000);
+-//        dataBlock.setDoubleValue(1, msg.getRs350DerivedData().getDuration());
+-//        dataBlock.setStringValue(2, msg.getRs350DerivedData().getRemark());
+-//        dataBlock.setStringValue(3, msg.getRs350DerivedData().getClassCode());
+-//        dataBlock.setStringValue(4, msg.getRs350RadAlarm().getCategoryCode());
+-//        dataBlock.setStringValue(5, msg.getRs350RadAlarm().getDescription());
+-//
+-//        eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
+-//    }
+-
++    @Override
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350DerivedData() != null && message.getRs350RadAlarm() != null;
++    }
+
+     @Override
+     public void onNewMessage(RS350Message message) {
++        createOrRenewDataBlock();
+
+-        if (message.getRs350RadAlarm() != null) {
++        latestRecordTime = System.currentTimeMillis() / 1000;
+
+-            createOrRenewDataBlock();
++        dataBlock.setLongValue(0, message.getRs350DerivedData().getStartDateTime() / 1000);
++        dataBlock.setDoubleValue(1, message.getRs350DerivedData().getDuration());
++        dataBlock.setStringValue(2, safeString(message.getRs350DerivedData().getRemark()));
++        dataBlock.setStringValue(3, safeString(message.getRs350DerivedData().getClassCode()));
++        dataBlock.setStringValue(4, safeString(message.getRs350RadAlarm().getCategoryCode()));
++        dataBlock.setStringValue(5, safeString(message.getRs350RadAlarm().getDescription()));
+
+-            latestRecordTime = System.currentTimeMillis() / 1000;
+-
+-            dataBlock.setLongValue(0, message.getRs350DerivedData().getStartDateTime() / 1000);
+-            dataBlock.setDoubleValue(1, message.getRs350DerivedData().getDuration());
+-            dataBlock.setStringValue(2, message.getRs350DerivedData().getRemark());
+-            dataBlock.setStringValue(3, message.getRs350DerivedData().getClassCode());
+-            dataBlock.setStringValue(4, message.getRs350RadAlarm().getCategoryCode());
+-            dataBlock.setStringValue(5, message.getRs350RadAlarm().getDescription());
++        eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
++    }
+
+-            eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
+-        }
++    private static String safeString(String value) {
++        return value != null ? value : "";
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/BackgroundOutput.java b/src/main/java/com/botts/impl/sensor/rs350/BackgroundOutput.java
+index 2ef2a7e..8aaae85 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/BackgroundOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/BackgroundOutput.java
+@@ -25,8 +25,6 @@ public class BackgroundOutput extends OutputBase {
+         final String LIN_SPEC_ID = "lin-spectrum";
+         final String CMP_SPEC_ID = "cmp-spectrum";
+
+-        // OUTPUT
+-
+         dataStruct = radHelper.createRecord()
+                 .name(getName())
+                 .label("Background Report")
+@@ -46,48 +44,28 @@ public class BackgroundOutput extends OutputBase {
+                 .build();
+
+         dataEncoding = new TextEncodingImpl(",", "\n");
+-
+     }
+
+-//    public void parseData(RS350Message msg) {
+-//        if (latestRecord == null)
+-//            dataBlock = dataStruct.createDataBlock();
+-//        else
+-//            dataBlock = latestRecord.renew();
+-//
+-//        latestRecordTime = System.currentTimeMillis() / 1000;
+-//
+-//        dataBlock.setLongValue(0, msg.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
+-//        dataBlock.setDoubleValue(1, msg.getRs350BackgroundMeasurement().getRealTimeDuration());
+-//        dataBlock.setIntValue(2, msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
+-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
+-//        dataBlock.setIntValue(4, msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
+-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
+-//        dataBlock.setDoubleValue(6, msg.getRs350BackgroundMeasurement().getGammaGrossCount());
+-//        dataBlock.setDoubleValue(7, msg.getRs350BackgroundMeasurement().getNeutronGrossCount());
+-//
+-//        eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
+-//    }
++    @Override
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350BackgroundMeasurement() != null;
++    }
+
+     @Override
+     public void onNewMessage(RS350Message message) {
++        createOrRenewDataBlock();
+
+-        if (message.getRs350BackgroundMeasurement() != null) {
+-
+-            createOrRenewDataBlock();
+-
+-            latestRecordTime = System.currentTimeMillis() / 1000;
++        latestRecordTime = System.currentTimeMillis() / 1000;
+
+-            dataBlock.setLongValue(0, message.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
+-            dataBlock.setDoubleValue(1, message.getRs350BackgroundMeasurement().getRealTimeDuration());
+-            dataBlock.setIntValue(2, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
+-            dataBlock.setIntValue(4, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
+-            dataBlock.setDoubleValue(6, message.getRs350BackgroundMeasurement().getGammaGrossCount());
+-            dataBlock.setDoubleValue(7, message.getRs350BackgroundMeasurement().getNeutronGrossCount());
++        dataBlock.setLongValue(0, message.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
++        dataBlock.setDoubleValue(1, message.getRs350BackgroundMeasurement().getRealTimeDuration());
++        dataBlock.setIntValue(2, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
++        dataBlock.setIntValue(4, message.getRs350BackgroundMeasurement().getCmpEnCalSpectrum().length);
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350BackgroundMeasurement().getCmpEnCalSpectrum());
++        dataBlock.setDoubleValue(6, message.getRs350BackgroundMeasurement().getGammaGrossCount());
++        dataBlock.setDoubleValue(7, message.getRs350BackgroundMeasurement().getNeutronGrossCount());
+
+-            eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
+-        }
++        eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/ConnectionStatusOutput.java b/src/main/java/com/botts/impl/sensor/rs350/ConnectionStatusOutput.java
+new file mode 100644
+index 0000000..c5d78f8
+--- /dev/null
++++ b/src/main/java/com/botts/impl/sensor/rs350/ConnectionStatusOutput.java
+@@ -0,0 +1,84 @@
++package com.botts.impl.sensor.rs350;
++
++import net.opengis.swe.v20.DataBlock;
++import net.opengis.swe.v20.DataComponent;
++import net.opengis.swe.v20.DataEncoding;
++import net.opengis.swe.v20.DataRecord;
++import org.sensorhub.api.data.DataEvent;
++import org.sensorhub.impl.sensor.AbstractSensorOutput;
++import org.sensorhub.impl.utils.rad.RADHelper;
++import org.vast.data.TextEncodingImpl;
++
++public class ConnectionStatusOutput extends AbstractSensorOutput<RS350Sensor> {
++
++    private static final String SENSOR_OUTPUT_NAME = "connectionStatus";
++    private static final String SENSOR_OUTPUT_LABEL = "Connection Status";
++
++    protected DataRecord dataStruct;
++    protected DataEncoding dataEncoding;
++
++    private Boolean lastPublishedState;
++
++    public ConnectionStatusOutput(RS350Sensor parentSensor) {
++        super(SENSOR_OUTPUT_NAME, parentSensor);
++    }
++
++    public void init() {
++        RADHelper radHelper = new RADHelper();
++
++        DataComponent samplingTime = radHelper.createPrecisionTimeStamp();
++        DataComponent isConnected = radHelper.createBoolean()
++                .name("isConnected")
++                .label("Is Connected")
++                .definition(RADHelper.getRadUri("ConnectionStatus"))
++                .description("Whether the sensor is actively receiving messages")
++                .build();
++
++        dataStruct = radHelper.createRecord()
++                .name(getName())
++                .label(SENSOR_OUTPUT_LABEL)
++                .updatable(true)
++                .addField(samplingTime.getName(), samplingTime)
++                .addField(isConnected.getName(), isConnected)
++                .build();
++
++        dataEncoding = new TextEncodingImpl(",", "\n");
++    }
++
++    public void publishStatus(boolean connected) {
++        if (lastPublishedState != null && lastPublishedState.booleanValue() == connected) {
++            return;
++        }
++
++        DataBlock dataBlock;
++
++        if (latestRecord == null) {
++            dataBlock = dataStruct.createDataBlock();
++        } else {
++            dataBlock = latestRecord.renew();
++        }
++
++        long timeStamp = System.currentTimeMillis() / 1000;
++
++        dataBlock.setLongValue(0, timeStamp);
++        dataBlock.setBooleanValue(1, connected);
++
++        lastPublishedState = connected;
++        eventHandler.publish(new DataEvent(timeStamp, ConnectionStatusOutput.this, dataBlock));
++    }
++
++    @Override
++    public DataComponent getRecordDescription() {
++        return dataStruct;
++    }
++
++    @Override
++    public DataEncoding getRecommendedEncoding() {
++        return dataEncoding;
++    }
++
++    @Override
++    public double getAverageSamplingPeriod() {
++        return 0;
++    }
++}
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/DerivedDataOutput.java b/src/main/java/com/botts/impl/sensor/rs350/DerivedDataOutput.java
+index 92278ca..a5dc536 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/DerivedDataOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/DerivedDataOutput.java
+@@ -1,9 +1,11 @@
+ package com.botts.impl.sensor.rs350;
+
+ import com.botts.impl.sensor.rs350.messages.RS350Message;
++import org.sensorhub.api.data.DataEvent;
+ import org.sensorhub.impl.utils.rad.RADHelper;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
++import org.vast.data.TextEncodingImpl;
+
+ public class DerivedDataOutput extends OutputBase {
+
+@@ -21,12 +23,46 @@ public class DerivedDataOutput extends OutputBase {
+         RADHelper radHelper = new RADHelper();
+
+         dataStruct = radHelper.createRecord()
++                .name(getName())
++                .label("Derived Data")
++                .definition(RADHelper.getRadUri("derived-data-output"))
++                .addField("Sampling Time", radHelper.createPrecisionTimeStamp())
++                .addField("Duration",
++                        radHelper.createQuantity()
++                                .name("Duration")
++                                .label("Duration")
++                                .definition(RADHelper.getRadUri("duration")))
++                .addField("Remark",
++                        radHelper.createText()
++                                .name("Remark")
++                                .label("Remark")
++                                .definition(RADHelper.getRadUri("remark")))
++                .addField("MeasurementClassCode", radHelper.createMeasurementClassCode())
+                 .build();
++
++        dataEncoding = new TextEncodingImpl(",", "\n");
+     }
+
+     @Override
+-    public void onNewMessage(RS350Message message) {
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350DerivedData() != null;
++    }
+
++    @Override
++    public void onNewMessage(RS350Message message) {
+         createOrRenewDataBlock();
++
++        latestRecordTime = System.currentTimeMillis() / 1000;
++
++        dataBlock.setLongValue(0, message.getRs350DerivedData().getStartDateTime() / 1000);
++        dataBlock.setDoubleValue(1, message.getRs350DerivedData().getDuration());
++        dataBlock.setStringValue(2, safeString(message.getRs350DerivedData().getRemark()));
++        dataBlock.setStringValue(3, safeString(message.getRs350DerivedData().getClassCode()));
++
++        eventHandler.publish(new DataEvent(latestRecordTime, DerivedDataOutput.this, dataBlock));
++    }
++
++    private static String safeString(String value) {
++        return value != null ? value : "";
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/ForegroundOutput.java b/src/main/java/com/botts/impl/sensor/rs350/ForegroundOutput.java
+index 5a05906..03da452 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/ForegroundOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/ForegroundOutput.java
+@@ -24,7 +24,6 @@ public class ForegroundOutput extends OutputBase {
+         RADHelper radHelper = new RADHelper();
+         final String LIN_SPEC_ID = "lin-spectrum";
+         final String CMP_SPEC_ID = "cmp-spectrum";
+-        // OUTPUT
+
+         dataStruct = radHelper.createRecord()
+                 .name(getName())
+@@ -46,51 +45,29 @@ public class ForegroundOutput extends OutputBase {
+                 .build();
+
+         dataEncoding = new TextEncodingImpl(",", "\n");
+-
+     }
+
+-//    public void parseData(RS350Message msg) {
+-//        if (latestRecord == null)
+-//            dataBlock = dataStruct.createDataBlock();
+-//        else
+-//            dataBlock = latestRecord.renew();
+-//
+-//        latestRecordTime = System.currentTimeMillis() / 1000;
+-//
+-//        dataBlock.setLongValue(0, msg.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
+-//        dataBlock.setDoubleValue(1, msg.getRs350ForegroundMeasurement().getRealTimeDuration());
+-//        dataBlock.setIntValue(2, msg.getRs350ForegroundMeasurement().getLinEnCalSpectrum().length);
+-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(msg.getRs350ForegroundMeasurement().getLinEnCalSpectrum());
+-//        dataBlock.setIntValue(4, msg.getRs350ForegroundMeasurement().getLinEnCalSpectrum().length);
+-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(msg.getRs350ForegroundMeasurement().getLinEnCalSpectrum());
+-//        dataBlock.setDoubleValue(6, msg.getRs350ForegroundMeasurement().getGammaGrossCount());
+-//        dataBlock.setDoubleValue(7, msg.getRs350ForegroundMeasurement().getNeutronGrossCount());
+-//        dataBlock.setDoubleValue(8, msg.getRs350ForegroundMeasurement().getDoseRate());
+-//
+-//        eventHandler.publish(new DataEvent(latestRecordTime, ForegroundOutput.this, dataBlock));
+-//    }
+-
++    @Override
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350ForegroundMeasurement() != null;
++    }
+
+     @Override
+     public void onNewMessage(RS350Message message) {
++        createOrRenewDataBlock();
+
+-        if (message.getRs350ForegroundMeasurement() != null) {
+-
+-            createOrRenewDataBlock();
+-
+-            latestRecordTime = System.currentTimeMillis() / 1000;
++        latestRecordTime = System.currentTimeMillis() / 1000;
+
+-            dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
+-            dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getRealTimeDuration());
+-            dataBlock.setIntValue(2, message.getRs350ForegroundMeasurement().getLinEnCalSpectrum().length);
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350ForegroundMeasurement().getLinEnCalSpectrum());
+-            dataBlock.setIntValue(4, message.getRs350ForegroundMeasurement().getLinEnCalSpectrum().length);
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350ForegroundMeasurement().getLinEnCalSpectrum());
+-            dataBlock.setDoubleValue(6, message.getRs350ForegroundMeasurement().getGammaGrossCount());
+-            dataBlock.setDoubleValue(7, message.getRs350ForegroundMeasurement().getNeutronGrossCount());
+-            dataBlock.setDoubleValue(8, message.getRs350ForegroundMeasurement().getDoseRate());
++        dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
++        dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getRealTimeDuration());
++        dataBlock.setIntValue(2, message.getRs350ForegroundMeasurement().getLinEnCalSpectrum().length);
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350ForegroundMeasurement().getLinEnCalSpectrum());
++        dataBlock.setIntValue(4, message.getRs350ForegroundMeasurement().getCmpEnCalSpectrum().length);
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350ForegroundMeasurement().getCmpEnCalSpectrum());
++        dataBlock.setDoubleValue(6, message.getRs350ForegroundMeasurement().getGammaGrossCount());
++        dataBlock.setDoubleValue(7, message.getRs350ForegroundMeasurement().getNeutronGrossCount());
++        dataBlock.setDoubleValue(8, message.getRs350ForegroundMeasurement().getDoseRate());
+
+-            eventHandler.publish(new DataEvent(latestRecordTime, ForegroundOutput.this, dataBlock));
+-        }
++        eventHandler.publish(new DataEvent(latestRecordTime, ForegroundOutput.this, dataBlock));
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/LocationOutput.java b/src/main/java/com/botts/impl/sensor/rs350/LocationOutput.java
+index 56ca866..b0c3355 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/LocationOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/LocationOutput.java
+@@ -31,42 +31,26 @@ public class LocationOutput extends OutputBase {
+                 .build();
+
+         dataEncoding = new TextEncodingImpl(",", "\n");
+-
+     }
+
+-//    protected void parseData(RS350Message msg) {
+-//
+-//        if (latestRecord == null)
+-//            dataBlock = dataStruct.createDataBlock();
+-//        else
+-//            dataBlock = latestRecord.renew();
+-//
+-//        latestRecordTime = System.currentTimeMillis() / 1000;
+-//
+-//        dataBlock.setLongValue(0, msg.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
+-//        dataBlock.setDoubleValue(1, msg.getRs350ForegroundMeasurement().getLat());
+-//        dataBlock.setDoubleValue(2, msg.getRs350ForegroundMeasurement().getLon());
+-//        dataBlock.setDoubleValue(3, msg.getRs350ForegroundMeasurement().getAlt());
+-//
+-//        eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
+-//
+-//    }
++    @Override
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350ForegroundMeasurement() != null
++            && message.getRs350ForegroundMeasurement().getLat() != null
++            && message.getRs350ForegroundMeasurement().getLon() != null;
++    }
+
+     @Override
+     public void onNewMessage(RS350Message message) {
++        createOrRenewDataBlock();
+
+-        if (message.getRs350ForegroundMeasurement().getLat() != null) {
+-
+-            createOrRenewDataBlock();
+-
+-            latestRecordTime = System.currentTimeMillis() / 1000;
++        latestRecordTime = System.currentTimeMillis() / 1000;
+
+-            dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
+-            dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getLat());
+-            dataBlock.setDoubleValue(2, message.getRs350ForegroundMeasurement().getLon());
+-            dataBlock.setDoubleValue(3, message.getRs350ForegroundMeasurement().getAlt());
++        dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
++        dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getLat());
++        dataBlock.setDoubleValue(2, message.getRs350ForegroundMeasurement().getLon());
++        dataBlock.setDoubleValue(3, message.getRs350ForegroundMeasurement().getAlt() != null ? message.getRs350ForegroundMeasurement().getAlt() : 0.0);
+
+-            eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
+-        }
++        eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/MessageHandler.java b/src/main/java/com/botts/impl/sensor/rs350/MessageHandler.java
+index 44cde08..263bef6 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/MessageHandler.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/MessageHandler.java
+@@ -2,159 +2,450 @@ package com.botts.impl.sensor.rs350;
+
+ import com.botts.impl.sensor.rs350.messages.RS350Message;
+ import com.botts.impl.utils.n42.RadInstrumentDataType;
++import org.sensorhub.api.common.BigId;
++import org.sensorhub.api.datastore.obs.ObsFilter;
++import org.sensorhub.api.datastore.system.SystemFilter;
++import org.sensorhub.impl.sensor.AbstractSensorModule;
+ import org.sensorhub.impl.utils.rad.RADHelper;
++import org.sensorhub.impl.utils.rad.output.OccupancyOutput;
++import org.sensorhub.impl.utils.rad.webid.WebIdAnalyzer;
++import org.sensorhub.impl.utils.rad.webid.WebIdRequestContext;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+
+-import javax.xml.stream.XMLEventReader;
+-import javax.xml.stream.XMLStreamReader;
+-import java.io.BufferedReader;
++import java.io.ByteArrayInputStream;
+ import java.io.IOException;
+ import java.io.InputStream;
+-import java.io.InputStreamReader;
+ import java.nio.charset.StandardCharsets;
+ import java.util.ArrayList;
+-import java.util.Arrays;
++import java.util.HashMap;
+ import java.util.LinkedList;
++import java.util.Map;
++import java.util.concurrent.Executors;
++import java.util.concurrent.ScheduledExecutorService;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicBoolean;
+
+ public class MessageHandler {
+
+-    final LinkedList<String> messageQueue = new LinkedList<>();
++    private static final Logger log = LoggerFactory.getLogger(MessageHandler.class);
++    private static final String RS350_OCCUPANCY_PROCESS_UID_PREFIX = "urn:osh:process:rs350-occupancy:";
++    private static final String REPORT_BUCKET_NAME = "reports";
+
+-    RADHelper radHelper = new RADHelper();
++    final LinkedList<String> messageQueue = new LinkedList<String>();
+
++    private final RADHelper radHelper = new RADHelper();
+     private final InputStream msgIn;
+-
+     private final String messageDelimiter;
++    private final AbstractSensorModule<?> sensorModule;
++    private final WebIdAnalyzer webIdAnalyzer;
++    private final boolean webIdPublishingEnabled;
++    private final boolean bucketArchivalEnabled;
++    private final long webIdPublishDelaySeconds;
++    private final Object bucketStore;
++
++    private final ArrayList<MessageListener> listeners = new ArrayList<MessageListener>();
++    private final AtomicBoolean isProcessing = new AtomicBoolean(true);
++    private final ScheduledExecutorService webIdScheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
++        @Override
++        public Thread newThread(Runnable runnable) {
++            Thread thread = new Thread(runnable, "rs350-webid-deferred");
++            thread.setDaemon(true);
++            return thread;
++        }
++    });
+
+-    public interface MessageListener {
++    private final Thread messageReader;
++    private final Thread messageNotifier;
+
++    private volatile boolean hasAlarm;
++    private volatile long lastMessageTimeMs;
++    private String laneUID;
++
++    public interface MessageListener {
+         void onNewMessage(RS350Message message);
+     }
+
+-    private final ArrayList<MessageListener> listeners = new ArrayList<>();
++    public MessageHandler(
++        InputStream msgIn,
++        String messageDelimiter,
++        AbstractSensorModule<?> sensorModule,
++        WebIdAnalyzer webIdAnalyzer,
++        boolean webIdPublishingEnabled,
++        boolean bucketArchivalEnabled,
++        long webIdPublishDelaySeconds
++    ) {
++        this.msgIn = msgIn;
++        this.messageDelimiter = messageDelimiter;
++        this.sensorModule = sensorModule;
++        this.webIdAnalyzer = webIdAnalyzer;
++        this.webIdPublishingEnabled = webIdPublishingEnabled && webIdAnalyzer != null;
++        this.bucketArchivalEnabled = bucketArchivalEnabled;
++        this.webIdPublishDelaySeconds = Math.max(0L, webIdPublishDelaySeconds);
++        this.bucketStore = resolveBucketStore(sensorModule, bucketArchivalEnabled);
++        this.laneUID = sensorModule != null ? sensorModule.getParentSystemUID() : null;
++        this.lastMessageTimeMs = System.currentTimeMillis();
++        this.hasAlarm = false;
++
++        this.messageReader = new Thread(new Runnable() {
++            @Override
++            public void run() {
++                readMessages();
++            }
++        }, "RS350-message-reader");
+
+-    private final AtomicBoolean isProcessing = new AtomicBoolean(true);
++        this.messageNotifier = new Thread(new Runnable() {
++            @Override
++            public void run() {
++                notifyListeners();
++            }
++        }, "RS350-message-notifier");
+
+-    private final Thread messageReader = new Thread(new Runnable() {
+-        @Override
+-        public void run() {
++        this.messageReader.start();
++        this.messageNotifier.start();
++    }
+
+-            boolean continueProcessing = true;
++    public void addMessageListener(MessageListener listener) {
++        synchronized (listeners) {
++            listeners.add(listener);
++        }
++    }
+
+-            try {
++    public void stopProcessing() {
++        isProcessing.set(false);
+
+-                ArrayList<Character> buffer = new ArrayList<>();
++        synchronized (messageQueue) {
++            messageQueue.notifyAll();
++        }
+
+-                while (continueProcessing) {
++        messageReader.interrupt();
++        messageNotifier.interrupt();
+
+-                    int character = msgIn.read();
++        webIdScheduler.shutdown();
++        try {
++            if (!webIdScheduler.awaitTermination(webIdPublishDelaySeconds + 5L, TimeUnit.SECONDS)) {
++                webIdScheduler.shutdownNow();
++            }
++        } catch (InterruptedException e) {
++            webIdScheduler.shutdownNow();
++            Thread.currentThread().interrupt();
++        }
++    }
+
+-                    // Detected STX
+-                    if (character == 0x02) {
+-                        character = msgIn.read();
+-                        // Detect ETX
+-                        while (character != 0x03 && character != -1) {
+-                            buffer.add((char)character);
+-                            character = msgIn.read();
+-                            if (character == -1){
+-                                System.out.println("did not read complete message");
+-                            }
+-                        }
+-                        StringBuilder sb = new StringBuilder(buffer.size());
++    public long getElapsedSinceLastMessageMillis() {
++        return System.currentTimeMillis() - lastMessageTimeMs;
++    }
+
+-                        for (char c : buffer) {
++    public long getTimeSinceLastMessage() {
++        return getElapsedSinceLastMessageMillis();
++    }
+
+-                            sb.append(c);
+-                        }
++    private void readMessages() {
++        ArrayList<Character> buffer = new ArrayList<Character>();
+
+-                        String n42Message = sb.toString().replaceAll("\\<\\?xml(.+?)\\?\\>", "").trim();
++        while (isProcessing.get()) {
++            int character;
+
+-                        synchronized (messageQueue) {
++            try {
++                character = msgIn.read();
++            } catch (IOException exception) {
++                if (isProcessing.get()) {
++                    log.warn("RS350 message reader stopped", exception);
++                }
++                break;
++            }
+
+-                            messageQueue.add(n42Message);
++            if (character == -1) {
++                if (!isProcessing.get()) {
++                    break;
++                }
++
++                try {
++                    Thread.sleep(100L);
++                } catch (InterruptedException e) {
++                    Thread.currentThread().interrupt();
++                    break;
++                }
++                continue;
++            }
+
++            if (character == 0x02) {
++                try {
++                    character = msgIn.read();
++                    while (character != 0x03 && character != -1) {
++                        buffer.add((char) character);
++                        character = msgIn.read();
++                    }
++                } catch (IOException exception) {
++                    if (isProcessing.get()) {
++                        log.warn("Error while reading RS350 message frame", exception);
++                    }
++                    break;
++                }
++
++                if (!buffer.isEmpty()) {
++                    StringBuilder builder = new StringBuilder(buffer.size());
++                    for (char currentChar : buffer) {
++                        builder.append(currentChar);
++                    }
++
++                    String n42Message = builder.toString().replaceAll("\\<\\?xml(.+?)\\?\\>", "").trim();
++                    if (!n42Message.isEmpty()) {
++                        synchronized (messageQueue) {
++                            messageQueue.add(n42Message);
+                             messageQueue.notifyAll();
+                         }
+-                        buffer.clear();
+                     }
++                    buffer.clear();
++                }
++            }
++        }
++    }
+
+-                    synchronized (isProcessing) {
++    private void notifyListeners() {
++        while (isProcessing.get() || hasPendingMessages()) {
++            String currentMessage = null;
+
+-                        continueProcessing = isProcessing.get();
++            synchronized (messageQueue) {
++                while (messageQueue.isEmpty() && isProcessing.get()) {
++                    try {
++                        messageQueue.wait();
++                    } catch (InterruptedException e) {
++                        Thread.currentThread().interrupt();
++                        if (!isProcessing.get()) {
++                            return;
++                        }
+                     }
+                 }
+-            } catch (IOException exception) {
+
++                if (!messageQueue.isEmpty()) {
++                    currentMessage = messageQueue.removeFirst();
++                }
++            }
++
++            if (currentMessage == null || currentMessage.isEmpty()) {
++                continue;
++            }
++
++            try {
++                RadInstrumentDataType radInstrumentDataType = radHelper.getRadInstrumentData(currentMessage);
++                RS350Message message = new RS350Message(radInstrumentDataType);
++                lastMessageTimeMs = System.currentTimeMillis();
++
++                dispatchMessage(message);
++                handleAlarmTransition(message, currentMessage);
++            } catch (Exception e) {
++                log.error("Error reading RS350 message", e);
+             }
+         }
+-    });
++    }
+
+-    private final Thread messageNotifier = new Thread(() -> {
++    private boolean hasPendingMessages() {
++        synchronized (messageQueue) {
++            return !messageQueue.isEmpty();
++        }
++    }
+
+-        boolean continueProcessing = true;
++    private void dispatchMessage(RS350Message message) {
++        ArrayList<MessageListener> listenerSnapshot;
+
+-        while (continueProcessing) {
++        synchronized (listeners) {
++            listenerSnapshot = new ArrayList<MessageListener>(listeners);
++        }
+
+-            String currentMessage = null;
++        for (MessageListener listener : listenerSnapshot) {
++            try {
++                if (shouldDispatch(listener, message)) {
++                    listener.onNewMessage(message);
++                }
++            } catch (Exception e) {
++                log.error("Error delivering RS350 message to {}", listener.getClass().getSimpleName(), e);
++            }
++        }
++    }
+
+-            synchronized (messageQueue) {
++    private boolean shouldDispatch(MessageListener listener, RS350Message message) {
++        if (listener instanceof OutputBase) {
++            return ((OutputBase) listener).acceptsMessage(message);
++        }
+
+-                try {
++        return true;
++    }
+
+-                    while (messageQueue.isEmpty()) {
++    private void handleAlarmTransition(RS350Message message, String n42Message) {
++        boolean alarmPresent = message.getRs350RadAlarm() != null && message.getRs350DerivedData() != null;
+
+-                        messageQueue.wait();
++        if (alarmPresent) {
++            if (!hasAlarm) {
++                hasAlarm = true;
++                publishWebIdRequest(n42Message);
++            }
++        } else {
++            hasAlarm = false;
++        }
++    }
++
++    private void publishWebIdRequest(final String n42Message) {
++        if (!webIdPublishingEnabled) {
++            return;
++        }
++
++        if (laneUID == null && sensorModule != null) {
++            log.warn("No lane UID found for sensor module {}, using sensor UID instead", sensorModule.getName());
++            laneUID = sensorModule.getUniqueIdentifier();
++        }
+
++        try {
++            webIdScheduler.schedule(new Runnable() {
++                @Override
++                public void run() {
++                    try {
++                        doPublishWebIdRequest(n42Message);
++                    } catch (Exception e) {
++                        log.error("Error publishing deferred WebID request", e);
+                     }
++                }
++            }, webIdPublishDelaySeconds, TimeUnit.SECONDS);
++        } catch (Exception e) {
++            log.error("Failed to schedule deferred WebID request", e);
++        }
++    }
+
+-                    currentMessage = messageQueue.removeFirst();
++    private void doPublishWebIdRequest(String n42Message) {
++        if (webIdAnalyzer == null) {
++            return;
++        }
+
+-                } catch (InterruptedException e) {
++        String effectiveLaneUid = laneUID;
++        if (effectiveLaneUid == null && sensorModule != null) {
++            effectiveLaneUid = sensorModule.getUniqueIdentifier();
++        }
+
+-                    throw new RuntimeException(e);
+-                }
+-            }
++        String fileName = "rs350_" + effectiveLaneUid + "_" + System.currentTimeMillis() + ".n42";
++        String occupancyObsId = lookupLatestOccupancyObsId();
+
+-            if (currentMessage != null && !currentMessage.isEmpty()) {
++        if (occupancyObsId == null) {
++            log.warn("No RS350 occupancy obs id found for lane {} when publishing WebID request; the N42 will not be linked to an occupancy", effectiveLaneUid);
++        } else {
++            log.debug("Linking RS350 WebID request to occupancy obs id {}", occupancyObsId);
++        }
+
++        WebIdRequestContext requestContext = WebIdRequestContext.builder()
++            .foregroundFile(fileName, n42Message.getBytes(StandardCharsets.UTF_8))
++            .webIdEnabled(true)
++            .bucketName(REPORT_BUCKET_NAME)
++            .objectKey(fileName)
++            .laneUid(effectiveLaneUid)
++            .synthesizeBackground(true)
++            .occupancyObsId(occupancyObsId)
++            .multipartRequest(false)
++            .build();
++
++        Object analysis = webIdAnalyzer.processWebIdRequest(requestContext);
++
++        if (analysis != null) {
++            storeAnalysisJson(analysis.toString());
++        }
++    }
+
++    private String lookupLatestOccupancyObsId() {
++        if (laneUID == null || sensorModule == null) {
++            return null;
++        }
+
+-                try {
+-                    RadInstrumentDataType radInstrumentDataType = radHelper.getRadInstrumentData(currentMessage);
+-                    listeners.forEach(messageListener -> messageListener.onNewMessage(new RS350Message(radInstrumentDataType)));
+-                }
+-                catch (Exception e){
+-//                    System.out.println("Current Message: ");
+-//                    System.out.println(currentMessage);
+-                    System.out.println("Error: " + e);
+-                }
++        try {
++            SystemFilter laneMemberFilter = new SystemFilter.Builder()
++                    .withUniqueIDs(laneUID)
++                    .includeMembers(true)
++                    .build();
++
++            String[] rs350ProcessUids = sensorModule.getParentHub().getDatabaseRegistry().getFederatedDatabase()
++                    .getSystemDescStore()
++                    .select(laneMemberFilter)
++                    .map(sys -> sys.getUniqueIdentifier())
++                    .filter(uid -> uid != null && uid.startsWith(RS350_OCCUPANCY_PROCESS_UID_PREFIX))
++                    .toArray(String[]::new);
++
++            if (rs350ProcessUids.length == 0) {
++                log.debug("No RS350 occupancy process system (prefix {}) found under lane {}", RS350_OCCUPANCY_PROCESS_UID_PREFIX, laneUID);
++                return null;
+             }
+
+-            synchronized (isProcessing) {
+-
+-                continueProcessing = isProcessing.get();
++            SystemFilter rs350SysFilter = new SystemFilter.Builder()
++                    .withUniqueIDs(rs350ProcessUids)
++                    .build();
++
++            java.util.List<BigId> keys = sensorModule.getParentHub().getDatabaseRegistry().getFederatedDatabase()
++                    .getObservationStore()
++                    .selectKeys(new ObsFilter.Builder()
++                            .withLatestResult()
++                            .withSystems(rs350SysFilter)
++                            .withDataStreams().withOutputNames(OccupancyOutput.NAME).done()
++                            .withLimit(1)
++                            .build())
++                    .toList();
++
++            if (keys.isEmpty()) {
++                log.debug("No RS350 occupancy observations yet under lane {}; rs350 process systems scanned: {}", laneUID, join(rs350ProcessUids));
++                return null;
+             }
+-        }
+-    });
+
+-    public MessageHandler(InputStream msgIn, String messageDelimiter) {
+-        this.msgIn = msgIn;
+-        this.messageDelimiter = messageDelimiter;
++            return sensorModule.getParentHub().getIdEncoders().getObsIdEncoder().encodeID(keys.get(0));
++        } catch (Exception e) {
++            log.warn("Failed to look up latest RS350 occupancy obs id for lane {}", laneUID, e);
++            return null;
++        }
++    }
+
+-        this.messageReader.start();
+-        this.messageNotifier.start();
++    private static String join(String[] values) {
++        StringBuilder builder = new StringBuilder();
++        for (int i = 0; i < values.length; i++) {
++            if (i > 0) {
++                builder.append(',');
++            }
++            builder.append(values[i]);
++        }
++        return builder.toString();
+     }
+
+-    public void addMessageListener(MessageListener listener) {
++    @SuppressWarnings({"rawtypes", "unchecked"})
++    private static Object resolveBucketStore(AbstractSensorModule<?> sensorModule, boolean bucketArchivalEnabled) {
++        if (!bucketArchivalEnabled || sensorModule == null) {
++            return null;
++        }
++
++        try {
++            Class<?> bucketServiceClass = Class.forName("com.botts.api.service.bucket.IBucketService");
++            Object bucketService = sensorModule.getParentHub().getModuleRegistry().getModuleByType((Class) bucketServiceClass);
++            if (bucketService == null) {
++                return null;
++            }
+
+-        listeners.add(listener);
++            return bucketServiceClass.getMethod("getBucketStore").invoke(bucketService);
++        } catch (ClassNotFoundException e) {
++            log.debug("Bucket service API is not on the classpath; RS350 bucket archival will stay disabled");
++            return null;
++        } catch (Exception e) {
++            log.warn("Could not initialize RS350 bucket archival support", e);
++            return null;
++        }
+     }
+
+-    public void stopProcessing() {
++    private void storeAnalysisJson(String analysisJson) {
++        if (!bucketArchivalEnabled || bucketStore == null || analysisJson == null) {
++            return;
++        }
+
+-        synchronized (isProcessing) {
++        try {
++            Map<String, String> jsonMetadata = new HashMap<String, String>();
++            jsonMetadata.put("Content-Type", "application/json");
+
+-            isProcessing.set(false);
++            bucketStore.getClass()
++                    .getMethod("createObject", String.class, InputStream.class, Map.class)
++                    .invoke(bucketStore, REPORT_BUCKET_NAME, new ByteArrayInputStream(analysisJson.getBytes(StandardCharsets.UTF_8)), jsonMetadata);
++        } catch (Exception e) {
++            log.error("Failed to store WebID analysis JSON in bucket", e);
+         }
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/OutputBase.java b/src/main/java/com/botts/impl/sensor/rs350/OutputBase.java
+index ac35b1f..7dfdc86 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/OutputBase.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/OutputBase.java
+@@ -3,6 +3,7 @@
+  ******************************* END LICENSE BLOCK ***************************/
+ package com.botts.impl.sensor.rs350;
+
++import com.botts.impl.sensor.rs350.messages.RS350Message;
+ import net.opengis.swe.v20.DataBlock;
+ import net.opengis.swe.v20.DataComponent;
+ import net.opengis.swe.v20.DataEncoding;
+@@ -24,6 +25,15 @@ public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> imple
+      */
+     protected abstract void init();
+
++    /**
++     * Indicates whether this output can safely process the provided message.
++     * MessageHandler uses this to dispatch only to outputs whose required
++     * content is present, avoiding partial-message null dereferences.
++     */
++    public boolean acceptsMessage(RS350Message message) {
++        return true;
++    }
++
+     @Override
+     public DataComponent getRecordDescription() {
+         return dataStruct;
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/RS350Config.java b/src/main/java/com/botts/impl/sensor/rs350/RS350Config.java
+index 46f9656..f565965 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/RS350Config.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/RS350Config.java
+@@ -15,7 +15,22 @@ public class RS350Config extends SensorConfig {
+     @DisplayInfo(desc = "Communication settings to connect to RS-350 data stream")
+     public CommProviderConfig<?> commSettings;
+
++    @DisplayInfo(label = "Enable WebID Integration", desc = "Publishes deferred WebID requests on alarm transitions when WebID services are available")
++    public boolean enableWebIdIntegration = false;
++
++    @DisplayInfo(label = "Enable Bucket Archival", desc = "Stores WebID analysis JSON in the bucket service when that service is available")
++    public boolean enableWebIdBucketArchival = false;
++
++    @DisplayInfo(label = "WebID Publish Delay (s)", desc = "Delay before publishing a WebID request so occupancy correlation can complete")
++    public int webIdPublishDelaySeconds = 12;
++
++    @DisplayInfo(label = "Message Timeout (s)", desc = "Treat the sensor stream as stale when no complete message is received within this interval")
++    public int messageTimeoutSeconds = 15;
++
++    @DisplayInfo(label = "Reconnect Interval (s)", desc = "Minimum delay between reconnect attempts once the stream is stale")
++    public int reconnectIntervalSeconds = 5;
++
+     @DisplayInfo.Required
+     @DisplayInfo(label = "Outputs", desc = "Configuration options for source data outputs from driver")
+     public RS350Outputs outputs = new RS350Outputs();
+-}
+\ No newline at end of file
++}
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/RS350Outputs.java b/src/main/java/com/botts/impl/sensor/rs350/RS350Outputs.java
+index 248b892..578114a 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/RS350Outputs.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/RS350Outputs.java
+@@ -18,10 +18,12 @@ public class RS350Outputs {
+     @DisplayInfo(label = "Foreground", desc = "Foreground spectrum data")
+     public boolean enableForegroundOutput = true;
+
+-    @DisplayInfo(label = "Derived Data", desc = "Contains analytically derived data. Includes some Alarm data")
++    @DisplayInfo(label = "Derived Data", desc = "Contains analytically derived data")
+     public boolean enableDerivedData = false;
+
+-    @DisplayInfo(label = "Alarm", desc = "Includes Derived Data and Alarm Data")
++    @DisplayInfo(label = "Alarm", desc = "Includes derived data and alarm details")
+     public boolean enableAlarmOutput = true;
+-}
+
++    @DisplayInfo(label = "Connection Status", desc = "Reports whether the driver is actively receiving messages")
++    public boolean enableConnectionStatusOutput = true;
++}
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/RS350Sensor.java b/src/main/java/com/botts/impl/sensor/rs350/RS350Sensor.java
+index a0b12fc..5d68481 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/RS350Sensor.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/RS350Sensor.java
+@@ -7,6 +7,8 @@ import org.sensorhub.api.comm.ICommProvider;
+ import org.sensorhub.api.common.SensorHubException;
+ import org.sensorhub.api.sensor.SensorException;
+ import org.sensorhub.impl.sensor.AbstractSensorModule;
++import org.sensorhub.impl.utils.rad.interfaces.IWebIdProvider;
++import org.sensorhub.impl.utils.rad.webid.WebIdAnalyzer;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+
+@@ -17,40 +19,39 @@ import java.io.InputStream;
+ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
+
+     private static final Logger logger = LoggerFactory.getLogger(RS350Sensor.class);
++    private static final long CONNECTION_MONITOR_INTERVAL_MILLIS = 1000L;
+
+-    ICommProvider<?> commProvider;
++    private final Object lifecycleLock = new Object();
+
++    ICommProvider<?> commProvider;
+     LocationOutput locationOutput;
+-
+     StatusOutput statusOutput;
+-
+     BackgroundOutput backgroundOutput;
+-
+     ForegroundOutput foregroundOutput;
+-
+     DerivedDataOutput derivedDataOutput;
+-
+     AlarmOutput alarmOutput;
+-
+-//    RS350MessageHandler messageHandler;
++    ConnectionStatusOutput connectionStatusOutput;
+     MessageHandler messageHandler;
+-
+     InputStream msgIn;
+
+-    public RS350Sensor() {
++    private volatile boolean running;
++    private Thread connectionMonitorThread;
++    private volatile long lastReconnectAttemptMs;
+
++    public RS350Sensor() {
+     }
+
+     @Override
+     protected void doInit() throws SensorHubException {
+         super.doInit();
+
+-
+-
+-        // generate identifiers: use serial number from config or first characters of local ID
+         generateUniqueID("urn:rsi:rs350:", config.serialNumber);
+         generateXmlID("rsi_rs350_", config.serialNumber);
+
++        createOutputs();
++    }
++
++    private void createOutputs() {
+         if (config.outputs.enableLocationOutput) {
+             locationOutput = new LocationOutput(this);
+             addOutput(locationOutput, false);
+@@ -86,109 +87,224 @@ public class RS350Sensor extends AbstractSensorModule<RS350Config> {
+             addOutput(alarmOutput, false);
+             alarmOutput.init();
+         }
++
++        if (config.outputs.enableConnectionStatusOutput) {
++            connectionStatusOutput = new ConnectionStatusOutput(this);
++            addOutput(connectionStatusOutput, false);
++            connectionStatusOutput.init();
++        }
+     }
+
+     @Override
+     protected void doStart() throws SensorHubException {
++        startStream();
++        running = true;
++        startConnectionMonitor();
++        publishConnectionStatus(true);
++    }
+
+-        // init comm provider
+-        if (commProvider == null) {
+-
+-            // we need to recreate comm provider here because it can be changed by UI
+-            try {
+-
+-                if (config.commSettings == null)
+-                    throw new SensorHubException("No communication settings specified");
+-
+-                var moduleReg = getParentHub().getModuleRegistry();
++    @Override
++    protected void doStop() throws SensorHubException {
++        running = false;
++        stopConnectionMonitor();
++        stopMessageHandler();
++        stopCommProvider();
++        publishConnectionStatus(false);
++    }
+
+-                commProvider = (ICommProvider<?>) moduleReg.loadSubModule(config.commSettings, true);
++    @Override
++    public boolean isConnected() {
++        return commProvider != null && commProvider.isStarted();
++    }
+
+-                commProvider.start();
++    private void startStream() throws SensorHubException {
++        synchronized (lifecycleLock) {
++            stopMessageHandler();
++            stopCommProvider();
++            startCommProvider();
++            openInputStream();
++            createMessageHandler();
++            registerMessageListeners();
++        }
++    }
+
+-            } catch (Exception e) {
++    private void startCommProvider() throws SensorHubException {
++        if (config.commSettings == null) {
++            throw new SensorHubException("No communication settings specified");
++        }
+
+-                commProvider = null;
++        try {
++            commProvider = (ICommProvider<?>) getParentHub().getModuleRegistry().loadSubModule(config.commSettings, true);
++            commProvider.start();
+
+-                throw e;
++            if (!commProvider.isStarted()) {
++                throw new SensorHubException("Comm Provider failed to start. Check communication settings.");
+             }
++        } catch (SensorHubException e) {
++            commProvider = null;
++            throw e;
++        } catch (Exception e) {
++            commProvider = null;
++            throw new SensorException("Error while starting communications ", e);
+         }
++    }
+
+-        // connect to data stream
++    private void openInputStream() throws SensorHubException {
+         try {
+-
+             msgIn = new BufferedInputStream(commProvider.getInputStream());
+-
+         } catch (IOException e) {
+-
+             throw new SensorException("Error while initializing communications ", e);
+         }
++    }
+
+-        messageHandler = new MessageHandler(msgIn, "</RadInstrumentData>");
++    private void createMessageHandler() {
++        WebIdAnalyzer webIdAnalyzer = null;
+
+-        if (config.outputs.enableLocationOutput) {
++        if (config.enableWebIdIntegration) {
++            try {
++                IWebIdProvider webIdProvider = getParentHub().getModuleRegistry().getModuleByType(IWebIdProvider.class);
++                if (webIdProvider != null) {
++                    webIdAnalyzer = new WebIdAnalyzer(webIdProvider.getWebIdClient(), getParentHub());
++                } else {
++                    logger.info("WebID integration is enabled for RS350, but no IWebIdProvider is available");
++                }
++            } catch (Exception e) {
++                logger.warn("Could not attach WebID Analysis to RS350", e);
++            }
++        }
++
++        messageHandler = new MessageHandler(
++            msgIn,
++            "</RadInstrumentData>",
++            this,
++            webIdAnalyzer,
++            config.enableWebIdIntegration,
++            config.enableWebIdBucketArchival,
++            config.webIdPublishDelaySeconds
++        );
++    }
++
++    private void registerMessageListeners() {
++        if (config.outputs.enableLocationOutput && locationOutput != null) {
+             messageHandler.addMessageListener(locationOutput);
+         }
+
+-        if (config.outputs.enableStatusOutput) {
++        if (config.outputs.enableStatusOutput && statusOutput != null) {
+             messageHandler.addMessageListener(statusOutput);
+         }
+
+-        if (config.outputs.enableBackgroundOutput) {
++        if (config.outputs.enableBackgroundOutput && backgroundOutput != null) {
+             messageHandler.addMessageListener(backgroundOutput);
+         }
+
+-        if (config.outputs.enableForegroundOutput) {
++        if (config.outputs.enableForegroundOutput && foregroundOutput != null) {
+             messageHandler.addMessageListener(foregroundOutput);
+         }
+
+-        if (config.outputs.enableDerivedData) {
++        if (config.outputs.enableDerivedData && derivedDataOutput != null) {
+             messageHandler.addMessageListener(derivedDataOutput);
+         }
+
+-        if (config.outputs.enableAlarmOutput) {
++        if (config.outputs.enableAlarmOutput && alarmOutput != null) {
+             messageHandler.addMessageListener(alarmOutput);
+         }
+-
+-
+-
+-//        messageHandler = new RS350MessageHandler(this, msgIn, locationOutput, statusOutput, backgroundOutput, foregroundOutput, alarmOutput);
+-//        messageHandler.parse();
+-
+     }
+
+-    @Override
+-    protected void doStop() throws SensorHubException {
++    private void stopMessageHandler() {
++        if (messageHandler != null) {
++            messageHandler.stopProcessing();
++            messageHandler = null;
++        }
++    }
+
++    private void stopCommProvider() {
+         if (commProvider != null) {
+-
+             try {
+-
+                 commProvider.stop();
+-
+             } catch (Exception e) {
+-
+                 logger.error("Uncaught exception attempting to stop comms module", e);
+-
+             } finally {
+-
+                 commProvider = null;
++                msgIn = null;
+             }
+         }
++    }
++
++    private void startConnectionMonitor() {
++        if (connectionMonitorThread != null && connectionMonitorThread.isAlive()) {
++            return;
++        }
++
++        connectionMonitorThread = new Thread(new Runnable() {
++            @Override
++            public void run() {
++                monitorConnection();
++            }
++        }, "RS350-connection-monitor");
++        connectionMonitorThread.setDaemon(true);
++        connectionMonitorThread.start();
++    }
+
+-        messageHandler.stopProcessing();
++    private void stopConnectionMonitor() {
++        if (connectionMonitorThread != null) {
++            connectionMonitorThread.interrupt();
++            connectionMonitorThread = null;
++        }
+     }
+
+-    @Override
+-    public boolean isConnected() {
++    private void monitorConnection() {
++        long timeoutMillis = Math.max(1, config.messageTimeoutSeconds) * 1000L;
++        long reconnectIntervalMillis = Math.max(1, config.reconnectIntervalSeconds) * 1000L;
++
++        while (running) {
++            boolean receivingMessages = isConnected()
++                && messageHandler != null
++                && messageHandler.getElapsedSinceLastMessageMillis() <= timeoutMillis;
+
+-        if (commProvider == null) {
++            publishConnectionStatus(receivingMessages);
+
++            if (!receivingMessages && shouldAttemptReconnect(reconnectIntervalMillis)) {
++                tryReconnect();
++            }
++
++            try {
++                Thread.sleep(CONNECTION_MONITOR_INTERVAL_MILLIS);
++            } catch (InterruptedException e) {
++                Thread.currentThread().interrupt();
++                break;
++            }
++        }
++    }
++
++    private boolean shouldAttemptReconnect(long reconnectIntervalMillis) {
++        if (!running) {
++            return false;
++        }
++
++        long now = System.currentTimeMillis();
++        if (now - lastReconnectAttemptMs < reconnectIntervalMillis) {
+             return false;
++        }
+
+-        } else {
++        lastReconnectAttemptMs = now;
++        return true;
++    }
++
++    private void tryReconnect() {
++        logger.info("RS350 connection is stale. Attempting reconnect...");
++
++        try {
++            startStream();
++            publishConnectionStatus(true);
++        } catch (SensorHubException e) {
++            logger.warn("RS350 reconnect attempt failed", e);
++            publishConnectionStatus(false);
++        }
++    }
+
+-            return commProvider.isStarted();
++    private void publishConnectionStatus(boolean connected) {
++        if (connectionStatusOutput != null) {
++            connectionStatusOutput.publishStatus(connected);
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/StatusOutput.java b/src/main/java/com/botts/impl/sensor/rs350/StatusOutput.java
+index 198d88c..0dfdc29 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/StatusOutput.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/StatusOutput.java
+@@ -21,10 +21,8 @@ public class StatusOutput extends OutputBase {
+
+     @Override
+     protected void init() {
+-
+         RADHelper radHelper = new RADHelper();
+
+-        // OUTPUT
+         dataStruct = radHelper.createRecord()
+                 .name(getName())
+                 .label("Status")
+@@ -54,56 +52,30 @@ public class StatusOutput extends OutputBase {
+                 .build();
+
+         dataEncoding = new TextEncodingImpl(",", "\n");
+-
+-        // Time
+-
+-        // Battery Charge (%)
+-        // RSI Scan Mode (string)
+-        // RSI Scan Number (quantity)
+-        // RSI Scan Timeout Number (quantity)
+-        // RSI Analysis Enabled (quantity)
+-        // Lin Energy Calibration (matrix) (N42 Helper)
+-        // Cmp Energy Calibration (matrix) (N42 Helper)
+-        // Location (location vector)
+     }
+
+-    public void parseData(RS350Message msg) {
+-        if (latestRecord == null)
+-            dataBlock = dataStruct.createDataBlock();
+-        else
+-            dataBlock = latestRecord.renew();
+-
+-        latestRecordTime = System.currentTimeMillis() / 1000;
+-
+-        dataBlock.setLongValue(0, latestRecordTime);
+-        dataBlock.setDoubleValue(1, msg.getRs350InstrumentCharacteristics().getBatteryCharge());
+-        dataBlock.setStringValue(2, msg.getRs350Item().getRsiScanMode());
+-        dataBlock.setDoubleValue(3, msg.getRs350Item().getRsiScanTimeoutNumber());
+-        dataBlock.setStringValue(4, msg.getRs350Item().getRsiAnalysisEnabled());
+-        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(msg.getRs350LinEnergyCalibration().getLinEnCal());
+-        ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(msg.getRs350CmpEnergyCalibration().getCmpEnCal());
+-
+-        eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
++    @Override
++    public boolean acceptsMessage(RS350Message message) {
++        return message.getRs350InstrumentCharacteristics() != null
++            && message.getRs350Item() != null
++            && message.getRs350LinEnergyCalibration() != null
++            && message.getRs350CmpEnergyCalibration() != null;
+     }
+
+     @Override
+     public void onNewMessage(RS350Message message) {
++        createOrRenewDataBlock();
+
+-        if (message.getRs350InstrumentCharacteristics() != null) {
+-
+-            createOrRenewDataBlock();
+-
+-            latestRecordTime = System.currentTimeMillis() / 1000;
++        latestRecordTime = System.currentTimeMillis() / 1000;
+
+-            dataBlock.setLongValue(0, latestRecordTime);
+-            dataBlock.setDoubleValue(1, message.getRs350InstrumentCharacteristics().getBatteryCharge());
+-            dataBlock.setStringValue(2, message.getRs350Item().getRsiScanMode());
+-            dataBlock.setDoubleValue(3, message.getRs350Item().getRsiScanTimeoutNumber());
+-            dataBlock.setStringValue(4, message.getRs350Item().getRsiAnalysisEnabled());
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350LinEnergyCalibration().getLinEnCal());
+-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(message.getRs350CmpEnergyCalibration().getCmpEnCal());
++        dataBlock.setLongValue(0, latestRecordTime);
++        dataBlock.setDoubleValue(1, message.getRs350InstrumentCharacteristics().getBatteryCharge());
++        dataBlock.setStringValue(2, message.getRs350Item().getRsiScanMode());
++        dataBlock.setDoubleValue(3, message.getRs350Item().getRsiScanTimeoutNumber());
++        dataBlock.setStringValue(4, message.getRs350Item().getRsiAnalysisEnabled());
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350LinEnergyCalibration().getLinEnCal());
++        ((DataBlockMixed) dataBlock).getUnderlyingObject()[6].setUnderlyingObject(message.getRs350CmpEnergyCalibration().getCmpEnCal());
+
+-            eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
+-        }
++        eventHandler.publish(new DataEvent(latestRecordTime, StatusOutput.this, dataBlock));
+     }
+ }
+diff --git a/src/main/java/com/botts/impl/sensor/rs350/messages/RS350Message.java b/src/main/java/com/botts/impl/sensor/rs350/messages/RS350Message.java
+index 24ab91b..6346b9b 100644
+--- a/src/main/java/com/botts/impl/sensor/rs350/messages/RS350Message.java
++++ b/src/main/java/com/botts/impl/sensor/rs350/messages/RS350Message.java
+@@ -1,127 +1,311 @@
+ package com.botts.impl.sensor.rs350.messages;
+
+-import com.botts.impl.utils.n42.*;
++import com.botts.impl.utils.n42.AnalysisResultsType;
++import com.botts.impl.utils.n42.CharacteristicType;
++import com.botts.impl.utils.n42.CharacteristicsType;
++import com.botts.impl.utils.n42.DerivedDataType;
++import com.botts.impl.utils.n42.EnergyCalibrationType;
++import com.botts.impl.utils.n42.RadInstrumentDataType;
++import com.botts.impl.utils.n42.RadInstrumentInformationType;
++import com.botts.impl.utils.n42.RadMeasurementType;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+-import org.vast.swe.SWEHelper;
+-import org.vast.swe.helper.GeoPosHelper;
+
++import javax.xml.datatype.DatatypeConstants;
++import javax.xml.datatype.Duration;
+
+ public class RS350Message {
+
+-    Logger logger = LoggerFactory.getLogger(RS350Message.class);
++    private static final Logger logger = LoggerFactory.getLogger(RS350Message.class);
+
+-     RS350InstrumentInformation rs350InstrumentInformation;
+-     RS350InstrumentCharacteristics rs350InstrumentCharacteristics;
+-     RS350Item rs350Item;
+-     RS350LinEnergyCalibration rs350LinEnergyCalibration;
+-     RS350CmpEnergyCalibration rs350CmpEnergyCalibration;
+-     RS350BackgroundMeasurement rs350BackgroundMeasurement;
+-     RS350ForegroundMeasurement rs350ForegroundMeasurement;
+-     RS350DerivedData rs350DerivedData;
+-     RS350RadAlarm  rs350RadAlarm;
+-     Boolean radAlarmRecieved = false;
++    RS350InstrumentInformation rs350InstrumentInformation;
++    RS350InstrumentCharacteristics rs350InstrumentCharacteristics;
++    RS350Item rs350Item;
++    RS350LinEnergyCalibration rs350LinEnergyCalibration;
++    RS350CmpEnergyCalibration rs350CmpEnergyCalibration;
++    RS350BackgroundMeasurement rs350BackgroundMeasurement;
++    RS350ForegroundMeasurement rs350ForegroundMeasurement;
++    RS350DerivedData rs350DerivedData;
++    RS350RadAlarm rs350RadAlarm;
++    boolean radAlarmReceived;
+
++    public RS350Message(RadInstrumentDataType msg) {
++        if (msg == null) {
++            return;
++        }
+
+-    public RS350Message(RadInstrumentDataType msg){
++        buildInstrumentInformation(msg);
++        buildInstrumentCharacteristics(msg);
++        buildItem(msg);
+
++        radAlarmReceived = false;
+
+-        SWEHelper help = new SWEHelper();
+-        GeoPosHelper geoPosHelper = new GeoPosHelper();
+-         geoPosHelper.createLocationVectorLatLon();
++        if (msg.getRadMeasurementOrRadMeasurementGroupOrEnergyCalibration() == null) {
++            return;
++        }
+
++        msg.getRadMeasurementOrRadMeasurementGroupOrEnergyCalibration().forEach(jaxbElement -> {
++            Class<?> jaxbType = jaxbElement.getDeclaredType();
++
++            try {
++                if (jaxbType == EnergyCalibrationType.class) {
++                    parseEnergyCalibration((EnergyCalibrationType) jaxbElement.getValue());
++                } else if (jaxbType == RadMeasurementType.class) {
++                    parseMeasurement((RadMeasurementType) jaxbElement.getValue());
++                } else if (jaxbType == DerivedDataType.class) {
++                    parseDerivedData((DerivedDataType) jaxbElement.getValue());
++                } else if (jaxbType == AnalysisResultsType.class && !radAlarmReceived) {
++                    parseAnalysisResults((AnalysisResultsType) jaxbElement.getValue());
++                } else {
++                    logger.debug("Unhandled RS350 payload type: {}", jaxbType.getName());
++                }
++            } catch (Exception e) {
++                logger.debug("Skipping malformed RS350 payload section {}", jaxbType.getSimpleName(), e);
++            }
++        });
++    }
+
+-        // create Instrument Info
++    private void buildInstrumentInformation(RadInstrumentDataType msg) {
+         RadInstrumentInformationType instrumentInfo = msg.getRadInstrumentInformation();
++        if (instrumentInfo == null) {
++            return;
++        }
++
++        rs350InstrumentInformation = new RS350InstrumentInformation(
++            instrumentInfo.getRadInstrumentManufacturerName(),
++            instrumentInfo.getRadInstrumentIdentifier(),
++            instrumentInfo.getRadInstrumentModelName(),
++            instrumentInfo.getRadInstrumentClassCode() != null ? instrumentInfo.getRadInstrumentClassCode().name() : null
++        );
++    }
+
+-        rs350InstrumentInformation = new RS350InstrumentInformation(instrumentInfo.getRadInstrumentManufacturerName(), instrumentInfo.getRadInstrumentIdentifier(), instrumentInfo.getRadInstrumentModelName(), instrumentInfo.getRadInstrumentClassCode().name() );
++    private void buildInstrumentCharacteristics(RadInstrumentDataType msg) {
++        try {
++            CharacteristicsType instrumentInfoChars = msg.getRadInstrumentInformation().getRadInstrumentCharacteristics().get(0);
++            String deviceName = getCharacteristicValue(instrumentInfoChars, 0);
++            Double batteryCharge = parseDouble(getCharacteristicValue(instrumentInfoChars, 1));
+
+-        // create Instrument Characteristics
+-        CharacteristicsType InstrumentInfoChars = msg.getRadInstrumentInformation().getRadInstrumentCharacteristics().get(0);
+-        CharacteristicType deviceName = (CharacteristicType) InstrumentInfoChars.getCharacteristicOrCharacteristicGroup().get(0);
+-        CharacteristicType batteryCharge = (CharacteristicType) InstrumentInfoChars.getCharacteristicOrCharacteristicGroup().get(1);
++            if (deviceName != null && batteryCharge != null) {
++                rs350InstrumentCharacteristics = new RS350InstrumentCharacteristics(deviceName, batteryCharge);
++            }
++        } catch (Exception e) {
++            logger.debug("RS350 message missing instrument characteristics", e);
++        }
++    }
+
+-        rs350InstrumentCharacteristics = new RS350InstrumentCharacteristics(deviceName.getCharacteristicValue(), Double.parseDouble(batteryCharge.getCharacteristicValue()));
++    private void buildItem(RadInstrumentDataType msg) {
++        try {
++            CharacteristicsType itemInfoChars = msg.getRadItemInformation().get(0).getRadItemCharacteristics().get(0);
++            String scanMode = getCharacteristicValue(itemInfoChars, 0);
++            Double scanNumber = parseDouble(getCharacteristicValue(itemInfoChars, 1));
++            Double scanTimeoutNumber = parseDouble(getCharacteristicValue(itemInfoChars, 2));
++            String analysisEnabled = getCharacteristicValue(itemInfoChars, 3);
+
+-        // create Item
+-        CharacteristicsType ItemInfoChars = msg.getRadItemInformation().get(0).getRadItemCharacteristics().get(0);
+-        CharacteristicType scanMode = (CharacteristicType) ItemInfoChars.getCharacteristicOrCharacteristicGroup().get(0);
+-        CharacteristicType scanNumber = (CharacteristicType) ItemInfoChars.getCharacteristicOrCharacteristicGroup().get(1);
+-        CharacteristicType scanTimeoutNumber = (CharacteristicType) ItemInfoChars.getCharacteristicOrCharacteristicGroup().get(2);
+-        CharacteristicType analysisEnabled = (CharacteristicType) ItemInfoChars.getCharacteristicOrCharacteristicGroup().get(3);
++            if (scanMode != null && scanNumber != null && scanTimeoutNumber != null && analysisEnabled != null) {
++                rs350Item = new RS350Item(scanMode, scanNumber, scanTimeoutNumber, analysisEnabled);
++            }
++        } catch (Exception e) {
++            logger.debug("RS350 message missing item characteristics", e);
++        }
++    }
+
+-        rs350Item = new RS350Item(scanMode.getCharacteristicValue(), Double.parseDouble(scanNumber.getCharacteristicValue()), Double.parseDouble(scanTimeoutNumber.getCharacteristicValue()), analysisEnabled.getCharacteristicValue());
++    private void parseEnergyCalibration(EnergyCalibrationType energyCalibrationType) {
++        if (energyCalibrationType == null || energyCalibrationType.getId() == null) {
++            return;
++        }
+
+-        radAlarmRecieved = false;
++        switch (energyCalibrationType.getId()) {
++            case "LinEnCal":
++                rs350LinEnergyCalibration = new RS350LinEnergyCalibration(energyCalibrationType.getCoefficientValues());
++                break;
+
+-        msg.getRadMeasurementOrRadMeasurementGroupOrEnergyCalibration().forEach(jaxbElement -> {
++            case "CmpEnCal":
++                rs350CmpEnergyCalibration = new RS350CmpEnergyCalibration(energyCalibrationType.getCoefficientValues());
++                break;
+
+-            Class<?> jaxbType = jaxbElement.getDeclaredType();
+-            if (jaxbType == EnergyCalibrationType.class) {
+-                EnergyCalibrationType energyCalibrationType = (EnergyCalibrationType) jaxbElement.getValue();
+-                switch (energyCalibrationType.getId()) {
+-                    case "LinEnCal":{
+-                         rs350LinEnergyCalibration = new RS350LinEnergyCalibration(energyCalibrationType.getCoefficientValues());
+-                    }
+-                        break;
+-                    case "CmpEnCal":{
+-                        rs350CmpEnergyCalibration = new RS350CmpEnergyCalibration(energyCalibrationType.getCoefficientValues());
++            default:
++                logger.debug("Unknown energy calibration id: {}", energyCalibrationType.getId());
++                break;
++        }
++    }
++
++    private void parseMeasurement(RadMeasurementType radMeasurementType) {
++        if (radMeasurementType == null || radMeasurementType.getMeasurementClassCode() == null) {
++            return;
++        }
++
++        String measurementClassCode = radMeasurementType.getMeasurementClassCode().value();
++
++        switch (measurementClassCode) {
++            case "Background":
++                rs350BackgroundMeasurement = createBackgroundMeasurement(radMeasurementType);
++                break;
++
++            case "Foreground":
++                rs350ForegroundMeasurement = createForegroundMeasurement(radMeasurementType);
++                break;
++
++            default:
++                logger.debug("Unhandled RS350 measurement class code: {}", measurementClassCode);
++                break;
++        }
++    }
++
++    private RS350BackgroundMeasurement createBackgroundMeasurement(RadMeasurementType radMeasurementType) {
++        try {
++            return new RS350BackgroundMeasurement(
++                radMeasurementType.getMeasurementClassCode().name(),
++                radMeasurementType.getStartDateTime().toGregorianCalendar().getTimeInMillis(),
++                durationToDouble(radMeasurementType.getRealTimeDuration()),
++                radMeasurementType.getSpectrum().get(0).getChannelData().getValue(),
++                radMeasurementType.getSpectrum().get(1).getChannelData().getValue(),
++                radMeasurementType.getGrossCounts().get(0).getCountData().get(0),
++                radMeasurementType.getGrossCounts().get(1).getCountData().get(0)
++            );
++        } catch (Exception e) {
++            logger.debug("Could not build RS350 background measurement", e);
++            return null;
++        }
++    }
++
++    private RS350ForegroundMeasurement createForegroundMeasurement(RadMeasurementType radMeasurementType) {
++        try {
++            Double lat = null;
++            Double lon = null;
++            Double alt = null;
++
++            try {
++                if (radMeasurementType.getRadInstrumentState() != null
++                    && radMeasurementType.getRadInstrumentState().getStateVector() != null
++                    && radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint() != null
++                    && radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLatitudeValue() != null
++                    && radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLongitudeValue() != null) {
++
++                    lat = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLatitudeValue().getValue().doubleValue();
++                    lon = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLongitudeValue().getValue().doubleValue();
++
++                    if (radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getElevationValue() != null) {
++                        alt = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getElevationValue().doubleValue();
+                     }
+-                    default: logger.debug("EnergyCalType ID: " + energyCalibrationType.getId());
+-                        break;
+                 }
++            } catch (Exception e) {
++                logger.debug("RS350 foreground measurement did not include location data", e);
++                lat = null;
++                lon = null;
++                alt = null;
+             }
+-                else if (jaxbType == RadMeasurementType.class) {
+-                RadMeasurementType radMeasurementType = (RadMeasurementType) jaxbElement.getValue();
+-                switch (radMeasurementType.getMeasurementClassCode().value()) {
+-                    case "Background": {
+-                        rs350BackgroundMeasurement = new RS350BackgroundMeasurement(radMeasurementType.getMeasurementClassCode().name(), radMeasurementType.getStartDateTime().toGregorianCalendar().getTimeInMillis(), new Double(radMeasurementType.getRealTimeDuration().getSeconds() % 60), radMeasurementType.getSpectrum().get(0).getChannelData().getValue(), radMeasurementType.getSpectrum().get(1).getChannelData().getValue(), radMeasurementType.getGrossCounts().get(0).getCountData().get(0), radMeasurementType.getGrossCounts().get(1).getCountData().get(0));
+-                    }
+-                    break;
+-                    case "Foreground": {
+-
+-                        Double lat = 0.0;
+-                        Double lon = 0.0;
+-                        Double elv = 0.0;
+-                        if (radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLongitudeValue() != null) {
+-                        lat = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLatitudeValue().getValue().doubleValue();
+-                        lon = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getLongitudeValue().getValue().doubleValue();
+-                        elv = radMeasurementType.getRadInstrumentState().getStateVector().getGeographicPoint().getElevationValue().doubleValue();
+-                        }
+-                        rs350ForegroundMeasurement = new RS350ForegroundMeasurement(radMeasurementType.getMeasurementClassCode().name(), radMeasurementType.getStartDateTime().toGregorianCalendar().getTimeInMillis(), new Double(radMeasurementType.getRealTimeDuration().getSeconds() % 60), radMeasurementType.getSpectrum().get(0).getChannelData().getValue(), radMeasurementType.getSpectrum().get(1).getChannelData().getValue(), radMeasurementType.getGrossCounts().get(0).getCountData().get(0), radMeasurementType.getGrossCounts().get(1).getCountData().get(0), radMeasurementType.getDoseRate().get(0).getDoseRateValue().getValue(), lat, lon, elv);
+-                    }
+-                    break;
+-                    default:
+-                        logger.debug("Measurement Class Code: " + radMeasurementType.getMeasurementClassCode().value());
+
+-                }
++            return new RS350ForegroundMeasurement(
++                radMeasurementType.getMeasurementClassCode().name(),
++                radMeasurementType.getStartDateTime().toGregorianCalendar().getTimeInMillis(),
++                durationToDouble(radMeasurementType.getRealTimeDuration()),
++                radMeasurementType.getSpectrum().get(0).getChannelData().getValue(),
++                radMeasurementType.getSpectrum().get(1).getChannelData().getValue(),
++                radMeasurementType.getGrossCounts().get(0).getCountData().get(0),
++                radMeasurementType.getGrossCounts().get(1).getCountData().get(0),
++                radMeasurementType.getDoseRate().get(0).getDoseRateValue().getValue(),
++                lat,
++                lon,
++                alt
++            );
++        } catch (Exception e) {
++            logger.debug("Could not build RS350 foreground measurement", e);
++            return null;
++        }
++    }
+
+-            }
+-                else if (jaxbType == DerivedDataType.class){
+-                    DerivedDataType derivedDataType = (DerivedDataType) jaxbElement.getValue();
+-                    rs350DerivedData = new RS350DerivedData(derivedDataType.getRemark().get(0), derivedDataType.getMeasurementClassCode().name(), derivedDataType.getStartDateTime().toGregorianCalendar().getTimeInMillis(), new Double(derivedDataType.getRealTimeDuration().getSeconds()%60));
++    private void parseDerivedData(DerivedDataType derivedDataType) {
++        if (derivedDataType == null) {
++            return;
++        }
+
++        try {
++            String remark = null;
++            if (derivedDataType.getRemark() != null && !derivedDataType.getRemark().isEmpty()) {
++                remark = derivedDataType.getRemark().get(0);
+             }
+-                else if (jaxbType == AnalysisResultsType.class && !radAlarmRecieved){
+-                    AnalysisResultsType analysisResultsType = (AnalysisResultsType) jaxbElement.getValue();
+-//                    RadAlarmType radAlarmType = (RadAlarmType) jaxbElement.getValue();
+-                analysisResultsType.getRadAlarm().forEach(radAlarmType -> {
+-                    rs350RadAlarm = new RS350RadAlarm(radAlarmType.getRadAlarmCategoryCode().value(), radAlarmType.getRadAlarmDescription());
+-                    radAlarmRecieved = true;
+-                });
+-
+
+-            }
++            rs350DerivedData = new RS350DerivedData(
++                remark,
++                derivedDataType.getMeasurementClassCode() != null ? derivedDataType.getMeasurementClassCode().name() : null,
++                derivedDataType.getStartDateTime().toGregorianCalendar().getTimeInMillis(),
++                durationToDouble(derivedDataType.getRealTimeDuration())
++            );
++        } catch (Exception e) {
++            logger.debug("Could not build RS350 derived data section", e);
++        }
++    }
+
+-                else {
+-                    logger.debug(jaxbType.toString());
++    private void parseAnalysisResults(AnalysisResultsType analysisResultsType) {
++        if (analysisResultsType == null || analysisResultsType.getRadAlarm() == null) {
++            return;
++        }
++
++        analysisResultsType.getRadAlarm().forEach(radAlarmType -> {
++            if (radAlarmType != null) {
++                rs350RadAlarm = new RS350RadAlarm(
++                    radAlarmType.getRadAlarmCategoryCode() != null ? radAlarmType.getRadAlarmCategoryCode().value() : null,
++                    radAlarmType.getRadAlarmDescription()
++                );
++                radAlarmReceived = true;
+             }
+-
+         });
++    }
++
++    private static String getCharacteristicValue(CharacteristicsType characteristicsType, int index) {
++        if (characteristicsType == null || characteristicsType.getCharacteristicOrCharacteristicGroup() == null) {
++            return null;
++        }
++
++        if (index < 0 || index >= characteristicsType.getCharacteristicOrCharacteristicGroup().size()) {
++            return null;
++        }
++
++        Object characteristic = characteristicsType.getCharacteristicOrCharacteristicGroup().get(index);
++        if (!(characteristic instanceof CharacteristicType)) {
++            return null;
++        }
++
++        return ((CharacteristicType) characteristic).getCharacteristicValue();
++    }
++
++    private static Double parseDouble(String value) {
++        if (value == null || value.trim().isEmpty()) {
++            return null;
++        }
++
++        try {
++            return Double.parseDouble(value);
++        } catch (NumberFormatException e) {
++            return null;
++        }
++    }
++
++    private static double durationToDouble(Duration duration) {
++        if (duration == null) {
++            return 0.0;
++        }
++
++        double totalSeconds = 0.0;
++
++        totalSeconds += getDurationField(duration, DatatypeConstants.DAYS) * 86400.0;
++        totalSeconds += getDurationField(duration, DatatypeConstants.HOURS) * 3600.0;
++        totalSeconds += getDurationField(duration, DatatypeConstants.MINUTES) * 60.0;
++        totalSeconds += getDurationField(duration, DatatypeConstants.SECONDS);
++
++        if (duration.getSign() < 0) {
++            totalSeconds *= -1.0;
++        }
++
++        return totalSeconds;
++    }
+
++    private static double getDurationField(Duration duration, DatatypeConstants.Field field) {
++        Number value = (Number) duration.getField(field);
++        return value != null ? value.doubleValue() : 0.0;
+     }
+
+-    public RS350InstrumentInformation getRs350InstrumentInformation(){
++    public RS350InstrumentInformation getRs350InstrumentInformation() {
+         return rs350InstrumentInformation;
+     }
