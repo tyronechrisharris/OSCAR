@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- general logging in console -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{0} [%thread] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Suppress verbose auth/session debug logs -->
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="WARN" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="WARN" />
+
+</configuration>
