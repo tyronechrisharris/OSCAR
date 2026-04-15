@@ -3,163 +3,126 @@ package org.sensorhub.impl.utils.rad.model;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import org.sensorhub.impl.sensor.SensorSystem;
-import org.sensorhub.impl.utils.rad.RADHelper;
 import org.sensorhub.impl.utils.rad.output.OccupancyOutput;
 import org.vast.data.DataArrayImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Occupancy {
+public class OccupancyExtended extends Occupancy {
 
-    protected double samplingTime;
-    protected int occupancyCount;
-    protected double startTime;
-    protected double endTime;
-    protected double neutronBackground;
-    protected boolean hasGammaAlarm;
-    protected boolean hasNeutronAlarm;
-    protected int maxGammaCount;
-    protected int maxNeutronCount;
-    protected List<String> adjudicatedIds = new ArrayList<>();
-    protected List<String> videoPaths = new ArrayList<>();
-    protected List<String> webIdObsIds = new ArrayList<>();
+    private String alarmCategoryCode;
 
-    public int getOccupancyCount() {
-        return occupancyCount;
+    public String getAlarmCategoryCode() {
+        return alarmCategoryCode;
     }
 
-    public double getStartTime() {
-        return startTime;
+    public void setAlarmCategoryCode(String alarmCategoryCode) {
+        this.alarmCategoryCode = alarmCategoryCode;
     }
 
-    public double getEndTime() {
-        return endTime;
-    }
+    public static class Builder extends Occupancy.Builder {
+        private String alarmCategoryCode;
 
-    public double getNeutronBackground() {
-        return neutronBackground;
-    }
-
-    public boolean hasGammaAlarm() {
-        return hasGammaAlarm;
-    }
-
-    public boolean hasNeutronAlarm() {
-        return hasNeutronAlarm;
-    }
-
-    public int getMaxGammaCount() {
-        return maxGammaCount;
-    }
-
-    public int getMaxNeutronCount() {
-        return maxNeutronCount;
-    }
-
-    public List<String> getAdjudicatedIds() {
-        return adjudicatedIds;
-    }
-
-    public List<String> getVideoPaths() {
-        return videoPaths;
-    }
-
-    public List<String> getWebIdObsIds() {
-        return webIdObsIds;
-    }
-
-    public double getSamplingTime() {
-        return samplingTime;
-    }
-
-    public static class Builder {
-
-        Occupancy instance;
-
-        public Builder() {
-            this.instance = new Occupancy();
-        }
-
+        @Override
         public Builder samplingTime(double samplingTime) {
-            instance.samplingTime = samplingTime;
+            super.samplingTime(samplingTime);
             return this;
         }
 
+        @Override
         public Builder occupancyCount(int occupancyCount) {
-            instance.occupancyCount = occupancyCount;
+            super.occupancyCount(occupancyCount);
             return this;
         }
 
+        @Override
         public Builder startTime(double startTime) {
-            instance.startTime = startTime;
+            super.startTime(startTime);
             return this;
         }
 
+        @Override
         public Builder endTime(double endTime) {
-            instance.endTime = endTime;
+            super.endTime(endTime);
             return this;
         }
 
+        @Override
         public Builder neutronBackground(double neutronBackground) {
-            instance.neutronBackground = neutronBackground;
+            super.neutronBackground(neutronBackground);
             return this;
         }
 
+        @Override
         public Builder gammaAlarm(boolean hasGammaAlarm) {
-            instance.hasGammaAlarm = hasGammaAlarm;
+            super.gammaAlarm(hasGammaAlarm);
             return this;
         }
 
+        @Override
         public Builder neutronAlarm(boolean hasNeutronAlarm) {
-            instance.hasNeutronAlarm = hasNeutronAlarm;
+            super.neutronAlarm(hasNeutronAlarm);
             return this;
         }
 
+        @Override
         public Builder maxGammaCount(int maxGammaCount) {
-            instance.maxGammaCount = maxGammaCount;
+            super.maxGammaCount(maxGammaCount);
             return this;
         }
 
+        @Override
         public Builder maxNeutronCount(int maxNeutronCount) {
-            instance.maxNeutronCount = maxNeutronCount;
+            super.maxNeutronCount(maxNeutronCount);
             return this;
         }
 
+        @Override
         public Builder adjudicatedIds(List<String> adjudicatedIds) {
-            instance.adjudicatedIds = adjudicatedIds;
+            super.adjudicatedIds(adjudicatedIds);
             return this;
         }
 
+        @Override
         public Builder videoPaths(List<String> videoPaths) {
-            instance.videoPaths = videoPaths;
+            super.videoPaths(videoPaths);
             return this;
         }
 
+        @Override
         public Builder webIdObsIds(List<String> webIdObsIds) {
-            instance.webIdObsIds = webIdObsIds;
+            super.webIdObsIds(webIdObsIds);
             return this;
         }
 
-        public Occupancy build() {
-            return instance;
+        public Builder alarmCategoryCode(String alarmCategoryCode) {
+            this.alarmCategoryCode = alarmCategoryCode;
+            return this;
         }
 
+        public OccupancyExtended build() {
+            OccupancyExtended occ = new OccupancyExtended();
+            occ.samplingTime = this.samplingTime;
+            occ.occupancyCount = this.occupancyCount;
+            occ.startTime = this.startTime;
+            occ.endTime = this.endTime;
+            occ.neutronBackground = this.neutronBackground;
+            occ.hasGammaAlarm = this.hasGammaAlarm;
+            occ.hasNeutronAlarm = this.hasNeutronAlarm;
+            occ.maxGammaCount = this.maxGammaCount;
+            occ.maxNeutronCount = this.maxNeutronCount;
+            occ.adjudicatedIds = this.adjudicatedIds;
+            occ.videoPaths = this.videoPaths;
+            occ.webIdObsIds = this.webIdObsIds;
+            occ.setAlarmCategoryCode(this.alarmCategoryCode);
+            return occ;
+        }
     }
 
-    public void addAdjudicatedId(String adjudicatedId) {
-        this.adjudicatedIds.add(adjudicatedId);
-    }
-
-    public void addVideoPath(String videoPath) {
-        this.videoPaths.add(videoPath);
-    }
-
-    public void addWebIdObsId(String webIdObsId) {
-        this.webIdObsIds.add(webIdObsId);
-    }
-
-    public static DataBlock fromOccupancy(Occupancy occupancy) {
+    public static DataBlock fromOccupancyExtended(OccupancyExtended occupancy) {
+        // We'll need the RADHelper to create the extended record later,
+        // but for now let's assume the record passed in has the extra field.
         OccupancyOutput<?> output = new OccupancyOutput<>(new SensorSystem());
         DataComponent resultStructure = output.getRecordDescription();
         DataBlock dataBlock = resultStructure.createDataBlock();
@@ -182,11 +145,9 @@ public class Occupancy {
         dataBlock.setDoubleValue(index++, cmdIdsCount);
 
         var adjIdsArray = ((DataArrayImpl) resultStructure.getComponent("adjudicatedIds"));
-
         if (cmdIdsCount > 0) {
             adjIdsArray.updateSize();
             dataBlock.updateAtomCount();
-
             for (int i = 0; i < occupancy.getAdjudicatedIds().size(); i++) {
                 dataBlock.setStringValue(index++, occupancy.getAdjudicatedIds().get(i));
             }
@@ -196,11 +157,9 @@ public class Occupancy {
         dataBlock.setDoubleValue(index++, filePathsCount);
 
         var filePathsArray = ((DataArrayImpl) resultStructure.getComponent("videoPaths"));
-
         if (filePathsCount > 0) {
             filePathsArray.updateSize();
             dataBlock.updateAtomCount();
-
             for (int i = 0; i < occupancy.getVideoPaths().size(); i++) {
                 dataBlock.setStringValue(index++, occupancy.getVideoPaths().get(i));
             }
@@ -210,20 +169,23 @@ public class Occupancy {
         dataBlock.setDoubleValue(index++, webIdObsIdsCount);
 
         var webIdObsIdsArray = ((DataArrayImpl) resultStructure.getComponent("webIdObsIds"));
-
         if (webIdObsIdsCount > 0) {
             webIdObsIdsArray.updateSize();
             dataBlock.updateAtomCount();
-
             for (int i = 0; i < occupancy.getWebIdObsIds().size(); i++) {
                 dataBlock.setStringValue(index++, occupancy.getWebIdObsIds().get(i));
             }
         }
 
+        // Add the trailing alarmCategoryCode
+        if (resultStructure instanceof DataRecord && ((DataRecord)resultStructure).hasField("alarmCategoryCode")) {
+             dataBlock.setStringValue(index++, occupancy.getAlarmCategoryCode() != null ? occupancy.getAlarmCategoryCode() : "");
+        }
+
         return dataBlock;
     }
 
-    public static Occupancy toOccupancy(DataBlock dataBlock) {
+    public static OccupancyExtended toOccupancyExtended(DataBlock dataBlock) {
         int index = 0;
 
         var samplingTime = dataBlock.getDoubleValue(index++);
@@ -248,13 +210,14 @@ public class Occupancy {
             videoPaths.add(dataBlock.getStringValue(index++));
 
         List<String> webIdObsIds = new ArrayList<>();
+        var webIdObsIdsCount = dataBlock.getIntValue(index++);
+        for (int i = 0; i < webIdObsIdsCount; i++)
+            webIdObsIds.add(dataBlock.getStringValue(index++));
+
+        String alarmCategoryCode = "";
         try {
-            var webIdObsIdsCount = dataBlock.getIntValue(index++);
-            for (int i = 0; i < webIdObsIdsCount; i++)
-                webIdObsIds.add(dataBlock.getStringValue(index++));
-        } catch (Exception ignored) {
-            // backwards compatibility: old observations may not have webIdObsIds fields
-        }
+            alarmCategoryCode = dataBlock.getStringValue(index++);
+        } catch (Exception ignored) {}
 
         return new Builder()
                 .samplingTime(samplingTime)
@@ -269,6 +232,7 @@ public class Occupancy {
                 .adjudicatedIds(cmdIds)
                 .videoPaths(videoPaths)
                 .webIdObsIds(webIdObsIds)
+                .alarmCategoryCode(alarmCategoryCode)
                 .build();
     }
 }
