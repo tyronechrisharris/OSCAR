@@ -31,42 +31,26 @@ public class LocationOutput extends OutputBase {
                 .build();
 
         dataEncoding = new TextEncodingImpl(",", "\n");
-
     }
 
-//    protected void parseData(RS350Message msg) {
-//
-//        if (latestRecord == null)
-//            dataBlock = dataStruct.createDataBlock();
-//        else
-//            dataBlock = latestRecord.renew();
-//
-//        latestRecordTime = System.currentTimeMillis() / 1000;
-//
-//        dataBlock.setLongValue(0, msg.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
-//        dataBlock.setDoubleValue(1, msg.getRs350ForegroundMeasurement().getLat());
-//        dataBlock.setDoubleValue(2, msg.getRs350ForegroundMeasurement().getLon());
-//        dataBlock.setDoubleValue(3, msg.getRs350ForegroundMeasurement().getAlt());
-//
-//        eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
-//
-//    }
+    @Override
+    public boolean acceptsMessage(RS350Message message) {
+        return message.getRs350ForegroundMeasurement() != null
+            && message.getRs350ForegroundMeasurement().getLat() != null
+            && message.getRs350ForegroundMeasurement().getLon() != null;
+    }
 
     @Override
     public void onNewMessage(RS350Message message) {
+        createOrRenewDataBlock();
 
-        if (message.getRs350ForegroundMeasurement().getLat() != null) {
+        latestRecordTime = System.currentTimeMillis() / 1000;
 
-            createOrRenewDataBlock();
+        dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
+        dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getLat());
+        dataBlock.setDoubleValue(2, message.getRs350ForegroundMeasurement().getLon());
+        dataBlock.setDoubleValue(3, message.getRs350ForegroundMeasurement().getAlt() != null ? message.getRs350ForegroundMeasurement().getAlt() : 0.0);
 
-            latestRecordTime = System.currentTimeMillis() / 1000;
-
-            dataBlock.setLongValue(0, message.getRs350ForegroundMeasurement().getStartDateTime() / 1000);
-            dataBlock.setDoubleValue(1, message.getRs350ForegroundMeasurement().getLat());
-            dataBlock.setDoubleValue(2, message.getRs350ForegroundMeasurement().getLon());
-            dataBlock.setDoubleValue(3, message.getRs350ForegroundMeasurement().getAlt());
-
-            eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
-        }
+        eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
     }
 }

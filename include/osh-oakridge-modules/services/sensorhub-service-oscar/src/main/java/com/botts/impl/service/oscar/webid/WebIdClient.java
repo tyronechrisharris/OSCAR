@@ -9,7 +9,6 @@ import org.sensorhub.impl.utils.rad.model.WebIdAnalysis;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -28,10 +27,7 @@ public class WebIdClient {
 
     public WebIdClient(String apiRoot) {
         this.apiRoot = apiRoot.endsWith("/") ? apiRoot : apiRoot + "/";
-        this.httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .proxy(ProxySelector.of(null))
-                .build();
+        this.httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     }
 
     public boolean isReachable() {

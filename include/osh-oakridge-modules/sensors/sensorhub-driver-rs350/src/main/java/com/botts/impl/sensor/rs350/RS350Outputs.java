@@ -18,10 +18,12 @@ public class RS350Outputs {
     @DisplayInfo(label = "Foreground", desc = "Foreground spectrum data")
     public boolean enableForegroundOutput = true;
 
-    @DisplayInfo(label = "Derived Data", desc = "Contains analytically derived data. Includes some Alarm data")
+    @DisplayInfo(label = "Derived Data", desc = "Contains analytically derived data")
     public boolean enableDerivedData = false;
 
-    @DisplayInfo(label = "Alarm", desc = "Includes Derived Data and Alarm Data")
+    @DisplayInfo(label = "Alarm", desc = "Includes derived data and alarm details")
     public boolean enableAlarmOutput = true;
-}
 
+    @DisplayInfo(label = "Connection Status", desc = "Reports whether the driver is actively receiving messages")
+    public boolean enableConnectionStatusOutput = true;
+}

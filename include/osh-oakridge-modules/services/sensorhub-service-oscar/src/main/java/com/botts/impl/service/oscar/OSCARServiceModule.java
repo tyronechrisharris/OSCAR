@@ -31,7 +31,6 @@ import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
 import org.sensorhub.api.datastore.obs.ObsFilter;
-import org.sensorhub.api.module.IModule;
 import org.sensorhub.api.module.ModuleEvent;
 import org.sensorhub.impl.module.AbstractModule;
 
@@ -61,7 +60,6 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
     protected void doInit() throws SensorHubException {
         super.doInit();
 
-        // Block here for bucket service
         try {
             getLogger().info("Checking that a bucket service is loaded...");
             this.bucketService = getParentHub().getModuleRegistry()
@@ -82,12 +80,6 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
         createControls();
 
         sitemapDiagramHandler = new SitemapDiagramHandler(getBucketService(), siteInfoOutput, this);
-
-        if (bucketService != null) {
-            WebIdClient webIdClient = new WebIdClient(config.webIdApiRoot);
-            webIdResourceHandler = new WebIdResourceHandler(bucketStore, getParentHub(), webIdClient);
-            bucketService.registerObjectHandler(webIdResourceHandler);
-        }
 
         if (getConfiguration().videoRetentionConfig != null) {
             int frameCount = getConfiguration().videoRetentionConfig.enableFrameRetention ? getConfiguration().videoRetentionConfig.frameRetentionCount : 0;
@@ -144,11 +136,17 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
             if (getParentHub().getSystemDriverRegistry().getDatabase(system.getUniqueIdentifier()) == null)
                 getParentHub().getSystemDriverRegistry().registerDatabase(system.getUniqueIdentifier(), (IObsSystemDatabase) module);
 
-
             if (databasePurger == null)
                 databasePurger = new DatabasePurger((IObsSystemDatabase) module, bucketStore, 5);
 
             databasePurger.start();
+        }
+
+        if (bucketService != null) {
+            WebIdClient webIdClient = (config.webIdApiRoot != null && !config.webIdApiRoot.isBlank())
+                    ? new WebIdClient(config.webIdApiRoot) : null;
+            webIdResourceHandler = new WebIdResourceHandler(bucketStore, getParentHub(), webIdClient);
+            bucketService.registerObjectHandler(webIdResourceHandler);
         }
 
         statsOutput.start();
@@ -161,7 +159,11 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
 
     @Override
     protected void doStop() throws SensorHubException {
-        super.doStop();
+        if (webIdResourceHandler != null && bucketService != null) {
+            bucketService.unregisterObjectHandler(webIdResourceHandler);
+            webIdResourceHandler = null;
+        }
+
         try {
             statsOutput.stop();
         } catch (Exception ex) {
@@ -173,6 +175,8 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
 
         if (videoRetention != null)
             videoRetention.stop();
+
+        super.doStop();
     }
 
     private void refreshSiteDiagram() {
@@ -208,5 +212,13 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> {
 
     public SpreadsheetHandler getSpreadsheetHandler() {
         return spreadsheetHandler;
+    }
+
+    public WebIdResourceHandler getWebIdResourceHandler() {
+        return webIdResourceHandler;
+    }
+
+    public WebIdClient getWebIdClient() {
+        return webIdResourceHandler != null ? webIdResourceHandler.getWebIdClient() : null;
     }
 }

@@ -160,8 +160,7 @@ public class Occupancy {
     }
 
     public static DataBlock fromOccupancy(Occupancy occupancy) {
-        OccupancyOutput<?> output = new OccupancyOutput<>(new SensorSystem());
-        DataComponent resultStructure = output.getRecordDescription();
+        DataComponent resultStructure = OccupancyOutput.createRecordStructure();
         DataBlock dataBlock = resultStructure.createDataBlock();
         dataBlock.updateAtomCount();
         resultStructure.setData(dataBlock);

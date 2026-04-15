@@ -25,8 +25,6 @@ public class BackgroundOutput extends OutputBase {
         final String LIN_SPEC_ID = "lin-spectrum";
         final String CMP_SPEC_ID = "cmp-spectrum";
 
-        // OUTPUT
-
         dataStruct = radHelper.createRecord()
                 .name(getName())
                 .label("Background Report")
@@ -46,48 +44,28 @@ public class BackgroundOutput extends OutputBase {
                 .build();
 
         dataEncoding = new TextEncodingImpl(",", "\n");
-
     }
 
-//    public void parseData(RS350Message msg) {
-//        if (latestRecord == null)
-//            dataBlock = dataStruct.createDataBlock();
-//        else
-//            dataBlock = latestRecord.renew();
-//
-//        latestRecordTime = System.currentTimeMillis() / 1000;
-//
-//        dataBlock.setLongValue(0, msg.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
-//        dataBlock.setDoubleValue(1, msg.getRs350BackgroundMeasurement().getRealTimeDuration());
-//        dataBlock.setIntValue(2, msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
-//        dataBlock.setIntValue(4, msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
-//        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(msg.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
-//        dataBlock.setDoubleValue(6, msg.getRs350BackgroundMeasurement().getGammaGrossCount());
-//        dataBlock.setDoubleValue(7, msg.getRs350BackgroundMeasurement().getNeutronGrossCount());
-//
-//        eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
-//    }
+    @Override
+    public boolean acceptsMessage(RS350Message message) {
+        return message.getRs350BackgroundMeasurement() != null;
+    }
 
     @Override
     public void onNewMessage(RS350Message message) {
+        createOrRenewDataBlock();
 
-        if (message.getRs350BackgroundMeasurement() != null) {
+        latestRecordTime = System.currentTimeMillis() / 1000;
 
-            createOrRenewDataBlock();
+        dataBlock.setLongValue(0, message.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
+        dataBlock.setDoubleValue(1, message.getRs350BackgroundMeasurement().getRealTimeDuration());
+        dataBlock.setIntValue(2, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
+        ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
+        dataBlock.setIntValue(4, message.getRs350BackgroundMeasurement().getCmpEnCalSpectrum().length);
+        ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350BackgroundMeasurement().getCmpEnCalSpectrum());
+        dataBlock.setDoubleValue(6, message.getRs350BackgroundMeasurement().getGammaGrossCount());
+        dataBlock.setDoubleValue(7, message.getRs350BackgroundMeasurement().getNeutronGrossCount());
 
-            latestRecordTime = System.currentTimeMillis() / 1000;
-
-            dataBlock.setLongValue(0, message.getRs350BackgroundMeasurement().getStartDateTime() / 1000);
-            dataBlock.setDoubleValue(1, message.getRs350BackgroundMeasurement().getRealTimeDuration());
-            dataBlock.setIntValue(2, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[3].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
-            dataBlock.setIntValue(4, message.getRs350BackgroundMeasurement().getLinEnCalSpectrum().length);
-            ((DataBlockMixed) dataBlock).getUnderlyingObject()[5].setUnderlyingObject(message.getRs350BackgroundMeasurement().getLinEnCalSpectrum());
-            dataBlock.setDoubleValue(6, message.getRs350BackgroundMeasurement().getGammaGrossCount());
-            dataBlock.setDoubleValue(7, message.getRs350BackgroundMeasurement().getNeutronGrossCount());
-
-            eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
-        }
+        eventHandler.publish(new DataEvent(latestRecordTime, BackgroundOutput.this, dataBlock));
     }
 }

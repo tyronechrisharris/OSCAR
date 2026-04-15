@@ -16,6 +16,8 @@
 package com.botts.impl.system.lane;
 
 
+import com.botts.impl.process.rs350.occupancy.Rs350OccupancyProcessConfig;
+import com.botts.impl.process.rs350.occupancy.Rs350OccupancyProcessModule;
 import com.botts.impl.sensor.aspect.AspectConfig;
 import com.botts.impl.sensor.aspect.AspectSensor;
 import com.botts.impl.sensor.aspect.comm.ModbusTCPCommProvider;
@@ -23,9 +25,13 @@ import com.botts.impl.sensor.aspect.comm.ModbusTCPCommProviderConfig;
 import com.botts.impl.sensor.rapiscan.EMLConfig;
 import com.botts.impl.sensor.rapiscan.RapiscanConfig;
 import com.botts.impl.sensor.rapiscan.RapiscanSensor;
+import com.botts.impl.sensor.rs350.RS350Config;
+import com.botts.impl.sensor.rs350.RS350Sensor;
 import com.botts.impl.system.lane.config.*;
 import com.botts.impl.system.lane.helpers.occupancy.OccupancyWrapper;
+import com.botts.impl.system.lane.helpers.webid.WebIdHelper;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.data.IDataProducerModule;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.DataStoreException;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
@@ -41,31 +47,28 @@ import org.sensorhub.api.system.SystemRemovedEvent;
 import org.sensorhub.impl.comm.TCPCommProviderConfig;
 import org.sensorhub.impl.module.AbstractModule;
 import org.sensorhub.impl.module.ModuleRegistry;
-import org.sensorhub.impl.module.ModuleSecurity;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.sensorhub.impl.sensor.SensorSystem;
 import org.sensorhub.impl.sensor.SensorSystemConfig;
+import org.sensorhub.impl.sensor.ffmpeg.FFMPEGSensor;
 import org.sensorhub.impl.sensor.ffmpeg.FFMPEGSensorBase;
 import org.sensorhub.impl.sensor.ffmpeg.config.FFMPEGConfig;
-import org.sensorhub.impl.sensor.ffmpeg.FFMPEGSensor;
 import org.sensorhub.impl.system.SystemDatabaseTransactionHandler;
+import org.sensorhub.impl.utils.rad.output.N42Output;
 import org.sensorhub.utils.MsgUtils;
 import org.vast.util.Asserts;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Extended functionality of the SensorSystem class unique for Open Source Central Alarm (OSCAR)
@@ -80,10 +83,26 @@ public class LaneSystem extends SensorSystem {
     private static final String URN_PREFIX = "urn:";
     private static final String LANE_SYSTEM_PREFIX = URN_PREFIX + "osh:system:lane:";
     private static final String RAPISCAN_URI = URN_PREFIX + "osh:sensor:rapiscan";
+    private static final String RS350_URI = URN_PREFIX + "osh:sensor:rs350";
     private static final String ASPECT_URI = URN_PREFIX + "osh:sensor:aspect";
-    private static final String PROCESS_URI = URN_PREFIX + "osh:process:occupancy";
-    private static final String VIDEO_CLIPS_DIRECTORY = "clips/";
-    private static final String VIDEO_STREAMING_DIRECTORY = "streaming/";
+    private static final Set<Class<?>> WEBID_SENSORS = Set.of(RS350Sensor.class);
+    private static final String DEFAULT_XMLID_PREFIX = "lane";
+
+    AbstractSensorModule<?> existingRPMModule = null;
+    IDataProducerModule<?> occupancyProducer = null;
+    Flow.Subscription subscription = null;
+    private ExecutorService threadPool = null;
+    Map<String, FFMPEGConfig> ffmpegConfigs = null;
+    private final Map<String, String> activeMtxPaths = new ConcurrentHashMap<>();
+    OccupancyWrapper occupancyWrapper;
+    WebIdHelper webIdHelper;
+
+    AdjudicationControl adjudicationControl;
+    WebIdOutput webIdOutput;
+    N42Output<?> n42Output;
+
+    private volatile boolean occupancyProducerInitRequested = false;
+    private volatile boolean occupancyWrapperStarted = false;
 
     private String getMediaMtxIp() {
         String ip = System.getenv("MEDIAMTX_IP");
@@ -111,13 +130,14 @@ public class LaneSystem extends SensorSystem {
 
     private String getMediaMtxRtspBase() {
         String ip = getMediaMtxIp();
-        if (ip == null) return null;
+        if (ip == null) {
+            return null;
+        }
 
         String user = getEnvOrFile("MEDIAMTX_API_USER");
         String pass = getEnvOrFile("MEDIAMTX_API_PASS");
 
         if (user != null && !user.isBlank() && pass != null && !pass.isBlank()) {
-            // Encode the credentials into the RTSP URL
             return "rtsp://" + user + ":" + pass + "@" + ip + ":8554/";
         }
 
@@ -141,20 +161,13 @@ public class LaneSystem extends SensorSystem {
                 .build();
     }
 
-    AbstractSensorModule<?> existingRPMModule = null;
-    Flow.Subscription subscription = null;
-    private ExecutorService threadPool = null;
-    Map<String, FFMPEGConfig> ffmpegConfigs = null;
-    private final Map<String, String> activeMtxPaths = new ConcurrentHashMap<>();
-    OccupancyWrapper occupancyWrapper;
-
-    AdjudicationControl adjudicationControl;
-
     @Override
     protected void doInit() throws SensorHubException {
         threadPool = Executors.newFixedThreadPool(10);
         ffmpegConfigs = new HashMap<>();
         occupancyWrapper = null;
+        occupancyWrapperStarted = false;
+        occupancyProducerInitRequested = false;
 
         // generate unique ID
         if (config.uniqueID != null && !config.uniqueID.equals(AUTO_ID)) {
@@ -169,15 +182,21 @@ public class LaneSystem extends SensorSystem {
         }
 
         // Ensure name is at most 12 characters
-        if (config.name.length() > 12)
+        if (config.name.length() > 12) {
             throw new SensorHubException("Lane name must be 12 or less characters", new IllegalArgumentException("Module name must be 12 or less characters"));
+        }
 
         // Check state members too in case config hasn't been updated
         for (var member : getMembers().values()) {
             if (member instanceof RapiscanSensor || member instanceof AspectSensor) {
                 existingRPMModule = (AbstractSensorModule<?>) member;
-            }else if (member instanceof FFMPEGSensor) {
+                occupancyProducer = (IDataProducerModule<?>) member;
+            } else if (member instanceof FFMPEGSensor) {
                 ffmpegConfigs.put(member.getLocalID(), ((FFMPEGSensor) member).getConfiguration());
+            } else if (member instanceof RS350Sensor) {
+                existingRPMModule = (AbstractSensorModule<?>) member;
+            } else if (member instanceof Rs350OccupancyProcessModule) {
+                occupancyProducer = (IDataProducerModule<?>) member;
             }
         }
 
@@ -186,14 +205,11 @@ public class LaneSystem extends SensorSystem {
             // Initial RPM config
             var rpmConfig = getConfiguration().laneOptionsConfig.rpmConfig;
             if (rpmConfig != null && existingRPMModule == null) {
-                // Create Rapiscan or Aspect config, then add as submodule
+                // Create Rapiscan, Aspect, or RS350 config, then add as submodule
                 var config = createRPMConfig(rpmConfig);
-                existingRPMModule = (AbstractSensorModule<?>) registerSubmodule(config);
+                existingRPMModule = (AbstractSensorModule<?>) registerSubmodule(config, false);
             }
-            if (existingRPMModule != null) {
-                occupancyWrapper = new OccupancyWrapper(getParentHub(), existingRPMModule);
-                //occupancyWrapper.videoNamePrefix = BASE_VIDEO_DIRECTORY + "lane" + getConfiguration().groupID + "/";
-            }
+
             // Initial FFmpeg config
             var ffmpegConfigList = getConfiguration().laneOptionsConfig.ffmpegConfig;
             if (ffmpegConfigList != null) {
@@ -201,18 +217,22 @@ public class LaneSystem extends SensorSystem {
                     final int index = ffmpegConfigList.indexOf(simpleConfig);
                     FFMPEGConfig config = createFFmpegConfig(simpleConfig, index);
 
-                    // Provision camera async to avoid blocking startup
+                    // Provision camera async to avoid blocking startup.
                     CompletableFuture.runAsync(() -> {
                         try {
                             String pathName = buildMediaMtxPathName(config, index);
                             configureMediaMtxProxy(config, pathName);
                             var ffmpegModule = createFFmpegModule(config);
-                            // Track the relationship for cleanup using the actual uniqueID from the initialized module
+
                             String ffmpegUID = ffmpegModule.getUniqueIdentifier();
                             if (ffmpegUID != null) {
                                 activeMtxPaths.put(ffmpegUID, pathName);
                             } else {
                                 getLogger().warn("Could not determine uniqueID for FFmpeg sensor {}, path tracking may fail", config.name);
+                            }
+
+                            if (occupancyWrapper != null) {
+                                occupancyWrapper.addFFmpegSensor(ffmpegModule);
                             }
                         } catch (Exception e) {
                             getLogger().error("Failed to async provision MediaMTX proxy for camera {}: {}", config.name, e.getMessage());
@@ -222,52 +242,52 @@ public class LaneSystem extends SensorSystem {
             }
         }
 
+        webIdOutput = new WebIdOutput(this);
+        addOutput(webIdOutput, false);
+
+        n42Output = new N42Output<>(this);
+        addOutput(n42Output, false);
+
         adjudicationControl = new AdjudicationControl(this);
         addControlInput(adjudicationControl);
 
-
         String statusMsg = "Note: ";
-        if (existingRPMModule == null)
+        if (existingRPMModule == null) {
             statusMsg += "No RPM driver found in lane.\n";
-        if (!statusMsg.equalsIgnoreCase("Note: "))
+        }
+        if (!statusMsg.equalsIgnoreCase("Note: ")) {
             reportStatus(statusMsg);
+        }
 
-        boolean rpmFailedToInit = false;
-
-        // Init modules all modules except process module as it requires other modules to be started
-        for (var module: getMembers().values()) {
-            if (module != null) {
+        // Init sensor modules. Do not eagerly init process modules because RS350 process config
+        // needs the parent system UID injected after the RPM sensor is available.
+        for (var module : getMembers().values()) {
+            if (module != null && module instanceof AbstractSensorModule<?>) {
                 try {
-                    /*
-                    threadPool.execute(() -> {
-                        try {
-                            module.init();
-                        } catch (SensorHubException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-
-                     */
                     module.init();
-                }
-                catch (Exception e) {
-                    // If rapiscan fails to initialize, then don't load process module
-                    if (module instanceof RapiscanSensor || module instanceof AspectSensor)
-                        rpmFailedToInit = true;
-                    getLogger().error("Cannot initialize system component {}", MsgUtils.moduleString(module), e);
+                } catch (Exception e) {
+                    if (module instanceof RapiscanSensor || module instanceof AspectSensor || module instanceof RS350Sensor) {
+                        getLogger().error("Cannot initialize system component {}", MsgUtils.moduleString(module), e);
+                    } else {
+                        getLogger().error("Cannot initialize system component {}", MsgUtils.moduleString(module), e);
+                    }
                 }
             }
         }
 
         getParentHub().getEventBus().newSubscription()
-            // TODO: osh-core needs to use EventUtils for module topic IDs
-            .withTopicID(EventUtils.getSystemRegistryTopicID(), ModuleRegistry.EVENT_GROUP_ID)
-            .subscribe(this::handleLaneEvent)
-            .thenAccept(subscription -> {
-                this.subscription = subscription;
-                subscription.request(Long.MAX_VALUE);
-                getLogger().info("Started module subscription to {}", getLocalID());
-            });
+                // TODO: osh-core needs to use EventUtils for module topic IDs
+                .withTopicID(EventUtils.getSystemRegistryTopicID(), ModuleRegistry.EVENT_GROUP_ID)
+                .subscribe(this::handleLaneEvent)
+                .thenAccept(subscription -> {
+                    this.subscription = subscription;
+                    subscription.request(Long.MAX_VALUE);
+                    getLogger().info("Started module subscription to {}", getLocalID());
+                });
+    }
+
+    public N42Output<?> getN42Output() {
+        return this.n42Output;
     }
 
     private void configureMediaMtxProxy(FFMPEGConfig ffmpegConfig, String pathName) throws SensorHubException {
@@ -329,7 +349,6 @@ public class LaneSystem extends SensorSystem {
         if (filePath != null && !filePath.isEmpty()) {
             try {
                 value = new String(Files.readAllBytes(Paths.get(filePath))).trim();
-                // Handle potential UTF-8 BOM
                 if (value.startsWith("\uFEFF")) {
                     value = value.substring(1);
                 }
@@ -348,7 +367,6 @@ public class LaneSystem extends SensorSystem {
                 .header("Content-Type", "application/json")
                 .method(method, HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8));
 
-        // Inject Basic Auth if credentials are provided in environment or secret files
         String user = getEnvOrFile("MEDIAMTX_API_USER");
         String pass = getEnvOrFile("MEDIAMTX_API_PASS");
 
@@ -394,7 +412,9 @@ public class LaneSystem extends SensorSystem {
 
     private void deleteMediaMtxPath(String pathName) {
         String apiBase = getMediaMtxDeletePathsApiBase();
-        if (apiBase == null) return;
+        if (apiBase == null) {
+            return;
+        }
 
         try {
             String encodedPath = encodePathSegment(pathName);
@@ -411,18 +431,15 @@ public class LaneSystem extends SensorSystem {
     }
 
     private synchronized FFMPEGSensorBase<?> createFFmpegModule(FFMPEGConfig ffmpegConfig) throws SensorHubException {
-        // Get ffmpeg submodule with the same unique serial num
-        // If there is a module registered for this serial number, then the driver was already registered
         var ffmpegModuleOpt = getMembers().values().stream().filter(
                 module -> (
                         module instanceof FFMPEGSensor && ((FFMPEGSensor) module).getConfiguration().serialNumber.equals(ffmpegConfig.serialNumber)
                 )
         ).findFirst();
 
-        // Register the new module
         if (ffmpegModuleOpt.isEmpty()) {
-            return (FFMPEGSensorBase<?>) registerSubmodule(ffmpegConfig);
-        } else { // If there is already a module registered, then update the config
+            return (FFMPEGSensorBase<?>) registerSubmodule(ffmpegConfig, true);
+        } else {
             FFMPEGSensor module = (FFMPEGSensor) ffmpegModuleOpt.get();
             ffmpegConfig.id = module.getLocalID();
             module.updateConfig(ffmpegConfig);
@@ -431,8 +448,63 @@ public class LaneSystem extends SensorSystem {
     }
 
     @Override
+    protected void beforeInit() throws SensorHubException {
+        removeOccupancyProcess();
+        super.beforeInit();
+    }
+
+    @Override
+    protected void beforeStart() throws SensorHubException {
+        removeOccupancyProcess();
+        super.beforeStart();
+    }
+
+    private void removeOccupancyProcess() throws SensorHubException {
+        List<String> processIds = new ArrayList<>();
+        for (var member : getMembers().values()) {
+            if (member instanceof Rs350OccupancyProcessModule) {
+                processIds.add(member.getConfiguration().id);
+            }
+        }
+
+        for (String processId : processIds) {
+            removeSubSystem(processId);
+        }
+
+        if (occupancyProducer != null && occupancyProducer != existingRPMModule) {
+            occupancyProducer = null;
+        }
+        occupancyProducerInitRequested = false;
+    }
+
+    @Override
     protected void afterStart() throws SensorHubException {
         super.afterStart();
+
+        if (occupancyWrapper != null) {
+            stopOccupancyWrapper();
+            occupancyWrapper.removeRpmSensor();
+        }
+        occupancyWrapper = null;
+        occupancyWrapperStarted = false;
+
+        if (existingRPMModule instanceof RS350Sensor rs350Module) {
+            var processConfig = createOccupancyProcessConfig(rs350Module);
+            if (processConfig != null) {
+                occupancyProducer = (IDataProducerModule<?>) registerSubmodule(processConfig, false);
+                occupancyProducerInitRequested = false;
+                initializeOccupancyProducerIfReady();
+            }
+        } else {
+            occupancyProducer = existingRPMModule;
+            occupancyProducerInitRequested = false;
+        }
+
+        if (occupancyProducer != null) {
+            occupancyWrapper = new OccupancyWrapper(getParentHub(), occupancyProducer);
+            attachExistingFfmpegSensorsToWrapper();
+            startOccupancyWrapperIfProducerStarted();
+        }
 
         var db = getParentHub().getSystemDriverRegistry().getDatabase(getUniqueIdentifier());
         if (db == null) {
@@ -445,13 +517,44 @@ public class LaneSystem extends SensorSystem {
             return;
         }
         adjudicationControl.setObsStore(obsStore);
+
+        if (webIdHelper != null) {
+            webIdHelper.stop();
+        }
+        if (existingRPMModule != null && occupancyProducer != null && WEBID_SENSORS.contains(existingRPMModule.getClass())) {
+            webIdHelper = new WebIdHelper(this, occupancyProducer);
+        } else {
+            webIdHelper = null;
+        }
+    }
+
+    @Override
+    protected void doStop() throws SensorHubException {
+        super.doStop();
+
+        if (webIdHelper != null) {
+            webIdHelper.stop();
+            webIdHelper = null;
+        }
+
+        stopOccupancyWrapper();
+
+        if (occupancyProducer != null && occupancyProducer != existingRPMModule) {
+            removeSubSystem(occupancyProducer.getConfiguration().id);
+            occupancyProducer = null;
+        }
+        occupancyProducerInitRequested = false;
+
+        if (occupancyWrapper != null) {
+            occupancyWrapper.removeRpmSensor();
+            occupancyWrapper = null;
+        }
     }
 
     @Override
     public void cleanup() throws SensorHubException {
         super.cleanup();
 
-        // Shut down thread pool first to stop new path provisioning
         if (threadPool != null) {
             threadPool.shutdown();
             try {
@@ -464,26 +567,22 @@ public class LaneSystem extends SensorSystem {
             }
         }
 
-        // Cleanup MediaMTX paths
         activeMtxPaths.forEach((uid, pathName) -> deleteMediaMtxPath(pathName));
         activeMtxPaths.clear();
 
-        // Auto delete lane data if specified
         if (getConfiguration() != null && getConfiguration().autoDelete) {
             IObsSystemDatabase db = getParentHub().getSystemDriverRegistry().getDatabase(getUniqueIdentifier());
 
             String laneUID = getUniqueIdentifier();
-            if(laneUID == null)
+            if (laneUID == null) {
                 laneUID = createLaneUID(config.uniqueID);
+            }
             if (db != null) {
-                // Remove lane if nothing else
                 List<String> removalList = new ArrayList<>(List.of(laneUID));
-                // Remove lane (and process) from database
                 deleteSystemsFromDatabase(removalList);
             }
         }
 
-        // Cancel and remove module/system subscription on cleanup
         if (subscription != null) {
             subscription.cancel();
             subscription = null;
@@ -495,121 +594,215 @@ public class LaneSystem extends SensorSystem {
     }
 
     private synchronized void deleteSystemsFromDatabase(List<String> systemUIDs) {
-        // Delete the system data. Use for-loop in case of different databases
         for (String sysUID : systemUIDs) {
             IObsSystemDatabase obsDatabase = getParentHub().getSystemDriverRegistry().getDatabase(sysUID);
-            if (obsDatabase == null)
+            if (obsDatabase == null) {
                 return;
+            }
 
             var sysFilter = new SystemFilter.Builder()
                     .withUniqueIDs(sysUID)
                     .includeMembers(true)
                     .build();
 
-            // Delete old observations
             obsDatabase.getObservationStore().removeEntries(new ObsFilter.Builder()
                     .withDataStreams()
                     .withSystems(sysFilter)
                     .done()
                     .build());
-            // Delete old data streams
             obsDatabase.getDataStreamStore().removeEntries(new DataStreamFilter.Builder()
                     .withSystems(sysFilter)
                     .build());
-
-            // Delete old systems
             obsDatabase.getSystemDescStore().removeEntries(sysFilter);
         }
     }
 
-    private AbstractModule<?> registerSubmodule(ModuleConfig config) throws SensorHubException {
+    private AbstractModule<?> registerSubmodule(ModuleConfig config, boolean initNow) throws SensorHubException {
         var newMember = new SensorSystemConfig.SystemMember();
         newMember.config = config;
         var newSubmodule = (AbstractModule<?>) addSubsystem(newMember);
 
-        // Synchronously initialize the submodule so its uniqueID is generated
-        // before any other part of the system (like registration or path tracking) attempts to access it.
-        newSubmodule.init();
+        if (initNow) {
+            newSubmodule.init();
+        }
 
-        // Wait for loaded module, then notify listeners of config changed. QOL for admin UI
-        threadPool.execute(() -> {
-            try {
-                newSubmodule.waitForState(ModuleEvent.ModuleState.LOADED, 10000);
-            } catch (SensorHubException e) {
-                throw new RuntimeException(e);
-            }
-            eventHandler.publish(new ModuleEvent(this, ModuleEvent.Type.CONFIG_CHANGED));
-        });
-
+        scheduleConfigChangedNotification(newSubmodule);
         return newSubmodule;
     }
 
+    private void scheduleConfigChangedNotification(AbstractModule<?> module) {
+        threadPool.execute(() -> {
+            try {
+                module.waitForState(ModuleEvent.ModuleState.LOADED, 10000);
+                eventHandler.publish(new ModuleEvent(this, ModuleEvent.Type.CONFIG_CHANGED));
+            } catch (SensorHubException e) {
+                getLogger().debug("Module {} did not reach LOADED before config change notification timeout", MsgUtils.moduleString(module), e);
+            }
+        });
+    }
+
+    private synchronized void initializeOccupancyProducer() throws SensorHubException {
+        if (occupancyProducer == null || occupancyProducer == existingRPMModule || occupancyProducerInitRequested) {
+            return;
+        }
+
+        occupancyProducerInitRequested = true;
+        try {
+            if (occupancyProducer instanceof Rs350OccupancyProcessModule rs350Process && existingRPMModule != null) {
+                rs350Process.getConfiguration().systemUID = existingRPMModule.getUniqueIdentifier();
+            }
+            occupancyProducer.init();
+        } catch (SensorHubException e) {
+            occupancyProducerInitRequested = false;
+            throw e;
+        }
+    }
+
+    private void initializeOccupancyProducerIfReady() {
+        if (existingRPMModule == null || occupancyProducer == null || occupancyProducer == existingRPMModule) {
+            return;
+        }
+
+        try {
+            if (existingRPMModule.waitForState(ModuleEvent.ModuleState.STARTED, 100)) {
+                initializeOccupancyProducer();
+            }
+        } catch (SensorHubException e) {
+            getLogger().debug("Occupancy producer not initialized yet; waiting for RPM STARTED event", e);
+        }
+    }
+
+    private synchronized void startOccupancyWrapper() {
+        if (occupancyWrapper == null || occupancyWrapperStarted) {
+            return;
+        }
+
+        occupancyWrapper.start();
+        occupancyWrapperStarted = true;
+    }
+
+    private synchronized void stopOccupancyWrapper() {
+        if (occupancyWrapper == null || !occupancyWrapperStarted) {
+            occupancyWrapperStarted = false;
+            return;
+        }
+
+        occupancyWrapper.stop();
+        occupancyWrapperStarted = false;
+    }
+
+    private void startOccupancyWrapperIfProducerStarted() {
+        if (occupancyProducer == null || occupancyWrapper == null) {
+            return;
+        }
+
+        try {
+            if (occupancyProducer.waitForState(ModuleEvent.ModuleState.STARTED, 100)) {
+                startOccupancyWrapper();
+            }
+        } catch (SensorHubException e) {
+            getLogger().debug("Occupancy producer not started yet; waiting for producer STARTED event", e);
+        }
+    }
+
+    private void attachExistingFfmpegSensorsToWrapper() {
+        if (occupancyWrapper == null) {
+            return;
+        }
+
+        for (var member : getMembers().values()) {
+            if (member instanceof FFMPEGSensor ffmpegSensor) {
+                occupancyWrapper.addFFmpegSensor(ffmpegSensor);
+            }
+        }
+    }
+
     private void handleLaneEvent(Event e) {
-        // TODO: Handle events for video drivers, RPM drivers, and process module
-        // TODO: If lane is not saved to config, then delete database data and process?
         if (e instanceof SystemRemovedEvent event) {
-            // Signifies that a subsystem was removed from the lane
             if (event.getParentGroupUID() != null && event.getParentGroupUID().equals(getUniqueIdentifier())) {
 
-                // If RPM is removed, nullify local object
-                if (event.getSystemUID().contains(RAPISCAN_URI) || event.getSystemUID().contains(ASPECT_URI)) {
-                    occupancyWrapper.removeRpmSensor();
+                if (event.getSystemUID().contains(RAPISCAN_URI) || event.getSystemUID().contains(ASPECT_URI) || event.getSystemUID().contains(RS350_URI)) {
+                    stopOccupancyWrapper();
+                    if (occupancyWrapper != null) {
+                        occupancyWrapper.removeRpmSensor();
+                    }
                     existingRPMModule = null;
+                    occupancyProducer = null;
+                    occupancyProducerInitRequested = false;
+                } else if (occupancyProducer != null
+                        && occupancyProducer != existingRPMModule
+                        && Objects.equals(event.getSystemUID(), occupancyProducer.getUniqueIdentifier())) {
+                    stopOccupancyWrapper();
+                    if (occupancyWrapper != null) {
+                        occupancyWrapper.removeRpmSensor();
+                    }
+                    occupancyProducer = null;
+                    occupancyProducerInitRequested = false;
                 }
 
-                // If FFmpeg sensor is removed, cleanup MediaMTX path
                 String pathName = activeMtxPaths.remove(event.getSystemUID());
                 if (pathName != null) {
                     deleteMediaMtxPath(pathName);
                 }
             }
 
-        }
-
-        else if (e instanceof ModuleEvent event) {
-            // Module STATE_CHANGED events
+        } else if (e instanceof ModuleEvent event) {
             if (event.getType() == ModuleEvent.Type.STATE_CHANGED) {
 
-                if (event.getModule() == existingRPMModule) {
+                if (event.getModule() == occupancyProducer) {
                     if (event.getNewState() == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.start();
+                        startOccupancyWrapper();
                     } else if (event.getNewState() == ModuleEvent.ModuleState.STOPPING) {
-                        occupancyWrapper.stop();
+                        stopOccupancyWrapper();
                     }
                 }
 
                 else if (event.getModule() instanceof FFMPEGSensor ffmpegDriver && getMembers().containsValue(ffmpegDriver)) {
                     var state = event.getNewState();
                     if (state == ModuleEvent.ModuleState.LOADED) {
-                        if(!ffmpegConfigs.containsKey(ffmpegDriver.getLocalID()))
+                        if (!ffmpegConfigs.containsKey(ffmpegDriver.getLocalID())) {
                             ffmpegConfigs.put(ffmpegDriver.getLocalID(), ffmpegDriver.getConfiguration());
+                        }
                     }
 
-                    if (state == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.addFFmpegSensor(ffmpegDriver);
-                    } else {
-                        occupancyWrapper.removeFFmpegSensor(ffmpegDriver);
+                    if (occupancyWrapper != null) {
+                        if (state == ModuleEvent.ModuleState.STARTED) {
+                            occupancyWrapper.addFFmpegSensor(ffmpegDriver);
+                        } else {
+                            occupancyWrapper.removeFFmpegSensor(ffmpegDriver);
+                        }
                     }
                 }
 
-                else if ((event.getModule() instanceof RapiscanSensor || event.getModule() instanceof AspectSensor)
-                && getMembers().containsValue(event.getModule())) {
+                else if ((event.getModule() instanceof RapiscanSensor || event.getModule() instanceof AspectSensor || event.getModule() instanceof RS350Sensor)
+                        && getMembers().containsValue(event.getModule())) {
                     var state = event.getNewState();
 
                     if (state == ModuleEvent.ModuleState.STARTED) {
-                        occupancyWrapper.setRpmSensor((AbstractSensorModule<?>) event.getModule());
+                        if (occupancyProducer != existingRPMModule) {
+                            try {
+                                initializeOccupancyProducer();
+                            } catch (SensorHubException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        if (occupancyWrapper != null && occupancyProducer != null) {
+                            occupancyWrapper.setRpmSensor(occupancyProducer);
+                        }
                     } else {
-                        occupancyWrapper.removeRpmSensor();
+                        stopOccupancyWrapper();
+                        if (occupancyWrapper != null) {
+                            occupancyWrapper.removeRpmSensor();
+                        }
                     }
                 }
             }
 
             else if (event.getType().equals(ModuleEvent.Type.CONFIG_CHANGED)) {
-                // FFmpeg config changed events
                 if (event.getModule() instanceof FFMPEGSensor ffmpegDriver) {
-                    // Let's only handle our own ffmpeg children
-                    if (ffmpegDriver.getParentSystem() == null || !ffmpegDriver.getParentSystem().equals(this))
+                    if (ffmpegDriver.getParentSystem() == null || !ffmpegDriver.getParentSystem().equals(this)) {
                         return;
+                    }
 
                     var oldConfig = ffmpegConfigs.get(ffmpegDriver.getLocalID());
 
@@ -620,10 +813,9 @@ public class LaneSystem extends SensorSystem {
 
                     var newConfig = ffmpegDriver.getConfiguration();
 
-                    // If important parts of configuration are updated, remove data from old driver
                     if (newConfig.connection.useTCP != oldConfig.connection.useTCP
-                    || !Objects.equals(newConfig.connection.connectionString, oldConfig.connection.connectionString)
-                    || !Objects.equals(newConfig.connection.transportStreamPath, oldConfig.connection.transportStreamPath)) {
+                            || !Objects.equals(newConfig.connection.connectionString, oldConfig.connection.connectionString)
+                            || !Objects.equals(newConfig.connection.transportStreamPath, oldConfig.connection.transportStreamPath)) {
                         if (ffmpegDriver.getUniqueIdentifier() != null && getParentHub().getSystemDriverRegistry().getDatabase(getUniqueIdentifier()) != null) {
 
                             try {
@@ -631,34 +823,31 @@ public class LaneSystem extends SensorSystem {
                                 ffmpegDriver.waitForState(ModuleEvent.ModuleState.INITIALIZED, 5000);
                                 deleteSystemsFromDatabase(List.of(ffmpegDriver.getUniqueIdentifier()));
                                 getParentHub().getSystemDriverRegistry().register(ffmpegDriver);
-                                if (ffmpegDriver.getConfiguration().autoStart)
+                                if (ffmpegDriver.getConfiguration().autoStart) {
                                     ffmpegDriver.start();
+                                }
                             } catch (SensorHubException ex) {
                                 getLogger().error("Failed to delete FFmpeg driver from database. Please delete old FFmpeg system in database to avoid further issues" + ex.getMessage());
                             }
                         }
                         ffmpegConfigs.put(ffmpegDriver.getLocalID(), ffmpegDriver.getConfiguration());
-
                     }
                 }
             }
 
             else if (event.getType().equals(ModuleEvent.Type.ERROR)) {
-                // If lane fails to load, then perform some magic
                 if (Objects.equals(event.getModule(), this)) {
-                    // Check for SensorException
                     if (event.getError() != null && event.getError() instanceof SensorHubException hubException
-                    && hubException.getCause() instanceof SensorException sensorException) {
-                        // Check for driver failed to register error
+                            && hubException.getCause() instanceof SensorException sensorException) {
                         if (sensorException.getCause() instanceof NullPointerException) {
-                            // Find prev UID and delete from database
                             IObsSystemDatabase database = null;
-                            if (getUniqueIdentifier() != null)
+                            if (getUniqueIdentifier() != null) {
                                 database = getParentHub().getSystemDriverRegistry().getDatabase(getUniqueIdentifier());
+                            }
                             long systemAndMembers = 0;
-                            if (database != null)
+                            if (database != null) {
                                 systemAndMembers = database.getSystemDescStore().select(new SystemFilter.Builder().withUniqueIDs(getUniqueIdentifier()).includeMembers(true).build()).count();
-                            // Only delete from database if lane doesn't have children
+                            }
                             if (systemAndMembers == 1) {
                                 var transactionHandler = new SystemDatabaseTransactionHandler(getParentHub().getEventBus(), database);
                                 try {
@@ -669,7 +858,6 @@ public class LaneSystem extends SensorSystem {
                             }
                         }
 
-                        // Check for illegal state (command receiver already connected, etc.)
                         if (sensorException.getCause() instanceof IllegalStateException) {
                             // TODO: Add fix. Current fix is restarting OSH
                         }
@@ -681,34 +869,44 @@ public class LaneSystem extends SensorSystem {
         }
     }
 
+    private ModuleConfig createOccupancyProcessConfig(AbstractSensorModule<?> parentRpm) {
+        ModuleConfig config = null;
+
+        if (parentRpm instanceof RS350Sensor) {
+            var rs350Config = new Rs350OccupancyProcessConfig();
+            rs350Config.serialNumber = getConfiguration().uniqueID;
+            rs350Config.moduleClass = Rs350OccupancyProcessModule.class.getCanonicalName();
+            rs350Config.autoStart = true;
+            config = rs350Config;
+        }
+
+        return config;
+    }
+
     private SensorConfig createRPMConfig(RPMConfig rpmConfig) {
         Asserts.checkNotNull(rpmConfig.remoteHost);
 
         SensorConfig config = null;
 
-        if(rpmConfig instanceof AspectRPMConfig aspectRPMConfig){
+        if (rpmConfig instanceof AspectRPMConfig aspectRPMConfig) {
             AspectConfig aspectConfig = new AspectConfig();
             aspectConfig.serialNumber = getConfiguration().uniqueID;
             aspectConfig.moduleClass = AspectSensor.class.getCanonicalName();
 
-            // Setup communication config
             var comm = aspectConfig.commSettings = new ModbusTCPCommProviderConfig();
             comm.protocol.remoteHost = aspectRPMConfig.remoteHost;
             comm.protocol.remotePort = aspectRPMConfig.remotePort;
-
             comm.protocol.addressRange.from = aspectRPMConfig.addressRange.from;
             comm.protocol.addressRange.to = aspectRPMConfig.addressRange.to;
-            // Update connection timeout to be 5 seconds instead of 3 seconds by default
             comm.connection.connectTimeout = 5000;
             comm.connection.reconnectAttempts = 10;
             comm.moduleClass = ModbusTCPCommProvider.class.getCanonicalName();
             config = aspectConfig;
-        }else if(rpmConfig instanceof RapiscanRPMConfig rapiscanRPMConfig){
+        } else if (rpmConfig instanceof RapiscanRPMConfig rapiscanRPMConfig) {
             RapiscanConfig rapiscanConfig = new RapiscanConfig();
             rapiscanConfig.serialNumber = getConfiguration().uniqueID;
             rapiscanConfig.moduleClass = RapiscanSensor.class.getCanonicalName();
 
-            // add eml for rapiscan
             if (rapiscanRPMConfig.emlConfig != null) {
                 var eml = rapiscanConfig.emlConfig = new EMLConfig();
                 eml.emlEnabled = rapiscanRPMConfig.emlConfig.emlEnabled;
@@ -716,34 +914,39 @@ public class LaneSystem extends SensorSystem {
                 eml.laneWidth = rapiscanRPMConfig.emlConfig.laneWidth;
             }
 
-            // Setup communication config
             var comm = rapiscanConfig.commSettings = new TCPCommProviderConfig();
             comm.protocol.remoteHost = rapiscanRPMConfig.remoteHost;
             comm.protocol.remotePort = rapiscanRPMConfig.remotePort;
-            // Update connection timeout to be 5 seconds instead of 3 seconds by default
             comm.connection.connectTimeout = 5000;
             comm.connection.reconnectAttempts = 10;
-
             config = rapiscanConfig;
-        }else{
-            reportError("RPM Config specified is invalid, config must be of type AspectRPMConfig or RapiscanRPMConfig", new IllegalArgumentException());
+        } else if (rpmConfig instanceof RS350RPMConfig rs350RPMConfig) {
+            RS350Config rs350Config = new RS350Config();
+            rs350Config.serialNumber = getConfiguration().uniqueID;
+            rs350Config.moduleClass = RS350Sensor.class.getCanonicalName();
+
+            var comm = rs350Config.commSettings = new TCPCommProviderConfig();
+            comm.protocol.remoteHost = rs350RPMConfig.remoteHost;
+            comm.protocol.remotePort = rs350RPMConfig.remotePort;
+            comm.connection.connectTimeout = 5000;
+            comm.connection.reconnectAttempts = 10;
+            config = rs350Config;
+        } else {
+            reportError("RPM Config specified is invalid, config must be of type AspectRPMConfig, RapiscanRPMConfig or RS350RPMConfig", new IllegalArgumentException());
         }
 
         config.name = getConfiguration().name + " - RPM";
         config.autoStart = true;
-
         return config;
     }
-    
+
     private FFMPEGConfig createFFmpegConfig(FFMpegConfig ffmpegConfig, int videoIndex) {
         String defaultAxis = "/axis-media/media.amp?adjustablelivestream=1&resolution=640x480&videocodec=h264&videokeyframeinterval=15";
 
         Asserts.checkNotNull(ffmpegConfig.remoteHost);
 
-        // This is the actual ffmpeg sensor config
-        StringBuilder endpoint = new StringBuilder("rtsp://"); // All streams should be over rtsp
+        StringBuilder endpoint = new StringBuilder("rtsp://");
 
-        // Add username and password if provided
         if (ffmpegConfig.username != null && !ffmpegConfig.username.isBlank()) {
             endpoint.append(ffmpegConfig.username);
             endpoint.append(":");
@@ -755,13 +958,12 @@ public class LaneSystem extends SensorSystem {
         FFMPEGConfig config = new FFMPEGConfig();
 
         String path = defaultAxis;
-
-        if(ffmpegConfig instanceof AxisCameraConfig axisVideoConfig){
-             path = axisVideoConfig.streamPath.getPath();
-        }else if (ffmpegConfig instanceof SonyCameraConfig sonyVideoConfig){
-             path = sonyVideoConfig.streamPath;
-        }else if(ffmpegConfig instanceof CustomCameraConfig customVideoConfig){
-             path = !customVideoConfig.streamPath.isEmpty() ? customVideoConfig.streamPath : defaultAxis;
+        if (ffmpegConfig instanceof AxisCameraConfig axisVideoConfig) {
+            path = axisVideoConfig.streamPath.getPath();
+        } else if (ffmpegConfig instanceof SonyCameraConfig sonyVideoConfig) {
+            path = sonyVideoConfig.streamPath;
+        } else if (ffmpegConfig instanceof CustomCameraConfig customVideoConfig) {
+            path = !customVideoConfig.streamPath.isEmpty() ? customVideoConfig.streamPath : defaultAxis;
         }
 
         endpoint.append(path);

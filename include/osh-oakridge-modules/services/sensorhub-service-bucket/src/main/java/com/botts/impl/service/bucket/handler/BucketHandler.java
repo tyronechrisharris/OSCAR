@@ -2,7 +2,6 @@ package com.botts.impl.service.bucket.handler;
 
 import com.botts.api.service.bucket.IBucketService;
 import com.botts.api.service.bucket.IBucketStore;
-import com.botts.api.service.bucket.IObjectHandler;
 import com.botts.api.service.bucket.IResourceHandler;
 import com.botts.impl.service.bucket.util.RequestContext;
 import com.botts.impl.service.bucket.util.ServiceErrors;
@@ -25,7 +24,6 @@ public class BucketHandler implements IResourceHandler {
     public void doGet(RequestContext ctx) throws IOException {
         var sec = ctx.getSecurityHandler();
 
-        // Only handle /buckets at this level
         if (!ctx.hasBucketName()) {
             sec.checkPermission(sec.api_list);
             listBuckets(ctx);
@@ -41,7 +39,7 @@ public class BucketHandler implements IResourceHandler {
             var bucketPerms = sec.getBucketPermissions().get(bucketName);
             if (ctx.hasObjectKey()) {
                 sec.checkPermission(bucketPerms.get);
-                var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey());
+                var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey(), ctx.getRequest());
                 objectHandler.doGet(ctx);
             } else {
                 sec.checkPermission(bucketPerms.list);
@@ -80,7 +78,6 @@ public class BucketHandler implements IResourceHandler {
         }
     }
 
-    // Don't allow creation of buckets with no bucket name from /buckets
     @Override
     public void doPost(RequestContext ctx) throws IOException {
         var sec = ctx.getSecurityHandler();
@@ -90,10 +87,11 @@ public class BucketHandler implements IResourceHandler {
         if (ctx.hasBucketName()) {
             if (!bucketStore.bucketExists(bucketName))
                 throw ServiceErrors.notFound(bucketName);
-            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey());
+            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey(), ctx.getRequest());
             objectHandler.doPost(ctx);
-        } else
+        } else {
             throw ServiceErrors.unsupportedOperation("Creating bucket via POST is not currently supported");
+        }
     }
 
     @Override
@@ -113,7 +111,6 @@ public class BucketHandler implements IResourceHandler {
 
             try {
                 bucketStore.createBucket(bucketName);
-                // Add permissions for this bucket
                 sec.addBucket(bucketName);
                 ctx.getResponse().setStatus(HttpServletResponse.SC_CREATED);
                 ctx.getResponse().setHeader("Location", ctx.getRequest().getRequestURL().toString());
@@ -127,7 +124,7 @@ public class BucketHandler implements IResourceHandler {
             if (!sec.getBucketPermissions().containsKey(bucketName))
                 throw ServiceErrors.forbidden(bucketName);
 
-            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey());
+            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey(), ctx.getRequest());
             objectHandler.doPut(ctx);
         }
     }
@@ -154,7 +151,7 @@ public class BucketHandler implements IResourceHandler {
                 throw ServiceErrors.internalError(IBucketStore.FAILED_DELETE_BUCKET + bucketName);
             }
         } else {
-            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey());
+            var objectHandler = service.getObjectHandler(bucketName, ctx.getObjectKey(), ctx.getRequest());
             objectHandler.doDelete(ctx);
         }
     }

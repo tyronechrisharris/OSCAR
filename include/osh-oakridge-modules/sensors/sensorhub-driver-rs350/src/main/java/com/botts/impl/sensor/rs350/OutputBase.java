@@ -3,6 +3,7 @@
  ******************************* END LICENSE BLOCK ***************************/
 package com.botts.impl.sensor.rs350;
 
+import com.botts.impl.sensor.rs350.messages.RS350Message;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
@@ -23,6 +24,15 @@ public abstract class OutputBase extends AbstractSensorOutput<RS350Sensor> imple
      * and data types.
      */
     protected abstract void init();
+
+    /**
+     * Indicates whether this output can safely process the provided message.
+     * MessageHandler uses this to dispatch only to outputs whose required
+     * content is present, avoiding partial-message null dereferences.
+     */
+    public boolean acceptsMessage(RS350Message message) {
+        return true;
+    }
 
     @Override
     public DataComponent getRecordDescription() {

@@ -26,7 +26,6 @@ public class AlarmOutput extends OutputBase {
                 .name(getName())
                 .label("Alarm")
                 .definition(RADHelper.getRadUri("Alarm-output"))
-                // Derived Data
                 .addField("Sampling Time", radHelper.createPrecisionTimeStamp())
                 .addField("Duration",
                         radHelper.createQuantity()
@@ -39,7 +38,6 @@ public class AlarmOutput extends OutputBase {
                                 .label("Remark")
                                 .definition(RADHelper.getRadUri("alarm-remark")))
                 .addField("MeasurementClassCode", radHelper.createMeasurementClassCode())
-                // RAD Alarm
                 .addField("AlarmCategoryCode", radHelper.createAlarmCatCode())
                 .addField("AlarmDescription",
                         radHelper.createText()
@@ -51,42 +49,28 @@ public class AlarmOutput extends OutputBase {
         dataEncoding = new TextEncodingImpl(",", "\n");
     }
 
-//    public void parseData(RS350Message msg) {
-//        if (latestRecord == null)
-//            dataBlock = dataStruct.createDataBlock();
-//        else
-//            dataBlock = latestRecord.renew();
-//
-//        latestRecordTime = System.currentTimeMillis() / 1000;
-//
-//        dataBlock.setLongValue(0, msg.getRs350DerivedData().getStartDateTime() / 1000);
-//        dataBlock.setDoubleValue(1, msg.getRs350DerivedData().getDuration());
-//        dataBlock.setStringValue(2, msg.getRs350DerivedData().getRemark());
-//        dataBlock.setStringValue(3, msg.getRs350DerivedData().getClassCode());
-//        dataBlock.setStringValue(4, msg.getRs350RadAlarm().getCategoryCode());
-//        dataBlock.setStringValue(5, msg.getRs350RadAlarm().getDescription());
-//
-//        eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
-//    }
-
+    @Override
+    public boolean acceptsMessage(RS350Message message) {
+        return message.getRs350DerivedData() != null && message.getRs350RadAlarm() != null;
+    }
 
     @Override
     public void onNewMessage(RS350Message message) {
+        createOrRenewDataBlock();
 
-        if (message.getRs350RadAlarm() != null) {
+        latestRecordTime = System.currentTimeMillis() / 1000;
 
-            createOrRenewDataBlock();
+        dataBlock.setLongValue(0, message.getRs350DerivedData().getStartDateTime() / 1000);
+        dataBlock.setDoubleValue(1, message.getRs350DerivedData().getDuration());
+        dataBlock.setStringValue(2, safeString(message.getRs350DerivedData().getRemark()));
+        dataBlock.setStringValue(3, safeString(message.getRs350DerivedData().getClassCode()));
+        dataBlock.setStringValue(4, safeString(message.getRs350RadAlarm().getCategoryCode()));
+        dataBlock.setStringValue(5, safeString(message.getRs350RadAlarm().getDescription()));
 
-            latestRecordTime = System.currentTimeMillis() / 1000;
+        eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
+    }
 
-            dataBlock.setLongValue(0, message.getRs350DerivedData().getStartDateTime() / 1000);
-            dataBlock.setDoubleValue(1, message.getRs350DerivedData().getDuration());
-            dataBlock.setStringValue(2, message.getRs350DerivedData().getRemark());
-            dataBlock.setStringValue(3, message.getRs350DerivedData().getClassCode());
-            dataBlock.setStringValue(4, message.getRs350RadAlarm().getCategoryCode());
-            dataBlock.setStringValue(5, message.getRs350RadAlarm().getDescription());
-
-            eventHandler.publish(new DataEvent(latestRecordTime, AlarmOutput.this, dataBlock));
-        }
+    private static String safeString(String value) {
+        return value != null ? value : "";
     }
 }
