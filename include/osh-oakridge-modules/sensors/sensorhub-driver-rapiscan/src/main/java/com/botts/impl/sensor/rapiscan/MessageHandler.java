@@ -53,7 +53,7 @@ public class MessageHandler {
     private final InputStream msgIn;
     private Future<?> messageReaderFuture;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
-    private BufferedReader bufferedReader;
+    private volatile BufferedReader bufferedReader;
 
     public long getTimeSinceLastMessage() {
         long now = System.currentTimeMillis();
@@ -79,43 +79,59 @@ public class MessageHandler {
             return;
         }
 
-        messageReaderFuture = RapiscanThreadPoolManager.getInstance().submitMessageReader(() -> {
-            parentSensor.getLogger().debug("Message reader started for sensor {}", parentSensor.getUniqueIdentifier());
+        try {
+            messageReaderFuture = RapiscanThreadPoolManager.getInstance().submitMessageReader(() -> {
+                parentSensor.getLogger().debug("Message reader started for sensor {}", parentSensor.getUniqueIdentifier());
 
-            try (BufferedReader readerLocal = new BufferedReader(new InputStreamReader(msgIn))) {
-                bufferedReader = readerLocal;
+                try {
+                    while (isRunning.get() && !Thread.currentThread().isInterrupted()) {
+                        try {
+                            if (bufferedReader == null) {
+                                bufferedReader = new BufferedReader(new InputStreamReader(msgIn));
+                            }
 
-                String msgLine;
-                while (isRunning.get() && !Thread.currentThread().isInterrupted() && (msgLine = readerLocal.readLine()) != null) {
-                    try {
-                        reader = new CSVReader(new StringReader(msgLine));
-                        csvList = reader.readAll();
+                            String msgLine = bufferedReader.readLine();
+                            if (msgLine == null) {
+                                if (isRunning.get()) {
+                                    parentSensor.getLogger().debug("End of stream reached; waiting for reconnect");
+                                    bufferedReader = null;
+                                    sleepQuietly(250);
+                                }
+                                continue;
+                            }
 
-                        if (!csvList.isEmpty() && csvList.get(0).length > 0) {
-                            parentSensor.getDailyFileOutput().onNewMessage(msgLine);
-                            onNewMainChar(csvList.get(0)[0], csvList.get(0));
-                            timeSinceLastMessage = System.currentTimeMillis();
-                        }
-                    } catch (Exception e) {
-                        if (isRunning.get()) {
-                            parentSensor.getLogger().error("Error processing message: {}", e.getMessage(), e);
+                            reader = new CSVReader(new StringReader(msgLine));
+                            csvList = reader.readAll();
+
+                            if (!csvList.isEmpty() && csvList.get(0).length > 0) {
+                                parentSensor.getDailyFileOutput().onNewMessage(msgLine);
+                                onNewMainChar(csvList.get(0)[0], csvList.get(0));
+                                timeSinceLastMessage = System.currentTimeMillis();
+                            }
+                        } catch (IOException e) {
+                            if (isRunning.get() && !Thread.currentThread().isInterrupted()) {
+                                parentSensor.getLogger().warn("Message reader IO error: {}", e.getMessage());
+                                bufferedReader = null;
+                                sleepQuietly(250);
+                            }
+                        } catch (Exception e) {
+                            if (isRunning.get()) {
+                                parentSensor.getLogger().error("Error processing message: {}", e.getMessage(), e);
+                                sleepQuietly(50);
+                            }
                         }
                     }
+                } finally {
+                    bufferedReader = null;
+                    messageReaderFuture = null;
+                    isRunning.set(false);
+                    parentSensor.getLogger().debug("Message reader exiting for sensor {}", parentSensor.getUniqueIdentifier());
                 }
-
-                if (isRunning.get()) {
-                    parentSensor.getLogger().info("End of stream reached");
-                }
-            } catch (IOException e) {
-                if (isRunning.get() && !Thread.currentThread().isInterrupted()) {
-                    parentSensor.getLogger().error("Fatal error in message reader", e);
-                }
-            } finally {
-                bufferedReader = null;
-                isRunning.set(false);
-                parentSensor.getLogger().debug("Message reader exiting for sensor {}", parentSensor.getUniqueIdentifier());
-            }
-        });
+            });
+        } catch (RuntimeException e) {
+            isRunning.set(false);
+            throw e;
+        }
     }
 
     public synchronized void stop() {
@@ -147,6 +163,14 @@ public class MessageHandler {
             } finally {
                 messageReaderFuture = null;
             }
+        }
+    }
+
+    private void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
