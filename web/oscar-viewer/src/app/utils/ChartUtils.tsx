@@ -1,30 +1,101 @@
 import CurveLayer from "osh-js/source/core/ui/layer/CurveLayer";
 import ObservationFilter from "osh-js/source/core/consysapi/observation/ObservationFilter";
 
-function toChartTime(rec: any): number | undefined {
-  const raw = rec?.timestamp ?? rec?.samplingTime ?? rec?.resultTime ?? rec?.phenomenonTime;
-  if (raw == null) return undefined;
-
-  if (raw instanceof Date) {
-    return raw.getTime();
-  }
-
-  if (typeof raw === "number") {
-    // Some live streams publish epoch seconds while others publish epoch millis.
-    return raw < 1e12 ? raw * 1000 : raw;
-  }
-
-  const parsed = Date.parse(String(raw));
-  return Number.isNaN(parsed) ? undefined : parsed;
-}
-
-function pickNumber(...values: any[]): number | undefined {
+function pickDefined<T>(...values: T[]): T | undefined {
   for (const value of values) {
-    if (typeof value === "number" && !Number.isNaN(value)) {
+    if (value !== undefined && value !== null) {
       return value;
     }
   }
   return undefined;
+}
+
+function unwrapTimeValue(raw: any): any {
+  if (Array.isArray(raw)) {
+    return raw.length > 0 ? raw[raw.length - 1] : undefined;
+  }
+
+  if (raw && typeof raw === "object") {
+    return pickDefined(
+      raw.instant,
+      raw.dateTime,
+      raw.time,
+      raw.value,
+      raw.end,
+      raw.begin,
+    );
+  }
+
+  return raw;
+}
+
+function toChartTime(rec: any): number | undefined {
+  const raw = pickDefined(
+    rec?.timestamp,
+    rec?.samplingTime,
+    rec?.resultTime,
+    rec?.phenomenonTime,
+    rec?.time,
+    rec?.result?.timestamp,
+    rec?.result?.samplingTime,
+    rec?.result?.resultTime,
+    rec?.result?.phenomenonTime,
+    rec?.result?.time,
+  );
+
+  const unwrapped = unwrapTimeValue(raw);
+  if (unwrapped == null) return undefined;
+
+  if (unwrapped instanceof Date) {
+    return unwrapped.getTime();
+  }
+
+  if (typeof unwrapped === "number") {
+    return unwrapped < 1e12 ? unwrapped * 1000 : unwrapped;
+  }
+
+  const parsed = Date.parse(String(unwrapped));
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function toNumber(value: any): number | undefined {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function pickNumber(...values: any[]): number | undefined {
+  for (const value of values) {
+    const num = toNumber(value);
+    if (num !== undefined) {
+      return num;
+    }
+  }
+  return undefined;
+}
+
+function pickObservationNumber(rec: any, ...names: string[]): number | undefined {
+  const candidates: any[] = [];
+
+  for (const name of names) {
+    candidates.push(
+      rec?.[name],
+      rec?.result?.[name],
+      rec?.values?.[name],
+      rec?.result?.values?.[name],
+    );
+  }
+
+  return pickNumber(...candidates);
 }
 
 export function createNeutronViewCurve(neutronDatasource: { id: any; }) {
@@ -34,11 +105,12 @@ export function createNeutronViewCurve(neutronDatasource: { id: any; }) {
     dataSourceIds: [neutronDatasource.id],
     getValues: (rec: any) => {
       const x = toChartTime(rec);
-      const y = pickNumber(
-        rec?.neutronGrossCount,
-        rec?.NeutronGrossCount,
-        rec?.neutronCount,
-        rec?.NeutronCount,
+      const y = pickObservationNumber(
+        rec,
+        "neutronGrossCount",
+        "NeutronGrossCount",
+        "neutronCount",
+        "NeutronCount",
       );
       return x != null && y != null ? {x, y} : undefined;
     },
@@ -62,7 +134,7 @@ export function createThresholdViewCurve(thresholdDatasource: { id: any; }) {
     dataSourceIds: [thresholdDatasource.id],
     getValues: (rec: any) => {
       const x = toChartTime(rec);
-      const y = pickNumber(rec?.threshold, rec?.Threshold);
+      const y = pickObservationNumber(rec, "threshold", "Threshold");
       return x != null && y != null ? {x, y} : undefined;
     },
     name: "Threshold",
@@ -87,11 +159,12 @@ export function createGammaViewCurve(gammaDatasource: { id: any; }) {
     dataSourceIds: [gammaDatasource.id],
     getValues: (rec: any) => {
       const x = toChartTime(rec);
-      const y = pickNumber(
-        rec?.gammaGrossCount,
-        rec?.GammaGrossCount,
-        rec?.gammaCount,
-        rec?.GammaCount,
+      const y = pickObservationNumber(
+        rec,
+        "gammaGrossCount",
+        "GammaGrossCount",
+        "gammaCount",
+        "GammaCount",
       );
       return x != null && y != null ? {x, y} : undefined;
     },
@@ -128,14 +201,16 @@ export function createNSigmaCalcViewCurve(gammaDatasource: any, latestGB: number
   let nCurve = new CurveLayer({
     dataSourceIds: [gammaDatasource.id],
     getValues: (rec: any) => {
-      if (latestGB != null) {
-        const x = toChartTime(rec);
-        const gross = pickNumber(rec?.gammaGrossCount, rec?.GammaGrossCount);
-        if (x == null || gross == null) return undefined;
-        let nSigmaValue: number = (gross - latestGB) / Math.sqrt(latestGB)
-        return {x, y: nSigmaValue}
+      if (latestGB == null || latestGB <= 0) {
+        return undefined;
       }
-      return undefined;
+
+      const x = toChartTime(rec);
+      const gross = pickObservationNumber(rec, "gammaGrossCount", "GammaGrossCount");
+      if (x == null || gross == null) return undefined;
+
+      let nSigmaValue: number = (gross - latestGB) / Math.sqrt(latestGB);
+      return {x, y: nSigmaValue};
     },
     name: "Gamma Nσ",
     borderWidth: 1.5,
@@ -152,15 +227,22 @@ export function createNSigmaCalcViewCurve(gammaDatasource: any, latestGB: number
   return nCurve;
 }
 
-export async function getObservations(startTime: any, endTime: any, datastream: any){
-  let lastestGammaBackground: number;
-  let res = await datastream.searchObservations(new ObservationFilter({resultTime: `${startTime}/${endTime}`}), 1);
+export async function getObservations(startTime: any, endTime: any, datastream: any) {
+  let latestGammaBackground: number | undefined;
+  let res = await datastream.searchObservations(new ObservationFilter({
+    resultTime: `${startTime}/${endTime}`,
+    format: 'application/om+json'
+  }), 1);
   let newObs = await res.nextPage();
-  newObs.map((ob: any) =>{
-    const lastGB = ob.result.latestGammaBackground;
-    if(lastGB != null) lastestGammaBackground = lastGB;
-  })
-  return lastestGammaBackground;
+
+  newObs.map((ob: any) => {
+    const lastGB = pickObservationNumber(ob, 'latestGammaBackground', 'LatestGammaBackground');
+    if (lastGB != null) {
+      latestGammaBackground = lastGB;
+    }
+  });
+
+  return latestGammaBackground;
 }
 
 export function createThreshSigmaViewCurve(thresholdDatasource: { id: any; }) {
@@ -170,8 +252,8 @@ export function createThreshSigmaViewCurve(thresholdDatasource: { id: any; }) {
     dataSourceIds: [thresholdDatasource.id],
     getValues: (rec: any) => {
       const x = toChartTime(rec);
-      const y = pickNumber(rec?.nSigma, rec?.NSigma);
-      return x != null && y != null ? { x, y } : undefined;
+      const y = pickObservationNumber(rec, 'nSigma', 'NSigma');
+      return x != null && y != null ? {x, y} : undefined;
     },
     name: "Threshold",
     xLabel: 'Time',

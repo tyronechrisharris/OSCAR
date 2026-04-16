@@ -48,6 +48,10 @@ export class LaneMeta implements ILaneMeta {
     }
 }
 
+function getObservationResponseFormat(datastream: typeof DataStream): string {
+    return isVideoDataStream(datastream) ? 'application/swe+binary' : 'application/om+json';
+}
+
 export class LaneMapEntry {
     systems: typeof System[];
     datastreams: typeof DataStream[];
@@ -178,7 +182,7 @@ export class LaneMapEntry {
                     tls: dsObj.networkProperties.tls,
                     protocol: 'mqtt',
                     mode: Mode.REAL_TIME,
-                    responseFormat: isVideoDataStream(dsObj) ?'application/swe+binary' :  'application/swe+json',
+                    responseFormat: getObservationResponseFormat(dsObj),
                     mqttOpts: mqttOpts,
                 });
 
@@ -188,7 +192,7 @@ export class LaneMapEntry {
                     tls: dsObj.networkProperties.tls,
                     protocol: 'mqtt',
                     mode: Mode.BATCH,
-                    responseFormat: isVideoDataStream(dsObj) ?'application/swe+binary' :  'application/swe+json',
+                    responseFormat: getObservationResponseFormat(dsObj),
                     startTime: "2020-01-01T08:13:25.845Z",
                     endTime: "2055-01-01T08:13:25.845Z",
                     mqttOpts: mqttOpts,
@@ -263,7 +267,7 @@ export class LaneMapEntry {
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
-            responseFormat: isVideoDataStream(datastream) ? 'application/swe+binary' : 'application/swe+json',
+            responseFormat: getObservationResponseFormat(datastream),
             mode: Mode.REPLAY,
             startTime: startTime,
             endTime: endTime
@@ -307,7 +311,7 @@ export class LaneMapEntry {
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
-            responseFormat: isVideoDataStream(datastream) ? 'application/swe+binary' : 'application/swe+json',
+            responseFormat: getObservationResponseFormat(datastream),
             mode: Mode.BATCH,
             startTime: startTime,
             endTime: endTime
