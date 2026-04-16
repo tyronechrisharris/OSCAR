@@ -49,7 +49,7 @@ export class LaneMeta implements ILaneMeta {
 }
 
 function getObservationResponseFormat(datastream: typeof DataStream): string {
-    return isVideoDataStream(datastream) ? 'application/swe+binary' : 'application/om+json';
+    return isVideoDataStream(datastream) ? 'application/swe+binary' : 'application/swe+json';
 }
 
 export class LaneMapEntry {
