@@ -55,8 +55,13 @@ public class FFMPEGSensor extends FFMPEGSensorBase<FFMPEGConfig> {
     	// is necessary.
         setupExecutor();
 
-        // Make sure the stream is already open. (If the sensor has been previously started, then stopped, then the
-        // stream won't be open.)
+        // Make sure the stream is already open. If init previously probed the source, that
+        // probe connection may have gone stale while the lane was waiting to be started.
+        // Drop any inactive processor and reopen a fresh RTSP session for the actual start.
+        if (mpegTsProcessor != null && !mpegTsProcessor.isAlive()) {
+            logger.debug("Resetting inactive MPEG TS processor for {} before start", getUniqueIdentifier());
+            stopStream();
+        }
 
         try {
             openStream();

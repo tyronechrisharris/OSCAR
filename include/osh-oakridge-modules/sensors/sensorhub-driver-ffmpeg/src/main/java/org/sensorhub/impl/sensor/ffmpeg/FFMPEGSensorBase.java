@@ -106,17 +106,20 @@ public abstract class FFMPEGSensorBase<FFMPEGconfigType extends FFMPEGConfig> ex
         removeAllOutputs();
         removeAllControlInputs();
 
-        openStream();
-        if (mpegTsProcessor == null) {
-            logger.error("Could not open stream from data source");
-            return;
-        }
-
         if (config.output.useVideoFrames) {
+            openStream();
+            if (mpegTsProcessor == null) {
+                logger.error("Could not open stream from data source");
+                return;
+            }
+
             if (videoOutput == null)
                 createVideoOutput(mpegTsProcessor.getVideoStreamFrameDimensions(), "h264");
             addOutput(videoOutput, false);
         } else {
+            // For HLS/file-only outputs we do not need to probe the RTSP source during init.
+            // Probing here leaves an idle reader connected to MediaMTX until the server times
+            // out the session before the lane is actually started.
             videoOutput = null;
         }
 
