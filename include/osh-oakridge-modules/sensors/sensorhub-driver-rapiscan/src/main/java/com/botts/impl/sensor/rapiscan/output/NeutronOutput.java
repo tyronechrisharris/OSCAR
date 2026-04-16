@@ -9,6 +9,8 @@ import org.sensorhub.api.data.DataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.utils.rad.RADHelper;
 
+import java.time.Instant;
+
 public class NeutronOutput extends AbstractSensorOutput<RapiscanSensor> {
 
     private static final String SENSOR_OUTPUT_NAME = "neutronCounts";
@@ -68,7 +70,7 @@ public class NeutronOutput extends AbstractSensorOutput<RapiscanSensor> {
         int c3 = Integer.parseInt(csvString[3]);
         int c4 = Integer.parseInt(csvString[4]);
 
-        dataBlock.setLongValue(index++,timeStamp/1000);
+        dataBlock.setTimeStamp(index++, Instant.ofEpochMilli(timeStamp));
         dataBlock.setStringValue(index++, alarmState);
         dataBlock.setIntValue(index++, c1 + c2 + c3 + c4);
         dataBlock.setIntValue(index++, c1);
@@ -77,6 +79,7 @@ public class NeutronOutput extends AbstractSensorOutput<RapiscanSensor> {
         dataBlock.setIntValue(index, c4);
 
         latestRecord = dataBlock;
+        latestRecordTime = timeStamp;
         eventHandler.publish(new DataEvent(timeStamp, NeutronOutput.this, dataBlock));
     }
 

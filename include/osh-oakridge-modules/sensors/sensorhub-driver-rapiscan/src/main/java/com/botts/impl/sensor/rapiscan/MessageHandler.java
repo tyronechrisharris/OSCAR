@@ -6,6 +6,7 @@ import org.sensorhub.impl.utils.rad.model.Occupancy;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Collections;
@@ -47,7 +48,6 @@ public class MessageHandler {
     int neutronMax;
     int gammaMax;
 
-    private final AtomicBoolean isProcessing = new AtomicBoolean(true);
     private volatile long timeSinceLastMessage;
 
     private final InputStream msgIn;
@@ -71,67 +71,23 @@ public class MessageHandler {
         timeSinceLastMessage = System.currentTimeMillis();
 
         start();
-        // Setup boolean
-        Thread messageReader = new Thread(() -> {
-            boolean continueProcessing = true;
-
-            try {
-
-                while (continueProcessing) {
-                    BufferedReader bufferedReader;
-                    bufferedReader = new BufferedReader(new InputStreamReader(msgIn));
-
-                    String msgLine = bufferedReader.readLine();
-                    while (msgLine != null) {
-                        reader = new CSVReader(new StringReader(msgLine));
-                        csvList = reader.readAll();
-
-                        parentSensor.getDailyFileOutput().onNewMessage(msgLine);
-
-                        onNewMainChar(csvList.get(0)[0], csvList.get(0));
-
-                        timeSinceLastMessage = System.currentTimeMillis();
-
-                        msgLine = bufferedReader.readLine();
-
-                        synchronized (isProcessing) {
-                            continueProcessing = isProcessing.get();
-                        }
-                    }
-                }
-
-            } catch (Exception e) {
-                parentSensor.getLogger().error(e.getMessage());
-            }
-        });
-        messageReader.start();
     }
 
     public synchronized void start() {
-        if (isProcessing.get()) {
+        if (!isRunning.compareAndSet(false, true)) {
             parentSensor.getLogger().warn("MessageHandler already running");
             return;
         }
 
-        isProcessing.set(true);
-
-        // Submit to thread pool instead of creating new thread
         messageReaderFuture = RapiscanThreadPoolManager.getInstance().submitMessageReader(() -> {
             parentSensor.getLogger().debug("Message reader started for sensor {}", parentSensor.getUniqueIdentifier());
 
-            try {
-                bufferedReader = new BufferedReader(new InputStreamReader(msgIn));
+            try (BufferedReader readerLocal = new BufferedReader(new InputStreamReader(msgIn))) {
+                bufferedReader = readerLocal;
 
                 String msgLine;
-                while (isRunning.get() && !Thread.currentThread().isInterrupted()) {
+                while (isRunning.get() && !Thread.currentThread().isInterrupted() && (msgLine = readerLocal.readLine()) != null) {
                     try {
-                        msgLine = bufferedReader.readLine();
-
-                        if (msgLine == null) {
-                            parentSensor.getLogger().info("End of stream reached");
-                            break;
-                        }
-
                         reader = new CSVReader(new StringReader(msgLine));
                         csvList = reader.readAll();
 
@@ -140,7 +96,6 @@ public class MessageHandler {
                             onNewMainChar(csvList.get(0)[0], csvList.get(0));
                             timeSinceLastMessage = System.currentTimeMillis();
                         }
-
                     } catch (Exception e) {
                         if (isRunning.get()) {
                             parentSensor.getLogger().error("Error processing message: {}", e.getMessage(), e);
@@ -148,33 +103,49 @@ public class MessageHandler {
                     }
                 }
 
-            } catch (Exception e) {
                 if (isRunning.get()) {
+                    parentSensor.getLogger().info("End of stream reached");
+                }
+            } catch (IOException e) {
+                if (isRunning.get() && !Thread.currentThread().isInterrupted()) {
                     parentSensor.getLogger().error("Fatal error in message reader", e);
                 }
             } finally {
+                bufferedReader = null;
+                isRunning.set(false);
                 parentSensor.getLogger().debug("Message reader exiting for sensor {}", parentSensor.getUniqueIdentifier());
             }
         });
     }
 
     public synchronized void stop() {
-        if (!isRunning.get()) {
+        if (!isRunning.compareAndSet(true, false)) {
             return;
         }
 
         parentSensor.getLogger().debug("Stopping MessageHandler for sensor {}", parentSensor.getUniqueIdentifier());
-        isRunning.set(false);
+
+        try {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            } else {
+                msgIn.close();
+            }
+        } catch (IOException e) {
+            parentSensor.getLogger().debug("Error closing message input", e);
+        }
 
         if (messageReaderFuture != null) {
-            messageReaderFuture.cancel(true); // Interrupt the thread
+            messageReaderFuture.cancel(true);
 
             try {
                 messageReaderFuture.get(5, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
                 parentSensor.getLogger().warn("Message reader did not stop within timeout");
             } catch (Exception e) {
-                // Expected when cancelled
+                // Expected when cancelled or closed
+            } finally {
+                messageReaderFuture = null;
             }
         }
     }

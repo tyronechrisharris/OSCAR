@@ -106,6 +106,8 @@ public class GammaOutput extends AbstractSensorOutput<RapiscanSensor> {
             dataBlock.setIntValue(6, Integer.parseInt(csvString[4]));
         }
 
+        latestRecord = dataBlock;
+        latestRecordTime = timeStamp;
         eventHandler.publish(new DataEvent(timeStamp, GammaOutput.this, dataBlock));
     }
 
