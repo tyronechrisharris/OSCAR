@@ -6,7 +6,7 @@ WORKDIR /app
 
 # GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
 # Debian/Ubuntu (jammy) uses apt-get for dependencies
-RUN apt-get update && \
+RUN apt-get update -o Acquire::Retries=3 && \
     apt-get install -y --no-install-recommends fonts-freefont-ttf openssl curl bash && \
     rm -rf /var/lib/apt/lists/*
 
