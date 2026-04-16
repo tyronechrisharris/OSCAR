@@ -10,6 +10,8 @@ import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.utils.rad.RADHelper;
 import org.vast.data.TextEncodingImpl;
 
+import java.time.Instant;
+
 public class ConnectionStatusOutput extends AbstractSensorOutput<RapiscanSensor> {
 
     private static final String SENSOR_OUTPUT_NAME = "connectionStatus";
@@ -52,11 +54,13 @@ public class ConnectionStatusOutput extends AbstractSensorOutput<RapiscanSensor>
         } else {
             dataBlock = latestRecord.renew();
         }
-        long timeStamp = System.currentTimeMillis()/1000;
+        long timeStamp = System.currentTimeMillis();
 
-        dataBlock.setLongValue(0, timeStamp);
+        dataBlock.setTimeStamp(0, Instant.ofEpochMilli(timeStamp));
         dataBlock.setBooleanValue(1, hasReceivedMessage);
 
+        latestRecord = dataBlock;
+        latestRecordTime = timeStamp;
         eventHandler.publish(new DataEvent(timeStamp, ConnectionStatusOutput.this, dataBlock));
     }
 

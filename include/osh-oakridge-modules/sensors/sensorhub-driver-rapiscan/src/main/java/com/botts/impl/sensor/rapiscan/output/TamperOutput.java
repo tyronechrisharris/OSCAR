@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vast.data.TextEncodingImpl;
 
+import java.time.Instant;
+
 public class TamperOutput  extends AbstractSensorOutput<RapiscanSensor> {
 
     private static final String SENSOR_OUTPUT_NAME = "tamper";
@@ -56,13 +58,15 @@ public class TamperOutput  extends AbstractSensorOutput<RapiscanSensor> {
         }
 
         int index = 0;
+        long timeStamp = System.currentTimeMillis();
 
-        dataBlock.setLongValue(index++, System.currentTimeMillis()/1000);
+        dataBlock.setTimeStamp(index++, Instant.ofEpochMilli(timeStamp));
         dataBlock.setBooleanValue(index++, tamperState);
 
         //dataBlock.updateAtomCount();
         latestRecord = dataBlock;
-        eventHandler.publish(new DataEvent(System.currentTimeMillis(), TamperOutput.this, dataBlock));
+        latestRecordTime = timeStamp;
+        eventHandler.publish(new DataEvent(timeStamp, TamperOutput.this, dataBlock));
 
     }
 

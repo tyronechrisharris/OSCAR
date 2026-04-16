@@ -75,7 +75,8 @@ public class GammaThresholdOutput extends AbstractSensorOutput<RapiscanSensor> i
         // Publish threshold data
         int index = 0;
 
-        dataBlock.setTimeStamp(index++, Instant.now());
+        long eventTime = System.currentTimeMillis();
+        dataBlock.setTimeStamp(index++, Instant.ofEpochMilli(eventTime));
 
         double sqrtBackgroundSum = Math.sqrt(latestBackgroundSum);
 
@@ -87,7 +88,8 @@ public class GammaThresholdOutput extends AbstractSensorOutput<RapiscanSensor> i
         dataBlock.setIntValue(index, latestBackgroundSum);
 
         latestRecord = dataBlock;
-        eventHandler.publish(new DataEvent(System.currentTimeMillis(), GammaThresholdOutput.this, dataBlock));
+        latestRecordTime = eventTime;
+        eventHandler.publish(new DataEvent(eventTime, GammaThresholdOutput.this, dataBlock));
     }
 
     // This will be called when there is an available 5 interval (1 second) sum of gamma foreground counts
@@ -124,14 +126,16 @@ public class GammaThresholdOutput extends AbstractSensorOutput<RapiscanSensor> i
         sigmaVal = (foregroundSum - latestBackgroundSum)
                 / Math.sqrt(latestBackgroundSum);
 
-        dataBlock.setTimeStamp(0, Instant.now());
+        long eventTime = System.currentTimeMillis();
+        dataBlock.setTimeStamp(0, Instant.ofEpochMilli(eventTime));
         dataBlock.setDoubleValue(1, latestThreshold); //Threshold should be set from before. If it's not, then this will never be called
         dataBlock.setDoubleValue(2, sigmaVal);
         dataBlock.setDoubleValue(3, nVal);
         dataBlock.setIntValue(4, latestBackgroundSum);
 
         latestRecord = dataBlock;
-        eventHandler.publish(new DataEvent(System.currentTimeMillis(), GammaThresholdOutput.this, dataBlock));
+        latestRecordTime = eventTime;
+        eventHandler.publish(new DataEvent(eventTime, GammaThresholdOutput.this, dataBlock));
     }
 
     @Override

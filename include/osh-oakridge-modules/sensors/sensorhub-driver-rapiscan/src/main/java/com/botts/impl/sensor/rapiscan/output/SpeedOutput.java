@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vast.data.TextEncodingImpl;
 
+import java.time.Instant;
+
 public class SpeedOutput  extends AbstractSensorOutput<RapiscanSensor> {
 
     private static final String SENSOR_OUTPUT_NAME = "speed";
@@ -60,14 +62,16 @@ public class SpeedOutput  extends AbstractSensorOutput<RapiscanSensor> {
         }
 
         int index = 0;
+        long timeStamp = System.currentTimeMillis();
 
-        dataBlock.setLongValue(index++,System.currentTimeMillis()/1000);
+        dataBlock.setTimeStamp(index++, Instant.ofEpochMilli(timeStamp));
         dataBlock.setDoubleValue(index++, Double.parseDouble(csvString[1]));
         dataBlock.setDoubleValue(index++, Double.parseDouble(csvString[2]));
         dataBlock.setDoubleValue(index++, Double.parseDouble(csvString[3]));
 
         latestRecord = dataBlock;
-        eventHandler.publish(new DataEvent(System.currentTimeMillis(), SpeedOutput.this, dataBlock));
+        latestRecordTime = timeStamp;
+        eventHandler.publish(new DataEvent(timeStamp, SpeedOutput.this, dataBlock));
 
     }
 

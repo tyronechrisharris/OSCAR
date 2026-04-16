@@ -145,6 +145,24 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
         messageHandler = new MessageHandler(msgIn, this);
     }
 
+    private synchronized void resetMessageHandler() throws SensorHubException {
+        if (messageHandler != null) {
+            try {
+                messageHandler.stop();
+            } catch (Exception e) {
+                logger.warn("Error stopping previous message handler", e);
+            } finally {
+                messageHandler = null;
+            }
+        }
+
+        try {
+            initMsgHandler();
+        } catch (IOException e) {
+            throw new SensorHubException("Error initializing message handler ", e);
+        }
+    }
+
     public void createEMLOutputs(){
         emlContextualOutput = new EMLContextualOutput(this);
         addOutput(emlContextualOutput, false);
@@ -172,6 +190,7 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
         addOutput(occupancyOutput, false);
 
         locationOutput = new LocationOutput(this);
+        addOutput(locationOutput, false);
         locationOutput.init();
 
         tamperOutput = new TamperOutput(this);
@@ -209,11 +228,7 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
 
         connection.waitForConnection();
 
-        try{
-            initMsgHandler();
-        }catch(IOException e){
-            throw new SensorHubException("Error initializing message handler ", e);
-        }
+        resetMessageHandler();
     }
 
 
@@ -368,6 +383,9 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
                     if (isRunning && connection != null) {
                         try {
                             connection.reconnect();
+                            if (isRunning) {
+                                resetMessageHandler();
+                            }
                         } catch (Exception e) {
                             logger.error("Reconnect failed", e);
                         }

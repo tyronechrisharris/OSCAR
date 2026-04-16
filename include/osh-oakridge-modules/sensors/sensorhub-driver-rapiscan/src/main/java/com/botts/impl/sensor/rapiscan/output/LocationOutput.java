@@ -11,6 +11,8 @@ import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.impl.utils.rad.RADHelper;
 import org.vast.data.TextEncodingImpl;
 
+import java.time.Instant;
+
 
 public class LocationOutput  extends AbstractSensorOutput<RapiscanSensor> {
     private static final String SENSOR_OUTPUT_NAME = "location";
@@ -53,15 +55,17 @@ public class LocationOutput  extends AbstractSensorOutput<RapiscanSensor> {
             dataBlock = latestRecord.renew();
         }
 
-        latestRecordTime = System.currentTimeMillis() / 1000;
+        long timeStamp = System.currentTimeMillis();
+        latestRecordTime = timeStamp;
 
         int index = 0;
-        dataBlock.setLongValue(index++, latestRecordTime);
+        dataBlock.setTimeStamp(index++, Instant.ofEpochMilli(timeStamp));
         dataBlock.setDoubleValue(index++, gpsLocation.lat);
         dataBlock.setDoubleValue(index++, gpsLocation.lon);
         dataBlock.setDoubleValue(index, gpsLocation.alt);
 
-        eventHandler.publish(new DataEvent(latestRecordTime, LocationOutput.this, dataBlock));
+        latestRecord = dataBlock;
+        eventHandler.publish(new DataEvent(timeStamp, LocationOutput.this, dataBlock));
     }
 
     @Override

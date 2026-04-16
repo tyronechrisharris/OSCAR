@@ -58,6 +58,8 @@ public class DailyFileOutput extends AbstractSensorOutput<RapiscanSensor> {
         dataBlock.setTimeStamp(0, timeStamp);
         dataBlock.setStringValue(1, csvString);
 
+        latestRecord = dataBlock;
+        latestRecordTime = timeStamp.toEpochMilli();
         eventHandler.publish(new DataEvent(timeStamp.toEpochMilli(), DailyFileOutput.this, dataBlock));
     }
 
