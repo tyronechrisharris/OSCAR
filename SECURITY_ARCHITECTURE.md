@@ -44,10 +44,14 @@ The OSCAR architecture relies on a PEM-first cryptographic foundation managed co
 - **Caddy Reverse Proxy TLS**: The Caddy proxy manages all external ingress. In **Federated/Mesh mode**, it utilizes Tailscale's native integration to fetch Let's Encrypt certificates. In **Local/LAN mode**, it natively consumes the raw `server.pem` and `server.key` from the shared `oscar_secrets` volume, guaranteeing the entire stack uses the exact same unified cryptographic trust chain for direct LAN access.
 
 ### Hybrid Ingress Security (Caddy Firewall)
-The system implements strict firewalling at the proxy level to prevent unauthorized access over the LAN:
-- **HTTP (Port 80)**: Only requests originating from `localhost` (127.0.0.1 / ::1) are permitted. All other HTTP traffic is aborted.
-- **LAN HTTPS (Port 443)**: Only requests originating from private IP ranges (RFC 1918) or `localhost` are permitted. This ensures that even if port 443 is exposed to a public network, only local devices can establish a TLS session using the internal CA.
-- **Tailscale Mesh**: Ingress via the Tailscale MagicDNS name bypasses these LAN restrictions, as it is routed through the authenticated Tailscale tunnel and terminated separately in Caddy.
+The system implements strict firewalling at the proxy level and utilizes Docker Compose profiles to ensure isolation:
+- **Profiles**:
+  - `mesh`: The proxy runs inside the Tailscale network namespace (`network_mode: "service:tailscale"`). This is the recommended mode for secure remote access.
+  - `lan-only`: The proxy runs on the standard bridge network and binds ports directly to the host. This mode is used for airgapped or LAN-only deployments where Tailscale is unavailable.
+- **Firewall Rules**:
+  - **HTTP (Port 80)**: Only requests originating from `localhost` (127.0.0.1 / ::1) are permitted. All other HTTP traffic is aborted.
+  - **LAN HTTPS (Port 443)**: Only requests originating from private IP ranges (RFC 1918), CGNAT ranges (Tailscale), or `localhost` are permitted. This ensures that even if port 443 is exposed to a public network, only local or mesh devices can establish a TLS session using the internal CA.
+  - **Tailscale Mesh**: Ingress via the Tailscale MagicDNS name bypasses these LAN restrictions, as it is terminated separately in Caddy.
 - **Fail-Secure Inheritance**: The backend's startup scripts (`launch.sh` / `launch.bat`) strictly rely on the Docker Compose `KEYSTORE_PASSWORD_FILE` environment variables. If the `.app_secrets` file is missing, the application will halt with a critical error rather than falling back to unsafe default passwords.
 - **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
 

@@ -59,9 +59,15 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 ### Main Launch Commands:
 The stack is fully containerized using Docker Compose. Official Docker images (`oscar-backend`, `oscar-postgis`) are published to Docker Hub for every release.
 
+The system supports two primary networking profiles:
+1. **Mesh Mode (Default)**: Uses Tailscale for secure remote access.
+   - `docker compose --profile mesh up -d`
+2. **LAN-Only Mode (Airgapped)**: Disables Tailscale and binds proxy ports directly to the host for local network access.
+   - `docker compose --profile lan-only up -d`
+
 There are two ways to launch the stack:
-- **Online (Docker Hub)**: Download the `docker-compose.yml` and `.env.example` from the latest release and run `docker compose up -d`. This will automatically pull the pre-built images.
-- **Offline (Source)**: Extract the full `.zip` release artifact containing the Dockerfiles and run `docker compose up -d` from the root directory to build the images locally. Launch scripts in `dist/release/` (e.g., `launch-all.sh`, `launch-all.bat`) are provided for backward compatibility.
+- **Online (Docker Hub)**: Download the `docker-compose.yml` and `.env.example` from the latest release and run `docker compose --profile mesh up -d`. This will automatically pull the pre-built images.
+- **Offline (Source)**: Extract the full `.zip` release artifact containing the Dockerfiles and run `docker compose --profile lan-only up -d` from the root directory to build the images locally. Launch scripts in `dist/release/` (e.g., `launch-all.sh`, `launch-all.bat`) are provided for backward compatibility.
 
 ### Distributed Enterprise Deployment (Scenario C)
 To deploy the Enterprise Central Hub profile, you must split the components across two distinct machines on the same local network (LAN). **Important Initialization Logic**: The system relies on a unified, randomly generated database password. Because the application and database will be on separate machines, you must manually sync this secret.
