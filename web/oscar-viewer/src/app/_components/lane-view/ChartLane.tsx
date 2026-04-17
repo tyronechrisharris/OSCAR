@@ -33,32 +33,15 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
     const gammaChartViewRef = useRef<typeof ChartJsView | null>(null);
     const neutronChartViewRef = useRef<typeof ChartJsView | null>(null);
 
-    const patchChartSorting = (chartView: any) => {
-        const originalUpdate = chartView.chart.update.bind(chartView.chart);
-        chartView.chart.update = (mode?: any) => {
-            for (const dataset of chartView.chart.data.datasets) {
-                if (dataset.data?.length > 1) {
-                    dataset.data.sort((a: any, b: any) => a.x - b.x);
-                }
-            }
-            originalUpdate(mode);
-        };
-    };
+    const [updateTick, setUpdateTick] = useState(0);
 
     useEffect(() => {
         let rafId: number | null = null;
 
-        const scheduleUpdate = () => {
-            if (rafId != null) return;
-            rafId = requestAnimationFrame(() => {
-                rafId = null;
-                if (gammaChartViewRef.current && gammaChartViewRef.current.chart) {
-                    gammaChartViewRef.current.chart.update("none");
-                }
-                if (neutronChartViewRef.current && neutronChartViewRef.current.chart) {
-                    neutronChartViewRef.current.chart.update("none");
-                }
-            });
+        const scheduleUpdate = (msg: any) => {
+            if (msg.type === EventType.DATA && msg.values && msg.values.length > 0) {
+               setUpdateTick(t => t + 1);
+            }
         };
 
         if (datasources.gamma) datasources.gamma.subscribe(scheduleUpdate, [EventType.DATA]);
@@ -66,15 +49,19 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
 
         return () => {
             if (rafId != null) cancelAnimationFrame(rafId);
-
-            if (datasources.gamma && typeof (datasources.gamma as any).unsubscribe === 'function') {
-                (datasources.gamma as any).unsubscribe(scheduleUpdate, [EventType.DATA]);
-            }
-            if (datasources.neutron && typeof (datasources.neutron as any).unsubscribe === 'function') {
-                (datasources.neutron as any).unsubscribe(scheduleUpdate, [EventType.DATA]);
-            }
         };
     }, [datasources.gamma, datasources.neutron]);
+
+
+    useEffect(() => {
+       if (gammaChartViewRef.current && gammaChartViewRef.current.chart) {
+             gammaChartViewRef.current.chart.update("none");
+       }
+       if (neutronChartViewRef.current && neutronChartViewRef.current.chart) {
+             neutronChartViewRef.current.chart.update("none");
+       }
+    }, [updateTick]);
+
 
     useEffect(() => {
         if(datasources.gamma)
@@ -95,6 +82,7 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
                     container: gammaChartID,
                     layers: [gammaCurve],
                     css: "chart-view",
+                    refreshRate: 500,
                     options:{
                         plugins: {
                             title: {
@@ -140,7 +128,6 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
                         },
                     },
                 });
-                patchChartSorting(gammaChartViewRef.current);
             }
         }
 
@@ -152,6 +139,7 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
                     container: neutronChartID,
                     layers: [neutronCurve],
                     css: "chart-view",
+                    refreshRate: 500,
                     options: {
                         plugins: {
                             title: {
@@ -198,7 +186,6 @@ export default function ChartLane({laneName, datasources, setChartReady}: ChartI
                         }
                     },
                 });
-                patchChartSorting(neutronChartViewRef.current);
             }
         }
 

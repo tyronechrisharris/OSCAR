@@ -17,41 +17,6 @@ index 8bb9f66..0c26f5c 100644
              }
              return jsonData;
          }
-diff --git a/node_modules/osh-js/source/core/datasource/DataSource.datasource.js b/node_modules/osh-js/source/core/datasource/DataSource.datasource.js
-index 40240c1..8021240 100644
---- a/node_modules/osh-js/source/core/datasource/DataSource.datasource.js
-+++ b/node_modules/osh-js/source/core/datasource/DataSource.datasource.js
-@@ -85,6 +85,14 @@ class DataSource {
-         }
-     }
-
-+    unsubscribe(fn, eventTypes) {
-+        for (let i = 0; i < eventTypes.length; i++) {
-+            if (eventTypes[i] in this.eventSubscriptionMap) {
-+                this.eventSubscriptionMap[eventTypes[i]] = this.eventSubscriptionMap[eventTypes[i]].filter((cb) => cb !== fn);
-+            }
-+        }
-+    }
-+
-     //----------- ASYNCHRONOUS FUNCTIONS -----------------//
-     createWorker(properties) {
-         return new WorkerExt(new DataSourceWorker());
-diff --git a/node_modules/osh-js/source/core/datasource/TimeSeries.datasource.js b/node_modules/osh-js/source/core/datasource/TimeSeries.datasource.js
-index 46376a7..778860c 100644
---- a/node_modules/osh-js/source/core/datasource/TimeSeries.datasource.js
-+++ b/node_modules/osh-js/source/core/datasource/TimeSeries.datasource.js
-@@ -292,6 +292,11 @@ class TimeSeriesDatasource {
-         this.timeSeriesDataSource.subscribe(fn, eventTypes);
-     }
-
-+    unsubscribe(fn, eventTypes) {
-+        this.timeSeriesRealtimeDataSource.unsubscribe(fn, eventTypes);
-+        this.timeSeriesReplayDataSource.unsubscribe(fn, eventTypes);
-+    }
-+
-     /**
-      * Update properties
-      * @param {String} name - the datasource name
 diff --git a/node_modules/osh-js/source/core/mqtt/MqttProvider.js b/node_modules/osh-js/source/core/mqtt/MqttProvider.js
 index fb0b3a8..75a9ba2 100644
 --- a/node_modules/osh-js/source/core/mqtt/MqttProvider.js

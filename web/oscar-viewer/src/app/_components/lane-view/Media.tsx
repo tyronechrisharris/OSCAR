@@ -5,8 +5,6 @@ import React, {useContext, useEffect, useState} from "react";
 import ChartLane from "@/app/_components/lane-view/ChartLane";
 import {generateHLSVideoCommandJSON, sendCommand} from "@/lib/data/oscar/OSCARCommands";
 import {LaneMapEntry} from "@/lib/data/oscar/LaneCollection";
-import {useSelector} from "react-redux";
-import {selectLaneMap} from "@/lib/state/OSCARLaneSlice";
 import {DataSourceContext} from "@/app/contexts/DataSourceContext";
 import ControlStream from "osh-js/source/core/consysapi/controlstream/ControlStream";
 import {isHLSVideoControlStream} from "@/lib/data/oscar/Utilities";
@@ -25,13 +23,10 @@ export default function Media({datasources, currentLane}: {datasources: any, cur
     const [videoSource, setVideoSource] = useState(null);
     const [videoStreams, setVideoStreams] = useState<typeof ControlStream[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
-    const laneMap = useSelector(selectLaneMap);
 
     useEffect(() => {
-        if (currentLane && laneMap && laneMap.size > 0) {
-            fetchVideoControlStreams()
-        }
-    }, [currentLane, laneMap, laneMap.size]);
+        fetchVideoControlStreams()
+    }, []);
 
     useEffect(() => {
         if (videoStreams.length === 0)

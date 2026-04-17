@@ -59,7 +59,8 @@ export default function LaneViewPage() {
 
         let laneDsCollection = new LaneDSColl();
 
-        const lane = laneMapRef.current?.get(currentLane);
+        // use the redux state laneMap if ref is out of date
+        const lane = laneMapRef.current?.get(currentLane) || laneMap?.get(currentLane);
 
         if (!lane) {
             console.warn("Lane not found for currentLane:", currentLane);
@@ -100,13 +101,13 @@ export default function LaneViewPage() {
 
         setDataSourcesByLane(laneDsCollection);
 
-    }, [laneMapRef, laneMapRef.current.size]);
+    }, [laneMapRef, currentLane, laneMap]);
 
     useEffect(() => {
-        if(laneMapRef?.current && currentLane){
+        if((laneMapRef?.current || laneMap) && currentLane){
             collectDataSources();
         }
-    }, [laneMapRef, currentLane, laneMapRef.current.size]);
+    }, [laneMapRef, currentLane, laneMap, collectDataSources]);
 
     return (
         <Grid container spacing={2} width={"100%"}>
