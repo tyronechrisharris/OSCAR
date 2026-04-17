@@ -295,8 +295,9 @@ public class LaneSystem extends SensorSystem {
             throw new SensorHubException("Cannot configure MediaMTX proxy because FFmpeg connection config is missing");
         }
 
-        String apiBase = getMediaMtxAddPathsApiBase();
-        if (apiBase == null) {
+        String addApiBase = getMediaMtxAddPathsApiBase();
+        String patchApiBase = getMediaMtxPatchPathsApiBase();
+        if (addApiBase == null || patchApiBase == null) {
             return;
         }
 
@@ -310,24 +311,41 @@ public class LaneSystem extends SensorSystem {
 
         try {
             HttpResponse<String> response = sendMediaMtxRequest(
-                    "POST",
-                    apiBase + encodedPathName,
+                    "PATCH",
+                    patchApiBase + encodedPathName,
                     payload);
 
-            if (response.statusCode() >= 400 && response.statusCode() < 500) {
-                getLogger().info("MediaMTX add failed for path {} with HTTP {}. Attempting PATCH update.",
+            if (!isSuccessfulMediaMtxResponse(response)) {
+                getLogger().info("MediaMTX patch failed for path {} with HTTP {}. Attempting ADD.",
+                        pathName, response.statusCode());
+
+                response = sendMediaMtxRequest(
+                        "POST",
+                        addApiBase + encodedPathName,
+                        payload);
+            }
+
+            if (!isSuccessfulMediaMtxResponse(response) && responseSuggestsExistingPath(response)) {
+                getLogger().info("MediaMTX add reported an existing path for {} with HTTP {}. Retrying PATCH update.",
                         pathName, response.statusCode());
 
                 response = sendMediaMtxRequest(
                         "PATCH",
-                        getMediaMtxPatchPathsApiBase() + encodedPathName,
+                        patchApiBase + encodedPathName,
                         payload);
             }
 
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            if (!isSuccessfulMediaMtxResponse(response)) {
                 getLogger().error("MediaMTX path configuration failed for {} with HTTP {}: {}. Falling back to raw camera URI.",
                         pathName, response.statusCode(), response.body());
                 return;
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                getLogger().debug("Interrupted while waiting for MediaMTX to settle after configuring {}", pathName, e);
             }
 
             ffmpegConfig.connection.transportStreamPath = null;
@@ -339,6 +357,33 @@ public class LaneSystem extends SensorSystem {
             Thread.currentThread().interrupt();
             getLogger().error("Interrupted while configuring MediaMTX camera proxy for {}. Falling back to raw camera URI.", pathName);
         }
+    }
+
+    private boolean isSuccessfulMediaMtxResponse(HttpResponse<String> response) {
+        return response != null && response.statusCode() >= 200 && response.statusCode() < 300;
+    }
+
+    private boolean responseSuggestsExistingPath(HttpResponse<String> response) {
+        if (response == null) {
+            return false;
+        }
+
+        String body = response.body();
+        return body != null && body.toLowerCase(Locale.ROOT).contains("already exists");
+    }
+
+    private boolean responseSuggestsMissingPath(HttpResponse<String> response) {
+        if (response == null) {
+            return false;
+        }
+
+        String body = response.body();
+        if (body == null) {
+            return false;
+        }
+
+        String lower = body.toLowerCase(Locale.ROOT);
+        return lower.contains("not found") || lower.contains("does not exist") || lower.contains("no such");
     }
 
     private String getEnvOrFile(String envVar) {
@@ -420,8 +465,8 @@ public class LaneSystem extends SensorSystem {
             String encodedPath = encodePathSegment(pathName);
             HttpResponse<String> response = sendMediaMtxRequest("POST", apiBase + encodedPath, "");
 
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                getLogger().info("Successfully deleted MediaMTX path: {}", pathName);
+            if (isSuccessfulMediaMtxResponse(response) || responseSuggestsMissingPath(response)) {
+                getLogger().info("MediaMTX path {} is absent after delete request", pathName);
             } else {
                 getLogger().warn("Failed to delete MediaMTX path {} with HTTP {}: {}", pathName, response.statusCode(), response.body());
             }
