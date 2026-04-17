@@ -197,6 +197,7 @@ services:
     image: tailscale/tailscale:v1.96.5
     container_name: oscar-tailscale
     hostname: ${NODE_NAME:-oscar-server}
+    profiles: ["mesh"]
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_ROUTES=${TS_ROUTES:-}
@@ -205,7 +206,7 @@ services:
       - TS_SOCKS5_SERVER=:1055
       - TS_SOCKET=/var/run/tailscale/tailscaled.sock
     ports:
-      - "127.0.0.1:80:80"
+      - "80:80"
       - "443:443"
     volumes:
       - ./tailscale/state:/var/lib/tailscale
@@ -217,9 +218,10 @@ services:
       - sys_module
     restart: unless-stopped
 
-  osh-proxy:
+  osh-proxy-mesh:
     image: caddy:2.9.1
     container_name: oscar-proxy
+    profiles: ["mesh"]
     network_mode: "service:tailscale"
     depends_on:
       tailscale:
@@ -243,12 +245,77 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "http://localhost {" > /etc/caddy/Caddyfile
+        echo ":80 {" > /etc/caddy/Caddyfile
+        echo "    @not_localhost {" >> /etc/caddy/Caddyfile
+        echo "        not remote_ip 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    abort @not_localhost" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
         echo "}" >> /etc/caddy/Caddyfile
-        echo "https://localhost, 127.0.0.1 {" >> /etc/caddy/Caddyfile
+        echo ":443 {" >> /etc/caddy/Caddyfile
+        echo "    @not_lan {" >> /etc/caddy/Caddyfile
+        echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    abort @not_lan" >> /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    tls {" >> /etc/caddy/Caddyfile
+        echo "        get_certificate tailscale" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+  osh-proxy-lan:
+    image: caddy:2.9.1
+    container_name: oscar-proxy-lan
+    profiles: ["lan-only"]
+    networks:
+      - osh-internal
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      osh-backend:
+        condition: service_healthy
+    environment:
+      - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
+      - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - oscar_secrets:/etc/caddy/certs:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo ":80 {" > /etc/caddy/Caddyfile
+        echo "    @not_localhost {" >> /etc/caddy/Caddyfile
+        echo "        not remote_ip 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    abort @not_localhost" >> /etc/caddy/Caddyfile
+        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
+        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo ":443 {" >> /etc/caddy/Caddyfile
+        echo "    @not_lan {" >> /etc/caddy/Caddyfile
+        echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "    abort @not_lan" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile

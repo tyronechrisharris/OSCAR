@@ -441,4 +441,31 @@
      d="m 650.30642,279.67448 h 17.41701 v 130.62926 h 17.41701"
      class="arrow"
      id="path54" />
+  <!-- Local LAN Client -->
+  <rect
+     x="690"
+     y="250"
+     width="160"
+     height="80"
+     rx="10"
+     class="ui"
+     id="rect_lan_client" />
+  <text
+     x="700"
+     y="275"
+     class="title"
+     id="text_lan_client">Local LAN Client</text>
+  <text
+     x="700"
+     y="295"
+     id="text_lan_client_2">Direct HTTPS (LAN)</text>
+  <text
+     x="700"
+     y="315"
+     id="text_lan_client_3">Auth: Local CA</text>
+  <!-- LAN Ingress to Proxy -->
+  <path
+     d="M 690,290 L 660,220"
+     class="arrow"
+     id="path_lan_ingress" />
 </svg>
