@@ -35,7 +35,7 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
    *   **Setup**: Separates the database from the application backend over a high-speed LAN connection. See Deployment instructions below. **Native Ubuntu Deployments**: For high-density UDP streaming, Linux launch scripts automatically apply `sysctl` kernel tuning (UDP buffers, file limits) and `ufw` firewall rules to permit containerized backend communication with the host MediaMTX proxy (port 9997). Additionally, FFmpeg sensors utilize authenticated RTSP connection strings to communicate with the host-bound MediaMTX proxy.
 
 ### Default Port Configuration:
-- **Caddy Reverse Proxy (within Tailscale namespace)**: Operates entirely inside the sidecar's networking context. It does not map ports to the host file directly, but dynamically secures ports `80` (HTTP) and `443` (HTTPS) over the mesh.
+- **Caddy Reverse Proxy (within Tailscale namespace)**: Operates entirely inside the sidecar's networking context. It maps ports `80` and `443` to the host to allow direct LAN ingress while maintaining the primary Tailscale mesh.
 - **OSH Backend API (HTTP)**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **OSH Backend Admin UI**: `8282` (Bound to `127.0.0.1` locally, accessible externally via proxy)
 - **PostGIS Database**: `5432` (Internal Docker Network only)
@@ -44,7 +44,10 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
-- **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443` (or port `8282` locally). The client is now progressive web app (PWA) compatible and can be installed locally via a modern web browser.
+- **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443`. The system supports **Hybrid Ingress**:
+  - **Tailscale Mesh**: Secure access via MagicDNS using Let's Encrypt certificates managed by Tailscale.
+  - **LAN HTTPS Fallback**: Direct access over the local network using the dynamically generated Root CA and Server certificates.
+  - **Localhost HTTP**: Plain HTTP access is strictly limited to the local machine (`127.0.0.1`).
 - **Client Features**: The progressive web application contains specialized functionality such as offline caching, client-side WebID analysis, and camera integration for Spectroscopic QR Code scanning during Adjudication workflows. New in v3.3.1 is an enhanced evidence tracking system that allows for asynchronous WebID analysis submission and persistence of multiple adjudications per occupancy.
 - **OSH to PostGIS**: The OSH backend connects to the PostGIS database over the network (local or LAN) on port `5432`. This connection is secured via TLS and authenticated with SCRAM-SHA-256.
 - **MQTT Connectivity**: The system maintains stable MQTT connections over WebSockets. Both the OSH backend and the reverse proxy are configured with an increased 10-minute idle timeout to prevent frequent disconnections in high-latency environments (e.g., Tailscale mesh). Additionally, the frontend MQTT client implements a proactive 15-second keepalive interval to ensure the connection remains active during periods of telemetry inactivity.

@@ -41,7 +41,13 @@ To prevent network configuration corruption during container startup, the OSH Ba
 The OSCAR architecture relies on a PEM-first cryptographic foundation managed completely within the Docker deployment ecosystem.
 - **Dynamic Runtime Generation**: Instead of baking SSL certificates into public Docker images or relying on proprietary Java generators, the `init-secrets` ephemeral container automatically generates standard OpenSSL PEM certificates (`ca.pem`, `server.pem`) upon the very first system boot.
 - **Java Compatibility**: To satisfy the OpenSensorHub Java backend's `SSLContext` requirements without modifying core OSH code, the `init-secrets` container dynamically bundles the raw PEM files into PKCS12 (`osh-keystore.p12`) and JKS (`truststore.jks`) vaults using `openssl pkcs12` and `keytool`. These are distributed securely to the backend via the `oscar_secrets` named volume.
-- **Caddy Reverse Proxy TLS**: The Caddy proxy (which manages all external ingress) natively consumes the raw `server.pem` and `server.key` from the same shared volume, guaranteeing the entire stack uses the exact same unified cryptographic trust chain.
+- **Caddy Reverse Proxy TLS**: The Caddy proxy manages all external ingress. In **Federated/Mesh mode**, it utilizes Tailscale's native integration to fetch Let's Encrypt certificates. In **Local/LAN mode**, it natively consumes the raw `server.pem` and `server.key` from the shared `oscar_secrets` volume, guaranteeing the entire stack uses the exact same unified cryptographic trust chain for direct LAN access.
+
+### Hybrid Ingress Security (Caddy Firewall)
+The system implements strict firewalling at the proxy level to prevent unauthorized access over the LAN:
+- **HTTP (Port 80)**: Only requests originating from `localhost` (127.0.0.1 / ::1) are permitted. All other HTTP traffic is aborted.
+- **LAN HTTPS (Port 443)**: Only requests originating from private IP ranges (RFC 1918) or `localhost` are permitted. This ensures that even if port 443 is exposed to a public network, only local devices can establish a TLS session using the internal CA.
+- **Tailscale Mesh**: Ingress via the Tailscale MagicDNS name bypasses these LAN restrictions, as it is routed through the authenticated Tailscale tunnel and terminated separately in Caddy.
 - **Fail-Secure Inheritance**: The backend's startup scripts (`launch.sh` / `launch.bat`) strictly rely on the Docker Compose `KEYSTORE_PASSWORD_FILE` environment variables. If the `.app_secrets` file is missing, the application will halt with a critical error rather than falling back to unsafe default passwords.
 - **Public CA Download**: The public Root CA certificate is available for download at `/sensorhub/admin/ca-cert` to allow clients to establish trust.
 

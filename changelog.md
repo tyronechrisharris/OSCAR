@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- **Hybrid Ingress Support**: Implemented a resilient dual-ingress proxy architecture. The system now supports secure direct HTTPS access over the Local Area Network (LAN) using dynamically generated PEM certificates, while maintaining the primary Tailscale mesh.
 - Added Progressive Web App (PWA) capabilities, allowing the client to be installed as a local application with offline support.
 - Integrated Spectroscopic QR Code scanning for Adjudication workflows.
 - Added WebID analysis and result logging to the Adjudication Detail view.
