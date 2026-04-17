@@ -366,13 +366,27 @@ public class HttpServer extends AbstractModule<HttpServerConfig> implements IHtt
                 servletHandler.addServlet(new ServletHolder(new HttpServlet() {
                     @Override
                     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-                        File caFile = new File("root-ca.crt");
+                        String envCaPath = System.getenv("CA_CERT_PATH");
+                        File caFile = null;
+
+                        if (envCaPath != null && !envCaPath.trim().isEmpty()) {
+                            caFile = new File(envCaPath);
+                        }
+
+                        if (caFile == null || !caFile.exists()) {
+                            caFile = new File("/secrets/ca.pem");
+                            if (!caFile.exists()) {
+                                caFile = new File("root-ca.crt");
+                            }
+                        }
+
                         if (!caFile.exists()) {
                             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Root CA not found");
                             return;
                         }
+
                         resp.setContentType("application/x-x509-ca-cert");
-                        resp.setHeader("Content-Disposition", "attachment; filename=\"root-ca.crt\"");
+                        resp.setHeader("Content-Disposition", "attachment; filename=\"" + caFile.getName() + "\"");
                         Files.copy(caFile.toPath(), resp.getOutputStream());
                     }
                 }), "/admin/ca-cert");
