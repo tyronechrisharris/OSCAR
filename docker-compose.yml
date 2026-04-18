@@ -154,7 +154,6 @@ services:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
-      - ./dist/config/standard/logback.xml:/app/hivemq-config/logback.xml:ro
       - oscar_secrets:/secrets:ro
       - mtx_secrets:/mtx_secrets:ro
     networks:
@@ -246,10 +245,10 @@ services:
       - -c
       - |
         echo ":80 {" > /etc/caddy/Caddyfile
-        echo "    @not_lan {" >> /etc/caddy/Caddyfile
-        echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
+        echo "    @not_localhost {" >> /etc/caddy/Caddyfile
+        echo "        not remote_ip 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
-        echo "    abort @not_lan" >> /etc/caddy/Caddyfile
+        echo "    abort @not_localhost" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
