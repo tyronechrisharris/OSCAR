@@ -11,4 +11,4 @@ cd /app
 
 # Expand JAVA_OPTS without globbing and execute OSH
 # Using eval ensures that quoted properties within JAVA_OPTS (like -D...="a|b") are handled correctly
-exec java $JAVA_OPTS -cp './lib/*' com.botts.impl.security.SensorHubWrapper ./config.json ./db
+eval exec java $JAVA_OPTS -cp \'./lib/*\' com.botts.impl.security.SensorHubWrapper ./config.json ./db
