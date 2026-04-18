@@ -51,7 +51,7 @@ fi
 
 # 1. Launch Docker Compose FIRST so the networks are actually created
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
-docker compose up -d || exit 1
+docker compose --profile mesh up -d || exit 1
 
 # 2. Configure the firewall dynamically
 if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v ufw >/dev/null 2>&1; then

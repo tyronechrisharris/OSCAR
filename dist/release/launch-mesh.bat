@@ -8,7 +8,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Launching fully containerized OSCAR Stack via Docker Compose...
-docker compose up -d
+docker compose --profile mesh up -d
 if %errorlevel% neq 0 (
     echo ERROR: Docker Compose failed to start.
     cmd /c exit /b 1
