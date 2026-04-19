@@ -1,8 +1,8 @@
-# Upstream to Oscar-Flat Mapping
+# Upstream to OSCAR Mapping
 
-This document defines how upstream modules are mapped into the flattened structure of the oscar-flat repository.
+This document defines how upstream modules are mapped into the flattened structure of the OSCAR repository.
 
-| Upstream Path | Oscar-Flat Path (Internal) |
+| Upstream Path | OSCAR Path (Internal) |
 |---------------|----------------------------|
 | sensors/      | include/osh-oakridge-modules/sensors/ |
 | services/     | include/osh-oakridge-modules/services/ |

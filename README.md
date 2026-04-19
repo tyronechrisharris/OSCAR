@@ -1,10 +1,10 @@
-# OSCAR FLAT
+# OSCAR
 
 This repository combines all the OSH modules and dependencies to deploy the OSH server and client for ORNL.
 
 ## Requirements
 - [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
-- [OSCAR Flat Repository](https://github.com/Botts-Innovative-Research/oscar-flat)
+- [OSCAR Repository](https://github.com/tyronechrisharris/OSCAR)
 - Node v22
 - [Docker](https://docs.docker.com/get-docker/) (Required to run the containerized OSCAR stack)
 
@@ -12,13 +12,13 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 Clone the repository:
 
 ```bash
-git clone git@github.com:tyronechrisharris/oscar-flat.git
+git clone git@github.com:tyronechrisharris/OSCAR.git
 ```
 ## Build 
 Navigate to the project directory:
 
 ```bash
-cd path/to/oscar-flat
+cd path/to/OSCAR
 ```
 
 Run the build script (macOS/Linux):
@@ -41,7 +41,7 @@ There are two primary methods to deploy OSCAR depending on your internet connect
 
 ### Method 1: Online Deployment (Docker Hub)
 For connected environments, you can run the stack directly using our pre-built Docker images hosted on Docker Hub. This is the fastest method.
-1. Download `docker-compose.yml` and `.env.example` from the [Latest Release](https://github.com/tyronechrisharris/oscar-flat/releases).
+1. Download `docker-compose.yml` and `.env.example` from the [Latest Release](https://github.com/tyronechrisharris/OSCAR/releases).
 2. Place both files in a new directory (e.g., `oscar-deployment/`).
 3. Proceed to **Environment Setup** below.
 
