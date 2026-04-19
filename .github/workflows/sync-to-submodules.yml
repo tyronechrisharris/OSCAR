@@ -14,7 +14,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.SYNC_PAT }}
       BRANCH_NAME: jules-sync-${{ github.run_id }}
-      PR_TITLE: "${{ github.event.pull_request.title || 'Automated Sync: Updates from oscar-flat' }}"
+      PR_TITLE: "${{ github.event.pull_request.title || 'Automated Sync: Updates from OSCAR' }}"
       PR_BODY: "${{ github.event.pull_request.body || 'These changes were generated and verified in the flattened workspace.' }}"
       ORIGINAL_PR_URL: "${{ github.event.pull_request.html_url || 'Manual Workflow Dispatch' }}"
 

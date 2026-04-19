@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.SYNC_PAT }}
-      TARGET_REPO: "tyronechrisharris/oscar-flat"
+      TARGET_REPO: "tyronechrisharris/OSCAR"
 
     steps:
       - name: 1. Checkout Parent Repository (Full History)
@@ -63,12 +63,12 @@ jobs:
             git diff $OLD_HASH $NEW_HASH > $PATCH_FILE
             
             # --- JULES SYSTEM PROMPT INJECTION ---
-            echo "@Jules, we need to integrate upstream logic changes into our \`oscar-flat\` repository." > $BODY_FILE
+            echo "@Jules, we need to integrate upstream logic changes into our \`OSCAR\` repository." > $BODY_FILE
             echo "" >> $BODY_FILE
             echo "Attached below is a patch file representing the exact changes made upstream between versions **$OLD_TAG** and **$NEW_TAG** for the \`$sub_path\` module." >> $BODY_FILE
             echo "" >> $BODY_FILE
             echo "### 🛑 CRITICAL CONSTRAINTS & ARCHITECTURE" >> $BODY_FILE
-            echo "Our codebase in \`oscar-flat\` has diverged significantly from upstream to support international deployments and hardened environments. Do not blindly apply or copy-paste this patch." >> $BODY_FILE
+            echo "Our codebase in \`OSCAR\` has diverged significantly from upstream to support international deployments and hardened environments. Do not blindly apply or copy-paste this patch." >> $BODY_FILE
             echo "" >> $BODY_FILE
             echo "- **Internationalization (i18n):** We rely heavily on custom string replacements for localization. New upstream strings must be mapped to this structure." >> $BODY_FILE
             echo "- **Deployment & Security Strategy:** Any integrated code must strictly align with our existing containerized deployment model and secure routing network architecture. **You MUST reference \`SECURITY_ARCHITECTURE.md\` and \`SYSTEM_ARCHITECTURE.md\` for exact context.** Do not introduce dependencies, configurations, or logic that compromise isolated services, bypass existing security protocols, or break our deployment orchestration." >> $BODY_FILE
