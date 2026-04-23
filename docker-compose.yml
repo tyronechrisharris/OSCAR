@@ -149,12 +149,11 @@ services:
       - MEDIAMTX_API_USER_FILE=/mtx_secrets/.mediamtx_api_user
       - MEDIAMTX_API_PASS_FILE=/mtx_secrets/.mediamtx_api_pass
       - MEDIAMTX_IP=${MEDIAMTX_IP:-host.docker.internal}
-      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal -Dhttp.nonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal
+      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} -DsocksProxyHost=tailscale -DsocksProxyPort=1055 -DsocksNonProxyHosts="localhost|127.*|10.*|172.*|192.168.*|host.docker.internal|osh-postgis|oscar-postgis-container" -Dhttp.nonProxyHosts="localhost|127.*|10.*|172.*|192.168.*|host.docker.internal|osh-postgis|oscar-postgis-container"
     volumes:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
-      - ./dist/config/standard/logback.xml:/app/hivemq-config/logback.xml:ro
       - oscar_secrets:/secrets:ro
       - mtx_secrets:/mtx_secrets:ro
     networks:

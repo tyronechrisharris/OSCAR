@@ -51,7 +51,7 @@ fi
 
 # 1. Launch Docker Compose FIRST so the networks are actually created
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
-docker compose up -d || exit 1
+docker compose --profile lan-only up -d || exit 1
 
 # 2. Configure the firewall dynamically
 if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v ufw >/dev/null 2>&1; then
@@ -67,7 +67,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v ufw >/dev/null 2>&1; then
         if [ -n "$DOCKER_SUBNET" ]; then
             echo "Whitelisting Docker subnet: $DOCKER_SUBNET"
             sudo ufw allow from "$DOCKER_SUBNET" to any port 9997 proto tcp && sudo ufw allow from "$DOCKER_SUBNET" to any port 8554 proto tcp
-            sudo ufw reload
+            sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw reload
         else
             echo "Warning: Could not determine Docker subnet. Skipping UFW configuration."
         fi
