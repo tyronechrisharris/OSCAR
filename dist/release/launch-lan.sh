@@ -49,11 +49,66 @@ if [ ! -f "hivemq-config/logback.xml" ]; then
 INNER_EOF
 fi
 
-# 1. Launch Docker Compose FIRST so the networks are actually created
+# 1. Native MediaMTX check for macOS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    VERSION="v1.17.1"
+    TARGET_DIR="$(pwd)/mediamtx_${VERSION}"
+    EXE_NAME="mediamtx"
+    FULL_PATH="${TARGET_DIR}/${EXE_NAME}"
+
+    if [ -f "$FULL_PATH" ]; then
+        echo "MediaMTX Version $VERSION found."
+    else
+        echo "Downloading MediaMTX $VERSION for macOS..."
+        mkdir -p "$TARGET_DIR"
+
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "arm64" ]; then
+            MTX_ARCH="darwin_arm64"
+        else
+            MTX_ARCH="darwin_amd64"
+        fi
+
+        URL="https://github.com/bluenviron/mediamtx/releases/download/${VERSION}/mediamtx_${VERSION}_${MTX_ARCH}.tar.gz"
+        TMP_TAR="/tmp/mediamtx.tar.gz"
+
+        curl -L -o "$TMP_TAR" "$URL"
+        tar -xzf "$TMP_TAR" -C "$TARGET_DIR"
+        rm "$TMP_TAR"
+    fi
+
+    echo "Generating MediaMTX configuration..."
+    mkdir -p "${TARGET_DIR}/mtx-secrets"
+
+    cat << 'INNER_EOF_MTX' > "${TARGET_DIR}/mtx-secrets/mediamtx.yml"
+# MediaMTX Configuration for OSCAR (Auto-Generated macOS)
+api: true
+apiAddress: :9997
+writeQueueSize: 1024
+
+# Protocols (Optimized for high density)
+rtmp: false
+hls: false
+webrtc: false
+srt: false
+
+pathDefaults:
+  source: publisher
+
+# Path Settings
+paths:
+  all_others:
+INNER_EOF_MTX
+
+    echo "Launching MediaMTX $VERSION in background..."
+    "$FULL_PATH" "${TARGET_DIR}/mtx-secrets/mediamtx.yml" > /dev/null 2>&1 &
+fi
+
+# 2. Launch Docker Compose FIRST so the networks are actually created
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
 COMPOSE_PROFILES=lan-only docker compose up -d || exit 1
 
-# 2. Configure the firewall dynamically
+# 3. Configure the firewall dynamically
 if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v ufw >/dev/null 2>&1; then
     echo "Configuring firewall for MediaMTX API access..."
 

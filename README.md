@@ -223,6 +223,6 @@ For documentation on configuring a server on the OSCAR Client refer to the OSCAR
 - Build with `./build-all.sh` or `./build-all.bat`
 
 ## Preferred Deployment Environment
-For production use, **Ubuntu Server 24.04.4 LTS** is the preferred and recommended operating system. Due to host-level network limitations on Windows and macOS, certain advanced features like automated MediaMTX path provisioning may require manual configuration or native host-executables. Docker on Linux provides the best security, performance, and automated orchestration for the OSCAR stack.
+For production use, **Ubuntu Server 24.04.4 LTS** is the preferred and recommended operating system. Docker on Linux provides the best security, performance, and automated orchestration for the OSCAR stack. Due to host-level network limitations on Windows and macOS, the deployment scripts (`launch-all.bat` and `launch-all.sh`) automatically download and manage a native `mediamtx` host process to bypass Docker Desktop networking constraints, allowing automated MediaMTX path provisioning to function identically to Linux.
 
 See the [Ubuntu Server Setup Guide](docs/ubuntu_setup.md) for detailed instructions.
