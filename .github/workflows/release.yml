@@ -221,4 +221,9 @@ jobs:
             docker-compose.yml
             .env.example
             dist/release/launch-all.sh
+            dist/release/launch-all.bat
+            dist/release/launch-mesh.sh
+            dist/release/launch-mesh.bat
+            dist/release/launch-lan.sh
+            dist/release/launch-lan.bat
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}

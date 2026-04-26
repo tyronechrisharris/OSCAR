@@ -76,12 +76,18 @@ OSCAR uses a dedicated Tailscale sidecar architecture to safely expose the proxy
 - Set your static `TAILSCALE_DOMAIN` (e.g., `oscar-server.tailxxxxx.ts.net`) in the `.env` file to enable automatic Let's Encrypt certificates.
 
 ### Launch the Stack
-The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, MediaMTX, and Caddy Reverse Proxy) is fully containerized. Ensure Docker is installed and run:
+The entire OSCAR stack (PostGIS, OSH Backend, Tailscale Sidecar, MediaMTX, and Caddy Reverse Proxy) is fully containerized. Ensure Docker is installed and run the command that fits your deployment topology:
 
+**To launch the full Tailscale Mesh configuration (default and recommended):**
 ```bash
-docker compose up -d
+COMPOSE_PROFILES=mesh docker compose up -d
 ```
-*Note for Offline Deployments: The legacy launch scripts (`launch-all.sh`, `launch-all.bat`, etc.) are still available inside the `dist/release/` directory of the zip archive for convenience.*
+
+**To launch the LAN-only configuration (no Tailscale sidecar):**
+```bash
+COMPOSE_PROFILES=lan-only docker compose up -d
+```
+*Note for Offline Deployments: The legacy launch scripts (`launch-mesh.sh`/`.bat`, `launch-lan.sh`/`.bat`, `launch-all.sh`/`.bat`, etc.) are still available inside the `dist/release/` directory of the zip archive for convenience.*
 
 ### Shutdown and Restart Procedures
 
