@@ -19,7 +19,7 @@ The easiest way to begin using OSCAR is to use the pre-built release assets.
 6. Access the system:
    - **LAN:** Open `https://localhost` or `http://localhost` (or the machine IP) in your browser.
    - **Mesh:** Open `https://[your-tailscale-domain]` in your browser.
-7. **Stopping the system:** To safely power down the stack without losing any configurations, database records, or credentials, run the `stop-all` script (e.g., `./stop-all.sh`).
+7. **Stopping the system:** To safely power down the stack without losing any configurations, database records, or credentials, follow the [Safe Stop and Restart SOP](docs/SAFE_RESTART_SOP.md).
 
 ## Requirements
 - [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
