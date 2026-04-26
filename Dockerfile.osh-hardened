@@ -1,0 +1,35 @@
+# Dockerfile.osh-hardened
+FROM eclipse-temurin:21-jre-jammy
+
+# Set the working directory
+WORKDIR /app
+
+# GLOBAL BUILD CONSTRAINT: Explicitly set the font package to fonts-freefont-ttf
+# Debian/Ubuntu (jammy) uses apt-get for dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends fonts-freefont-ttf openssl curl bash && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add a non-root user
+RUN groupadd -r oscar && useradd -r -g oscar oscar
+
+# Copy build artifacts
+COPY ./osh-node-oscar/lib /app/lib
+COPY ./osh-node-oscar/web /app/web
+COPY ./osh-node-oscar/logback.xml /app/logback.xml
+COPY ./osh-node-oscar/config.json /app/config.json
+COPY ./osh-node-oscar/config /app/config
+
+# Copy startup script
+COPY start-osh.sh /app/start-osh.sh
+
+# Change ownership to the non-root user
+RUN chown -R oscar:oscar /app && \
+    chmod +x /app/start-osh.sh
+
+# Switch to the non-root user
+USER oscar
+
+# The ENTRYPOINT implements a 30-second buffer delay after the database is reachable to allow PostGIS extensions to fully load.
+# It utilizes a dedicated startup script to safely expand JAVA_OPTS and disable shell globbing.
+ENTRYPOINT ["/bin/bash", "/app/start-osh.sh"]

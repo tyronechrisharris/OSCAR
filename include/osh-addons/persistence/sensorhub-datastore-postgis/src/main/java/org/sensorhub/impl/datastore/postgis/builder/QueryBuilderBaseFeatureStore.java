@@ -52,7 +52,7 @@ public abstract class QueryBuilderBaseFeatureStore<V extends IFeature,VF extends
 
     public String insertFeatureByIdQuery() {
         return "INSERT INTO "+this.getStoreTableName()+" (id, parentId,"+GEOMETRY+", "+VALID_TIME+", data) " +
-                "SELECT (${1}),(${2}),(${3}),(${4}),(${5})";
+                "SELECT ?::int8,?::int8,?::bytea,?::tsrange,?::jsonb";
     }
 
     public String selectByPrimaryKeyQuery() {
@@ -74,7 +74,7 @@ public abstract class QueryBuilderBaseFeatureStore<V extends IFeature,VF extends
 
     public String addOrUpdateByIdQuery() {
         return this.insertFeatureByIdQuery()+" ON CONFLICT ((data->'properties'->>'uid'), "+VALID_TIME +") DO "+
-                "UPDATE SET "+GEOMETRY+" = (${6}), " +VALID_TIME+" = (${7}), data = (${8})  ";
+                "UPDATE SET "+GEOMETRY+" = ?::bytea, " +VALID_TIME+" = ?::tsrange, data = ?::jsonb  ";
     }
 
     public String selectExtentQuery() {

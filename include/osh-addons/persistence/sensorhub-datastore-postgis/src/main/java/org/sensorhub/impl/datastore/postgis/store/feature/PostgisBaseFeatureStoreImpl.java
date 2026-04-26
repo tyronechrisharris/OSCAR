@@ -17,7 +17,6 @@ package org.sensorhub.impl.datastore.postgis.store.feature;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.postgis.jdbc.PGbox2d;
-import org.apache.commons.text.StringSubstitutor;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
 import org.postgresql.util.PGobject;
@@ -142,63 +141,46 @@ public abstract class PostgisBaseFeatureStoreImpl
     }
 
     public FeatureKey addOrUpdate(FeatureKey featureKey, BigId parentID, V value) throws DataStoreException {
-        if (useBatch) {
-            try {
-                String sqlQuery = fillAddOrUpdateStatement(featureKey, parentID, value);
-                this.connectionManager.addBatch(sqlQuery);
-                this.connectionManager.tryCommit();
-                cache.put(featureKey, value);
-            } catch (Exception e) {
-                throw new DataStoreException("Cannot insert feature " + value.getName());
+        try (Connection connection = this.connectionManager.getConnection();
+             PreparedStatement ps = connection.prepareStatement(queryBuilder.addOrUpdateByIdQuery())) {
+
+            ps.setLong(1, featureKey.getInternalID().getIdAsLong());
+
+            long parentId = 0L;
+            if(featureKey instanceof PostgisFeatureKey) {
+                parentId = ((PostgisFeatureKey) featureKey).getParentID();
+            } else if (parentID != null && parentID != BigId.NONE) {
+                parentId = parentID.getIdAsLong();
             }
-        } else {
-            try (Connection connection = this.connectionManager.getConnection()) {
-                try (Statement statement = connection.createStatement()) {
-                    String sqlQuery = fillAddOrUpdateStatement(featureKey, parentID, value);
-                    statement.executeUpdate(sqlQuery);
-                }
-            } catch (SQLException | IOException e) {
-                e.printStackTrace();
-                throw new DataStoreException("Cannot insert feature " + value.getName());
+            ps.setLong(2, parentId);
+
+            if (value.getGeometry() != null) {
+                Geometry geometry = PostgisUtils.toJTSGeometry(value.getGeometry());
+                byte[] geom = threadLocalWriter.get().write(geometry);
+                String byteaGeom = PostgisUtils.convertBytesToBytea(geom);
+                ps.setString(3, byteaGeom);
+                ps.setString(6, byteaGeom);
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+                ps.setNull(6, Types.VARCHAR);
             }
+
+            PGobject pgValidTimeRange = this.createPGobjectValidTimeRange(featureKey, value);
+            ps.setString(4, pgValidTimeRange.getValue());
+            ps.setString(7, pgValidTimeRange.getValue());
+
+            String feature = this.writeFeature(value);
+            ps.setString(5, feature);
+            ps.setString(8, feature);
+
+            ps.executeUpdate();
+            cache.put(featureKey, value);
+
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            throw new DataStoreException("Cannot insert feature " + value.getName());
         }
         return featureKey;
-    }
-
-    private String fillAddOrUpdateStatement(FeatureKey featureKey, BigId parentID, V value) throws SQLException, IOException {
-        Map<String, Object> values = new HashMap<>();
-
-        values.put("1","'"+featureKey.getInternalID().getIdAsLong()+"'::int8");
-        // statements for INSERT - parentId
-        var parentId = 0L;
-        if(featureKey instanceof PostgisFeatureKey) {
-            parentId = ((PostgisFeatureKey) featureKey).getParentID();
-        } else if (parentID != null && parentID != BigId.NONE) {
-            parentId = parentID.getIdAsLong();
-        }
-
-        values.put("2", "'"+parentId+"'::int8");
-        if (value.getGeometry() != null) {
-            Geometry geometry = PostgisUtils.toJTSGeometry(value.getGeometry());
-            byte[] geom = threadLocalWriter.get().write(geometry);
-            String byteaGeom = PostgisUtils.convertBytesToBytea(geom);
-            values.put("3", "'"+byteaGeom+"'::bytea"); // insert
-            values.put("6", "'"+byteaGeom+"'::bytea"); // update
-        } else {
-            values.put("3", "NULL");
-            values.put("6", "NULL");
-        }
-
-        PGobject pgValidTimeRange = this.createPGobjectValidTimeRange(featureKey, value);
-        values.put("4", "'"+pgValidTimeRange.getValue()+"'");
-        values.put("7", "'"+pgValidTimeRange.getValue()+"'");
-
-        String feature = this.writeFeature(value);
-        values.put("5", "'"+feature+"'");
-        values.put("8", "'"+feature+"'");
-        StringSubstitutor sub = new StringSubstitutor(values);
-
-        return sub.replace(queryBuilder.addOrUpdateByIdQuery());
     }
 
     public Stream<Entry<FeatureKey, V>> selectEntries(F filter, Set<VF> fields) {
