@@ -5,21 +5,22 @@ This repository combines all the OSH modules and dependencies to deploy the OSH 
 ## Quick Start Guide
 The easiest way to begin using OSCAR is to use the pre-built release assets.
 
-1. Navigate to the **Latest Release** on GitHub.
-2. Download the following required files:
+1. **Ensure Docker is installed and running** on your system.
+2. Navigate to the **Latest Release** on GitHub.
+3. Download the following required files:
    - `docker-compose.yml`
    - `.env.example`
    - `stop-all.sh` (or `stop-all.bat` for Windows)
-3. Download the **launch script** that matches your desired architecture and operating system:
+4. Download the **launch script** that matches your desired architecture and operating system:
    - **LAN-Only Deployment:** Download `launch-lan.sh` (or `launch-lan.bat`). Use this if you only want to access the system over your local network.
    - **Tailscale Mesh Deployment:** Download `launch-mesh.sh` (or `launch-mesh.bat`). Use this to securely expose the system over Tailscale.
-4. Rename `.env.example` to `.env`.
+5. Rename `.env.example` to `.env`.
    - **If using Mesh:** Open `.env` and configure `TS_AUTHKEY` with your Tailscale auth key, and `TAILSCALE_DOMAIN` with your static Tailnet URL.
-5. Launch the system by running your downloaded launch script (e.g., `./launch-mesh.sh`).
-6. Access the system:
+6. Launch the system by running your downloaded launch script (e.g., `./launch-mesh.sh`).
+7. Access the system:
    - **LAN:** Open `https://localhost` or `http://localhost` (or the machine IP) in your browser.
    - **Mesh:** Open `https://[your-tailscale-domain]` in your browser.
-7. **Stopping the system:** To safely power down the stack without losing any configurations, database records, or credentials, follow the [Safe Stop and Restart SOP](docs/SAFE_RESTART_SOP.md).
+8. **Stopping the system:** To safely power down the stack without losing any configurations, database records, or credentials, follow the [Safe Stop and Restart SOP](docs/SAFE_RESTART_SOP.md).
 
 ## Requirements
 - [Java 21](https://www.oracle.com/java/technologies/downloads/#java21)
