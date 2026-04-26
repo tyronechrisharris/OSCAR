@@ -79,7 +79,7 @@ public class ConnectionManager {
         config.setPassword(effectivePassword);
         config.setMaximumPoolSize(20);
         config.setConnectionTimeout(1000 * 60 * 5); // 5 minutes
-        config.setInitializationFailTimeout(60000); // 1 minute
+        config.setInitializationFailTimeout(180000); // 3 minutes
 
         config.setMaxLifetime(20 * 60 * 1000);      // 20 minutes
         config.setKeepaliveTime(5 * 60 * 1000);     // 5 minutes

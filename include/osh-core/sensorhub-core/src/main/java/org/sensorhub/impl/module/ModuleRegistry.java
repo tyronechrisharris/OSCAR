@@ -81,7 +81,7 @@ public class ModuleRegistry implements IModuleManager<IModule<?>>, IEventListene
     private static final String TIMEOUT_MSG = " in the requested time frame";
     public static final String EVENT_GROUP_ID = "urn:osh:modules";
     public static final long DEFAULT_TIMEOUT_MS = 5000L;
-    public static final long DB_STARTUP_TIMEOUT_MS = 60000L;
+    public static final long DB_STARTUP_TIMEOUT_MS = 180000L;
     public static final long SHUTDOWN_TIMEOUT_MS = 10000L;
     
 

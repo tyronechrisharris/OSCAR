@@ -106,6 +106,7 @@ fi
 
 # 2. Launch Docker Compose FIRST so the networks are actually created
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
+export PROXY_OPTS="-DsocksProxyHost=tailscale -DsocksProxyPort=1055"
 docker compose up -d || exit 1
 
 # 3. Configure the firewall dynamically
