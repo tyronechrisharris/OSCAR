@@ -226,4 +226,6 @@ jobs:
             dist/release/launch-mesh.bat
             dist/release/launch-lan.sh
             dist/release/launch-lan.bat
+            dist/release/stop-all.sh
+            dist/release/stop-all.bat
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}
