@@ -187,6 +187,7 @@
     "autoPurgeConfig": [],
     "minCommitPeriod": 10000,
     "databaseNum": 4,
+    "connectionTimeout": 120,
     "id": "a445cf15-c2ab-4d92-beab-3241667a8976",
     "autoStart": true,
     "moduleClass": "org.sensorhub.impl.database.system.SystemDriverDatabase",

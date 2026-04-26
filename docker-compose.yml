@@ -122,7 +122,8 @@ services:
       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "gis"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 60s
 
   osh-backend:
     image: harristc825/oscar-backend:${OSCAR_VERSION:-latest}
@@ -173,8 +174,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8282/sensorhub/api"]
       interval: 15s
       timeout: 10s
-      retries: 15
-      start_period: 60s
+      retries: 20
+      start_period: 120s
 
   mediamtx:
     image: bluenviron/mediamtx:1.17.1
