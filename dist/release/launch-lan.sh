@@ -106,6 +106,7 @@ fi
 
 # 2. Launch Docker Compose FIRST so the networks are actually created
 echo "Launching fully containerized OSCAR Stack via Docker Compose..."
+export PROXY_OPTS=""
 COMPOSE_PROFILES=lan-only docker compose up -d || exit 1
 
 # 3. Configure the firewall dynamically

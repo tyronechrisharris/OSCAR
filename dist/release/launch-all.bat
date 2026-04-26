@@ -53,6 +53,7 @@ echo Launching MediaMTX %VERSION% in background...
 start "" "%FULL_PATH%" "%TARGET_DIR%mtx-secrets\mediamtx.yml"
 
 echo Launching fully containerized OSCAR Stack via Docker Compose...
+set PROXY_OPTS=-DsocksProxyHost=tailscale -DsocksProxyPort=1055
 docker compose up -d
 if %errorlevel% neq 0 (
     echo ERROR: Docker Compose failed to start.

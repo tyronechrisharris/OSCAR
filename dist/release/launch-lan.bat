@@ -53,6 +53,7 @@ echo Launching MediaMTX %VERSION% in background...
 start "" "%FULL_PATH%" "%TARGET_DIR%mtx-secrets\mediamtx.yml"
 
 echo Launching fully containerized OSCAR Stack via Docker Compose...
+set PROXY_OPTS=
 set COMPOSE_PROFILES=lan-only
 docker compose up -d
 if %errorlevel% neq 0 (
