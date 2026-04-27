@@ -1,0 +1,763 @@
+diff --git a/sensors/sensorhub-driver-ffmpeg/src/main/java/org/sensorhub/mpegts/MpegTsProcessor.java b/sensors/sensorhub-driver-ffmpeg/src/main/java/org/sensorhub/mpegts/MpegTsProcessor.java
+index e9deaed2..e8c296f2 100644
+--- a/sensors/sensorhub-driver-ffmpeg/src/main/java/org/sensorhub/mpegts/MpegTsProcessor.java
++++ b/sensors/sensorhub-driver-ffmpeg/src/main/java/org/sensorhub/mpegts/MpegTsProcessor.java
+@@ -771,11 +771,13 @@ public class MpegTsProcessor extends Thread {
+         }
+         videoDataBufferListeners.clear();
+
+-        for (AVPacket avPacket : fileFrameQueue) {
+-            av_packet_free(avPacket);
++        if (fileFrameQueue != null) {
++            for (AVPacket avPacket : fileFrameQueue) {
++                av_packet_free(avPacket);
++            }
++            fileFrameQueue.clear();
++            fileFrameQueue = null;
+         }
+-        fileFrameQueue.clear();
+-        fileFrameQueue = null;
+     }
+
+     private void submitPacketToFrameQueue(AVPacket avPacket) {
+@@ -802,7 +804,7 @@ public class MpegTsProcessor extends Thread {
+         AVPacket avPacket;
+
+         // Create an AV packet container to pass data to demuxer
+-        avPacket = new AVPacket();
++        avPacket = avcodec.av_packet_alloc();
+
+         // Read frames
+         long startTime = System.currentTimeMillis();
+diff --git a/sensors/sensorhub-system-lane/README.md b/sensors/sensorhub-system-lane/README.md
+index 6cdf1f1e..cb8e8cdd 100644
+--- a/sensors/sensorhub-system-lane/README.md
++++ b/sensors/sensorhub-system-lane/README.md
+@@ -5,7 +5,7 @@ Specialized sensor system module to be used to create a lane with an RPM and vid
+ ## Configuration
+
+ Configuring the sensor requires:
+-Select ```Sensors``` from the left-hand accordion control and right-click for the context-sensitive menu in the
++Select `Sensors` from the left-hand accordion control and right-click for the context-sensitive menu in the
+ accordion control.
+ Click 'Add New Module' and select 'Lane System' from the list of available modules.
+
+@@ -15,7 +15,6 @@ Click 'Add New Module' and select 'Lane System' from the list of available modul
+   - Auto Start: Check the box to start this module when OSH node is launched
+   - Delete Data on Lane Removal: Check the box to remove systems data from database if lane is deleted from node.
+
+-
+ **- Fixed Location:**
+   - Latitude:
+   - Longitude:
+@@ -30,13 +29,14 @@ Click 'Add New Module' and select 'Lane System' from the list of available modul
+       - **Aspect RPM (Specific)**
+         - Address Range:
+
+-    - *Initial Camera Config:*
++  - *Initial Camera Config:*
+     - Click `Add` and select between the `Axis`, `Sony` and the `Custom` video cameras. To configure the video cameras you need the host IP of the device. If applicable, you can add the username and password of the camera. Additional configurations may be necessary for different camera types.
++
+       - **Sony/Axis/Custom**
+-        - Remote Host:
+-        - Username:
+-        - Password:
++        - Remote Host: Enter your camera's `ip.ip.ip.ip:port` (e.g., `192.168.8.77:8554`).
++        - Username: Enter your camera's username in this field.
++        - Password: Enter your camera's password in this field.
+       - **Axis (Specific):**
+         - Stream Codec:
+       - **Custom (Specific):**
+-        - Stream Path:
+\ No newline at end of file
++        - Stream Path: Enter everything that comes after your camera's `ip.ip.ip.ip:port` (e.g., `/lane04_cam`).
+diff --git a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/purge/DatabasePurger.java b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/purge/DatabasePurger.java
+index 5163d584..03b70070 100644
+--- a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/purge/DatabasePurger.java
++++ b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/purge/DatabasePurger.java
+@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.ScheduledFuture;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicLong;
+ import java.util.stream.Collectors;
+
+ public class DatabasePurger {
+@@ -57,6 +58,11 @@ public class DatabasePurger {
+     private static final String OUTPUT_GAMMA_THRESHOLD = "gammaThreshold";
+     private static final String OUTPUT_OCCUPANCY = OccupancyOutput.NAME;
+
++    // RS350 data stream output names
++    private static final String OUTPUT_BACKGROUND_REPORT = "backgroundReport";
++    private static final String OUTPUT_FOREGROUND_REPORT = "foregroundReport";
++    private static final String OUTPUT_STATUS = "status";
++
+     public DatabasePurger(IObsSystemDatabase database, IBucketStore bucketStore, int occupancyBufferSeconds) {
+         this.database = database;
+         this.bucketStore = bucketStore;
+@@ -285,12 +291,15 @@ public class DatabasePurger {
+         List<TimeExtent> mergedWindows = mergeAndBufferWindows(windows, buffer);
+         log.info("Merged into {} non-overlapping windows with {}s buffer", mergedWindows.size(), occupancyBufferSeconds);
+
+-        // Get dataStream IDs for high-volume outputs (including Speed)
++        // Get dataStream IDs for high-volume outputs (Aspect/Rapiscan and RS350)
+         Set<BigId> dataStreamIds = getDataStreamIdsByOutputNames(
+             OUTPUT_GAMMA_COUNTS,
+             OUTPUT_NEUTRON_COUNTS,
+             OUTPUT_GAMMA_THRESHOLD,
+-            OUTPUT_SPEED
++            OUTPUT_SPEED,
++            OUTPUT_BACKGROUND_REPORT,
++            OUTPUT_FOREGROUND_REPORT,
++            OUTPUT_STATUS
+         );
+
+         if (dataStreamIds.isEmpty()) {
+@@ -426,9 +435,10 @@ public class DatabasePurger {
+             // Write CSV header
+             writer.write("message,timestamp\n");
+
+-            long count = database.getObservationStore()
++            AtomicLong counter = new AtomicLong();
++            database.getObservationStore()
+                 .select(filter)
+-                .peek(obs -> {
++                .forEach(obs -> {
+                     try {
+                         String timestamp = obs.getPhenomenonTime().toString();
+
+@@ -441,13 +451,13 @@ public class DatabasePurger {
+                         }
+
+                         writer.write(String.format("%s,%s\n", message, timestamp));
++                        counter.getAndIncrement();
+                     } catch (IOException e) {
+                         log.warn("Failed to write observation to CSV: {}", e.getMessage());
+                     }
+-                })
+-                .count();
++                });
+
+-            log.info("Exported {} DailyFileOutput records to bucket {}/{}", count, DAILY_FILES_BUCKET, objectKey);
++            log.info("Exported {} DailyFileOutput records to bucket {}/{}", counter, DAILY_FILES_BUCKET, objectKey);
+         } catch (IOException | DataStoreException e) {
+             log.error("Failed to export DailyFileOutput to bucket {}/{}: {}", DAILY_FILES_BUCKET, objectKey, e.getMessage(), e);
+         }
+diff --git a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetHandler.java b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetHandler.java
+index 7c7a4927..5a9af8a4 100644
+--- a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetHandler.java
++++ b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetHandler.java
+@@ -30,6 +30,7 @@ import java.io.*;
+ import java.nio.charset.StandardCharsets;
+ import java.util.Collection;
+ import java.util.Collections;
++import java.util.Objects;
+
+ public class SpreadsheetHandler implements IFileHandler {
+
+@@ -89,9 +90,10 @@ public class SpreadsheetHandler implements IFileHandler {
+         var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
+         if (laneConfigs.isEmpty())
+             return null;
+-        // Serialize current config to spreadsheet
+-        var serialized = parser.serialize(laneConfigs);
+         try {
++            // Serialize current config to spreadsheet
++            var serialized = parser.serialize(laneConfigs);
++
+             // Save spreadsheet just in case file gets lost
+             store.putObject(SPREADSHEET_BUCKET, CONFIG_KEY,
+                     new ByteArrayInputStream(serialized.getBytes(StandardCharsets.UTF_8)),
+@@ -109,22 +111,39 @@ public class SpreadsheetHandler implements IFileHandler {
+     }
+
+     public void loadModules(Collection<LaneConfig> laneConfigs) throws SensorHubException {
+-        for (var config : laneConfigs)
+-            reg.loadModuleAsync(config, (event) -> {
+-                if (event instanceof ModuleEvent moduleEvent) {
+-                    if (moduleEvent.getType() == ModuleEvent.Type.ERROR) {
+-                        if (moduleEvent.getError() != null) {
+-                            if (moduleEvent.getModule() != null && moduleEvent.getModule().getName() != null) {
+-                                logger.warn("Could not import module: {}", moduleEvent.getModule().getName(), moduleEvent.getError());
++        // Filter out lanes with existing UIDs
++        var existingLanes = reg.getLoadedModules(LaneSystem.class);
++        var newLanes = laneConfigs.stream()
++                .filter(laneConfig ->
++                        existingLanes.stream().noneMatch(existingLane ->
++                                Objects.equals(existingLane.getConfiguration().uniqueID, laneConfig.uniqueID)
++                        )
++                )
++                .toList();
++
++        for (var config : newLanes) {
++            try {
++                reg.loadModuleAsync(config, (event) -> {
++                    if (event instanceof ModuleEvent moduleEvent) {
++                        if (moduleEvent.getType() == ModuleEvent.Type.ERROR) {
++                            if (moduleEvent.getError() != null) {
++                                if (moduleEvent.getModule() != null && moduleEvent.getModule().getName() != null) {
++                                    logger.warn("Could not import module: {}", moduleEvent.getModule().getName(), moduleEvent.getError());
++                                } else {
++                                    logger.warn("Could not import module", moduleEvent.getError());
++                                }
+                             } else {
+-                                logger.warn("Could not import module", moduleEvent.getError());
++                                logger.warn("Could not import module");
+                             }
+-                        } else {
+-                            logger.warn("Could not import module");
+                         }
+                     }
+-                }
+-            });
++                });
++            } catch (SensorHubException e) {
++                logger.warn("Could not import module {}", config.name);
++            }
++        }
++
++        logger.info("{} new lanes were loaded", newLanes.size());
+     }
+
+ }
+diff --git a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetParser.java b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetParser.java
+index e8a7d89b..39b9decc 100644
+--- a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetParser.java
++++ b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/spreadsheet/SpreadsheetParser.java
+@@ -107,6 +107,7 @@ public class SpreadsheetParser {
+             PositionConfig.LLALocation location = new PositionConfig.LLALocation();
+             location.lat = Double.parseDouble(row.get(SchemaV1.LATITUDE));
+             location.lon = Double.parseDouble(row.get(SchemaV1.LONGITUDE));
++            laneConfig.location = location;
+         }
+
+         laneConfig.laneOptionsConfig = new LaneOptionsConfig();
+@@ -156,6 +157,10 @@ public class SpreadsheetParser {
+             eml.emlEnabled = Boolean.parseBoolean(row.get(SchemaV1.EML_ENABLED));
+             eml.isCollimated = row.get(SchemaV1.EML_COLLIMATED) != null && Boolean.parseBoolean(row.get(SchemaV1.EML_COLLIMATED));
+             eml.laneWidth = row.get(SchemaV1.LANE_WIDTH) == null ? 0.0f : Double.parseDouble(row.get(SchemaV1.LANE_WIDTH));
++        } else if (rpmType.equalsIgnoreCase("RS350")) {
++            rpmConfig = new RS350RPMConfig();
++            rpmConfig.remoteHost = row.get(SchemaV1.RPM_HOST);
++            rpmConfig.remotePort = Integer.parseInt(row.get(SchemaV1.RPM_PORT));
+         }
+
+         return rpmConfig;
+@@ -236,8 +241,7 @@ public class SpreadsheetParser {
+         var opts = lane.laneOptionsConfig;
+         var rpm = opts.rpmConfig;
+         if (rpm != null) {
+-            if (rpm instanceof AspectRPMConfig) {
+-                var aspect = (AspectRPMConfig) rpm;
++            if (rpm instanceof AspectRPMConfig aspect) {
+                 addToRow(r, "Aspect");
+                 addToRow(r, aspect.remoteHost);
+                 addToRow(r, aspect.remotePort);
+@@ -245,8 +249,7 @@ public class SpreadsheetParser {
+                 addToRow(r, aspect.addressRange.to);
+                 // Add empty vals for EML
+                 addNullsToRow(r, 3);
+-            } else if (rpm instanceof RapiscanRPMConfig) {
+-                var rapiscan = (RapiscanRPMConfig) rpm;
++            } else if (rpm instanceof RapiscanRPMConfig rapiscan) {
+                 addToRow(r, "Rapiscan");
+                 addToRow(r, rapiscan.remoteHost);
+                 addToRow(r, rapiscan.remotePort);
+@@ -259,13 +262,18 @@ public class SpreadsheetParser {
+                     addToRow(r, eml.laneWidth);
+                 } else
+                     addNullsToRow(r, 3);
++            } else if (rpm instanceof RS350RPMConfig rs350) {
++                addToRow(r, "RS350");
++                addToRow(r, rs350.remoteHost);
++                addToRow(r, rs350.remotePort);
++                // Aspect start/end and EML columns
++                addNullsToRow(r, 5);
+             }
+         } else {
+             addNullsToRow(r, 8);
+         }
+
+         // Add header and vals for default camera
+-        // TODO: DO THIS
+         for (int i = 0; i < maxCameras; i++) {
+             if (opts.ffmpegConfig.size() > i) {
+                 var cam = opts.ffmpegConfig.get(i);
+diff --git a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/stats/StatisticsOutput.java b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/stats/StatisticsOutput.java
+index c6568aea..f39ccc53 100644
+--- a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/stats/StatisticsOutput.java
++++ b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/stats/StatisticsOutput.java
+@@ -41,6 +41,12 @@ public class StatisticsOutput extends AbstractSensorOutput<OSCARSystem> {
+     public static String neutronFaultCQL = "alarmState = 'Fault - Neutron High'";
+     public static String tamperCQL = "tamperStatus = true";
+
++    // RS350 alarm CQL filters (AlarmOutput uses alarmCategoryCode field)
++    public static String rs350GammaAlarmCQL = "alarmCategoryCode = 'Gamma'";
++    public static String rs350NeutronAlarmCQL = "alarmCategoryCode = 'Neutron'";
++
++    private static final String DEF_ALARM_CATEGORY = RADHelper.getRadUri("AlarmCategoryCode");
++
+     private final DataComponent recordDescription;
+     private final DataEncoding recommendedEncoding;
+     private final int samplingPeriod;
+@@ -75,7 +81,8 @@ public class StatisticsOutput extends AbstractSensorOutput<OSCARSystem> {
+                 RADHelper.DEF_GAMMA,
+                 RADHelper.DEF_NEUTRON,
+                 RADHelper.DEF_ALARM,
+-                RADHelper.DEF_TAMPER
++                RADHelper.DEF_TAMPER,
++                DEF_ALARM_CATEGORY
+         };
+
+         for (String property : observedProperties) {
+@@ -210,6 +217,13 @@ public class StatisticsOutput extends AbstractSensorOutput<OSCARSystem> {
+         long numTampers = countObservations(database, tamperCQL, start, end, RADHelper.DEF_TAMPER);
+         long numFaults = countObservations(database, faultCQL, start, end, RADHelper.DEF_GAMMA, RADHelper.DEF_NEUTRON, RADHelper.DEF_ALARM) + numTampers;
+
++        // RS350 alarm counts from raw AlarmOutput (uses alarmCategoryCode observed property)
++        long numRS350GammaAlarms = countObservations(database, rs350GammaAlarmCQL, start, end, DEF_ALARM_CATEGORY);
++        long numRS350NeutronAlarms = countObservations(database, rs350NeutronAlarmCQL, start, end, DEF_ALARM_CATEGORY);
++        numGammaAlarms += numRS350GammaAlarms;
++        numNeutronAlarms += numRS350NeutronAlarms;
++        numOccupancies += numRS350GammaAlarms + numRS350NeutronAlarms;
++
+         return new Statistics.Builder()
+                 .numOccupancies(numOccupancies)
+                 .numGammaAlarms(numGammaAlarms)
+diff --git a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/video/VideoRetention.java b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/video/VideoRetention.java
+index 1cb282bb..6efd5a0b 100644
+--- a/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/video/VideoRetention.java
++++ b/services/sensorhub-service-oscar/src/main/java/com/botts/impl/service/oscar/video/VideoRetention.java
+@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
+
+ import java.nio.file.Paths;
+ import java.time.temporal.TemporalAmount;
++import java.util.concurrent.atomic.AtomicBoolean;
+
+ public class VideoRetention {
+
+@@ -65,17 +66,16 @@ public class VideoRetention {
+             logger.info("decimating, {}", occupancy.getVideoPaths().get(0));
+             if (!bucketStore.objectExists("", videoFile)) {
+                 logger.info("Video file {} does not exist", videoFile);
+-                return false;
+-            } else {
+-                try {
+-                    if (!decimate(bucketStore.getResourceURI("", videoFile))) {
+-                        logger.info("Video file was already decimated {}", videoFile);
+-                        return false;
+-                    }
+-                } catch (DataStoreException e) {
+-                    logger.warn("Failed to decimate video file {}", videoFile, e);
++                continue;
++            }
++            try {
++                if (!decimate(bucketStore.getResourceURI("", videoFile))) {
++                    logger.info("Video file was already decimated {}", videoFile);
+                     return false;
+                 }
++            } catch (DataStoreException e) {
++                logger.warn("Failed to decimate video file {}", videoFile, e);
++                continue;
+             }
+         }
+         return true;
+@@ -101,30 +101,56 @@ public class VideoRetention {
+         String decimatedMp4 = fileName.substring(0, fileName.lastIndexOf('.')) + "_decimated.mp4";
+
+         MpegTsProcessor videoInput = new MpegTsProcessor(originalMp4);
+-        videoInput.setInjectExtradata(false);
+-        videoInput.openStream();
+-        videoInput.queryEmbeddedStreams();
+-        var stream = videoInput.getAvStream();
+-        if (stream == null || stream.avg_frame_rate() == null || stream.avg_frame_rate().num() < stream.avg_frame_rate().den()) {
+-            return false; // if fps < 1, assume this file has already been decimated and we lost track somehow
+-        }
++        VideoKeyframeDecimator videoOutput = null;
++        AtomicBoolean inputClosed = new AtomicBoolean(false);
++        boolean success = false;
++        try {
++            videoInput.setInjectExtradata(false);
++            videoInput.openStream();
++            videoInput.queryEmbeddedStreams();
++            var stream = videoInput.getAvStream();
++            if (stream == null || stream.avg_frame_rate() == null || stream.avg_frame_rate().num() < stream.avg_frame_rate().den()) {
++                return false; // if fps < 1, assume this file has already been decimated and we lost track somehow
++            }
+
+-        VideoKeyframeDecimator videoOutput = new VideoKeyframeDecimator(decimatedMp4, frameCount, stream);
+-        videoInput.addVideoDataBufferListener(videoOutput);
++            videoOutput = new VideoKeyframeDecimator(decimatedMp4, frameCount, stream);
++            videoInput.addVideoDataBufferListener(videoOutput);
+
+-        videoOutput.setFileCloseCallback(() -> {
+-            videoInput.stopProcessingStream();
+-            videoInput.closeStream();
+-        });
++            videoOutput.setFileCloseCallback(() -> {
++                if (inputClosed.compareAndSet(false, true)) {
++                    videoInput.stopProcessingStream();
++                    videoInput.closeStream();
++                }
++            });
+
+-        videoInput.processStream();
++            videoInput.processStream();
+
+-        try {
+-            videoInput.join();
+-        } catch (InterruptedException e) {
+-            logger.warn("Interrupted while waiting for video processing to finish. Writing output early, stopping thread.", e);
+-            videoOutput.closeFile();
+-            Thread.currentThread().interrupt();
++            try {
++                videoInput.join();
++            } catch (InterruptedException e) {
++                logger.warn("Interrupted while waiting for video processing to finish. Writing output early, stopping thread.", e);
++                videoOutput.closeFile();
++                Thread.currentThread().interrupt();
++            }
++            success = true;
++        } catch (Throwable t) {
++            logger.error("Failed to decimate video file {}; skipping", originalMp4, t);
++            return false;
++        } finally {
++            if (inputClosed.compareAndSet(false, true)) {
++                try {
++                    videoInput.stopProcessingStream();
++                    videoInput.closeStream();
++                } catch (Throwable t) {
++                    logger.warn("Failed to close video input for {}", originalMp4, t);
++                }
++            }
++            if (!success) {
++                var partial = Paths.get(decimatedMp4).toFile();
++                if (partial.exists() && !partial.delete()) {
++                    logger.warn("Failed to delete partial decimated file {}", decimatedMp4);
++                }
++            }
+         }
+
+         // TODO May be nice to rename objects through the bucket store
+diff --git a/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/DatabasePurgerTests.java b/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/DatabasePurgerTests.java
+new file mode 100644
+index 00000000..44680f2e
+--- /dev/null
++++ b/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/DatabasePurgerTests.java
+@@ -0,0 +1,247 @@
++package com.botts.impl.service.oscar;
++
++import com.botts.api.service.bucket.IBucketStore;
++import com.botts.impl.service.bucket.filesystem.FileSystemBucketStore;
++import com.botts.impl.service.oscar.purge.DatabasePurger;
++import net.opengis.sensorml.v20.AbstractProcess;
++import net.opengis.swe.v20.DataBlock;
++import net.opengis.swe.v20.DataComponent;
++import org.junit.After;
++import org.junit.Before;
++import org.junit.Test;
++import org.sensorhub.api.common.BigId;
++import org.sensorhub.api.data.DataStreamInfo;
++import org.sensorhub.api.data.ObsData;
++import org.sensorhub.api.datastore.DataStoreException;
++import org.sensorhub.api.feature.FeatureId;
++import org.sensorhub.impl.datastore.h2.MVObsSystemDatabase;
++import org.sensorhub.impl.datastore.h2.MVObsSystemDatabaseConfig;
++import org.sensorhub.impl.system.wrapper.SystemWrapper;
++import org.sensorhub.impl.utils.rad.RADHelper;
++import org.vast.data.TextEncodingImpl;
++import org.vast.sensorML.SMLHelper;
++
++import java.io.BufferedReader;
++import java.io.File;
++import java.io.InputStream;
++import java.io.InputStreamReader;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.time.Instant;
++import java.time.LocalDate;
++import java.time.ZoneOffset;
++import java.time.format.DateTimeFormatter;
++import java.util.Comparator;
++import java.util.List;
++import java.util.stream.Stream;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertTrue;
++
++/**
++ * Unit tests for {@link DatabasePurger} CSV export.
++ *
++ * <p>These tests cover the regression where {@code dailyFile} observations were
++ * being exported as CSV files containing only the {@code message,timestamp}
++ * header with no data rows beneath. The original implementation used
++ * {@code stream.peek(...).count()}, which is allowed to short-circuit when the
++ * source's size is known (Java 9+), skipping the per-element side effect that
++ * actually wrote each row. The fix uses {@code forEach} with an external
++ * counter; these tests guard against a regression.</p>
++ */
++public class DatabasePurgerTests {
++
++    private static final String SYSTEM_UID = "urn:osh:test:sensor:lane1";
++    private static final String EXPECTED_LANE_ID = "lane1";
++    private static final String OUTPUT_DAILY_FILE = "dailyFile";
++    private static final String DAILY_FILES_BUCKET = "dailyfiles";
++
++    private MVObsSystemDatabase database;
++    private IBucketStore bucketStore;
++    private Path dbFile;
++    private Path bucketRoot;
++
++    @Before
++    public void setUp() throws Exception {
++        // H2 obs system database backed by a temp file
++        dbFile = Files.createTempFile("purger-test-", ".dat");
++        Files.deleteIfExists(dbFile);
++
++        database = new MVObsSystemDatabase();
++        MVObsSystemDatabaseConfig config = new MVObsSystemDatabaseConfig();
++        config.storagePath = dbFile.toString();
++        config.databaseNum = 3;
++        database.setConfiguration(config);
++        database.init();
++        database.start();
++
++        // File-system-backed bucket store in a temp dir
++        bucketRoot = Files.createTempDirectory("purger-bucket-");
++        bucketStore = new FileSystemBucketStore(bucketRoot);
++        bucketStore.createBucket(DAILY_FILES_BUCKET);
++    }
++
++    @After
++    public void tearDown() throws Exception {
++        if (database != null) {
++            try {
++                database.stop();
++            } catch (Exception ignore) {}
++        }
++        if (dbFile != null) {
++            Files.deleteIfExists(dbFile);
++        }
++        if (bucketRoot != null && Files.exists(bucketRoot)) {
++            try (Stream<Path> paths = Files.walk(bucketRoot)) {
++                paths.sorted(Comparator.reverseOrder())
++                        .map(Path::toFile)
++                        .forEach(File::delete);
++            }
++        }
++    }
++
++    @Test
++    public void testDailyFileExportContainsDataRows() throws Exception {
++        BigId sysId = addSystem();
++        BigId dsId = addDailyFileDataStream(sysId);
++
++        LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minusDays(1);
++        Instant yesterdayStart = yesterday.atStartOfDay(ZoneOffset.UTC).toInstant();
++
++        // Use content that stresses CSV quoting logic: commas and embedded quotes
++        List<String> messages = List.of(
++                "msg,with,commas",
++                "msg with \"quotes\"",
++                "plain-msg-3"
++        );
++        addDailyFileObservations(dsId, yesterdayStart, messages);
++
++        DatabasePurger purger = new DatabasePurger(database, bucketStore, 30);
++        purger.exportAndPurgeDailyFileData();
++
++        String dateStr = yesterday.format(DateTimeFormatter.ISO_LOCAL_DATE);
++        String objectKey = EXPECTED_LANE_ID + "_" + dateStr + ".csv";
++
++        assertTrue("Exported CSV should exist in bucket",
++                bucketStore.objectExists(DAILY_FILES_BUCKET, objectKey));
++
++        String csvContent = readBucketObjectAsString(objectKey);
++
++        // Split on newlines; default split strips trailing empties, so we keep only
++        // non-blank lines. We expect 1 header line + 3 data rows.
++        String[] lines = csvContent.split("\n");
++        assertTrue("CSV should have header as first line",
++                lines.length > 0 && "message,timestamp".equals(lines[0]));
++
++        // The regression: previously only the header was written. Assert strictly
++        // that data rows are present.
++        assertTrue("CSV must contain data rows beneath the header (regression guard)",
++                lines.length > 1);
++        assertEquals("CSV should contain header + 3 data rows", 4, lines.length);
++
++        // Each message should appear, CSV-escaped
++        for (String msg : messages) {
++            String escaped = "\"" + msg.replace("\"", "\"\"") + "\"";
++            assertTrue("CSV should contain escaped message: " + escaped,
++                    csvContent.contains(escaped));
++        }
++    }
++
++    @Test
++    public void testDailyFileExportHeaderOnlyWhenNoObservations() throws Exception {
++        BigId sysId = addSystem();
++        addDailyFileDataStream(sysId);
++        // Intentionally add no observations
++
++        DatabasePurger purger = new DatabasePurger(database, bucketStore, 30);
++        purger.exportAndPurgeDailyFileData();
++
++        LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minusDays(1);
++        String dateStr = yesterday.format(DateTimeFormatter.ISO_LOCAL_DATE);
++        String objectKey = EXPECTED_LANE_ID + "_" + dateStr + ".csv";
++
++        assertTrue("Exported CSV should exist even with no observations",
++                bucketStore.objectExists(DAILY_FILES_BUCKET, objectKey));
++
++        String csvContent = readBucketObjectAsString(objectKey);
++        assertEquals("CSV should contain only the header line",
++                "message,timestamp\n", csvContent);
++    }
++
++    @Test
++    public void testDailyFileExportDoesNothingWhenNoDataStreams() throws Exception {
++        // No system, no datastream. Export should be a no-op, and no CSV file
++        // should appear in the bucket.
++        DatabasePurger purger = new DatabasePurger(database, bucketStore, 30);
++        purger.exportAndPurgeDailyFileData();
++
++        assertEquals("No files should be written when no dailyFile datastreams exist",
++                0, bucketStore.getNumObjects(DAILY_FILES_BUCKET));
++    }
++
++    // ==================== Helper Methods ====================
++
++    private BigId addSystem() throws DataStoreException {
++        AbstractProcess p = new SMLHelper().createPhysicalComponent()
++                .uniqueID(SYSTEM_UID)
++                .name("Test Lane")
++                .build();
++        SystemWrapper sysWrapper = new SystemWrapper(p);
++        return database.getSystemDescStore().add(sysWrapper).getInternalID();
++    }
++
++    private DataComponent createDailyFileStruct() {
++        RADHelper radHelper = new RADHelper();
++        var samplingTime = radHelper.createPrecisionTimeStamp();
++        var aspectMessage = radHelper.createAspectMessageFile();
++        return radHelper.createRecord()
++                .name(OUTPUT_DAILY_FILE)
++                .label("Daily File")
++                .updatable(true)
++                .definition(RADHelper.getRadUri("DailyFile"))
++                .addField(samplingTime.getName(), samplingTime)
++                .addField(aspectMessage.getName(), aspectMessage)
++                .build();
++    }
++
++    private BigId addDailyFileDataStream(BigId sysId) throws DataStoreException {
++        DataComponent recordStruct = createDailyFileStruct();
++        var dsInfo = new DataStreamInfo.Builder()
++                .withName(OUTPUT_DAILY_FILE)
++                .withSystem(new FeatureId(sysId, SYSTEM_UID))
++                .withRecordDescription(recordStruct)
++                .withRecordEncoding(new TextEncodingImpl())
++                .build();
++        return database.getDataStreamStore().add(dsInfo).getInternalID();
++    }
++
++    private void addDailyFileObservations(BigId dsId, Instant yesterdayStart, List<String> messages) {
++        DataComponent recordStruct = createDailyFileStruct();
++        for (int i = 0; i < messages.size(); i++) {
++            // Offset by one hour per obs to keep all timestamps well within yesterday UTC
++            Instant ts = yesterdayStart.plusSeconds(3600L * (i + 1));
++            DataBlock block = recordStruct.createDataBlock();
++            block.setTimeStamp(0, ts);
++            block.setStringValue(1, messages.get(i));
++            ObsData obs = new ObsData.Builder()
++                    .withDataStream(dsId)
++                    .withPhenomenonTime(ts)
++                    .withResult(block)
++                    .build();
++            database.getObservationStore().add(obs);
++        }
++    }
++
++    private String readBucketObjectAsString(String objectKey) throws Exception {
++        try (InputStream in = bucketStore.getObject(DAILY_FILES_BUCKET, objectKey);
++             BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
++            StringBuilder sb = new StringBuilder();
++            int c;
++            while ((c = reader.read()) != -1) {
++                sb.append((char) c);
++            }
++            return sb.toString();
++        }
++    }
++}
+diff --git a/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/SpreadsheetTests.java b/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/SpreadsheetTests.java
+index 8cdd8c51..e6ef822d 100644
+--- a/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/SpreadsheetTests.java
++++ b/services/sensorhub-service-oscar/src/test/java/com/botts/impl/service/oscar/SpreadsheetTests.java
+@@ -51,7 +51,7 @@ public class SpreadsheetTests {
+     public void testParseWithOnlyHeader() throws IOException, SensorHubException {
+         String contents = readFile("only-header.csv");
+         var lanes = parser.deserialize(contents);
+-        assertEquals(lanes.size(), 0);
++        assertEquals(0, lanes.size());
+         handler.loadModules(lanes);
+         assertNotNull(reg.getLoadedModules(LaneConfig.class));
+     }
+@@ -64,8 +64,9 @@ public class SpreadsheetTests {
+         assertNotNull(lane.laneOptionsConfig.rpmConfig);
+         assertTrue(lane.laneOptionsConfig.rpmConfig instanceof AspectRPMConfig);
+         assertNotNull(lane.laneOptionsConfig.ffmpegConfig);
+-        assertTrue(lane.laneOptionsConfig.ffmpegConfig.size() == 1);
++        assertEquals(1, lane.laneOptionsConfig.ffmpegConfig.size());
+         handler.loadModules(lanes);
++        assertNotNull(lanes.get(0).location);
+     }
+
+
+@@ -101,7 +102,7 @@ public class SpreadsheetTests {
+     public void testSerializeMultipleLanes() throws IOException, SensorHubException {
+         testParseMultipleLanes();
+         var lanes = reg.getLoadedModules(LaneSystem.class);
+-        var laneConfigs = lanes.stream().map(lane -> lane.getConfiguration()).toList();
++        var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
+         String serialized = parser.serialize(laneConfigs);
+         assertNotNull(serialized);
+         String[] resSplit = serialized.split("\n");
+@@ -140,7 +141,7 @@ public class SpreadsheetTests {
+
+         // See if "successful" is trustworthy
+         var lanes = reg.getLoadedModules(LaneSystem.class);
+-        var laneConfigs = lanes.stream().map(lane -> lane.getConfiguration()).toList();
++        var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
+         assertFalse(laneConfigs.isEmpty());
+     }
+
+@@ -160,4 +161,16 @@ public class SpreadsheetTests {
+             testUploadAndDownload();
+     }
+
++    @Test
++    public void testUploadOverwrite() throws DataStoreException, IOException {
++        // TODO Make sure uploading csv twice does not upload same lanes based on UID
++        testUploadAndLoad();
++        var lanes = reg.getLoadedModules(LaneSystem.class);
++        var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
++        assertEquals(3, laneConfigs.size());
++        testUploadAndLoad();
++        // Re-uploading the same config should not change number of loaded lanes
++        assertEquals(3, laneConfigs.size());
++    }
++
+ }
+diff --git a/services/sensorhub-service-oscar/src/test/resources/spreadsheets/1-camera.csv b/services/sensorhub-service-oscar/src/test/resources/spreadsheets/1-camera.csv
+index 6092f92a..40c076c8 100644
+--- a/services/sensorhub-service-oscar/src/test/resources/spreadsheets/1-camera.csv
++++ b/services/sensorhub-service-oscar/src/test/resources/spreadsheets/1-camera.csv
+@@ -1,2 +1,2 @@
+ Name,UniqueID,AutoStart,Latitude,Longitude,RPMConfigType,RPMHost,RPMPort,AspectAddressStart,AspectAddressEnd,EMLEnabled,EMLCollimated,LaneWidth,CameraType0,CameraHost0,CameraPath0,Codec0,Username0,Password0,CameraType1,CameraHost1,CameraPath1,Codec1,Username1,Password1,CameraType2,CameraHost2,CameraPath2,Codec2,Username2,Password2
+-Lane1,1,false,34.185123,-86.2312312,Rapiscan,127.0.0.1,1601,"","",true,true,3.8,axis,127.0.0.1,"",H264,root,password,"","","","","","","","","","","",""
+\ No newline at end of file
++Lane1,1,false,34.185123,-86.2312312,RS350,127.0.0.1,1601,"","","","","",axis,127.0.0.1,"",H264,root,password,"","","","","","","","","","","",""
+\ No newline at end of file

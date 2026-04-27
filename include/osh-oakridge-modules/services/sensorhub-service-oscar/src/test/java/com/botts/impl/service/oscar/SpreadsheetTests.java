@@ -6,6 +6,7 @@ import com.botts.impl.service.oscar.spreadsheet.SpreadsheetParser;
 import com.botts.impl.system.lane.LaneSystem;
 import com.botts.impl.system.lane.config.AspectRPMConfig;
 import com.botts.impl.system.lane.config.LaneConfig;
+import com.botts.impl.system.lane.config.RS350RPMConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.sensorhub.api.common.SensorHubException;
@@ -51,7 +52,7 @@ public class SpreadsheetTests {
     public void testParseWithOnlyHeader() throws IOException, SensorHubException {
         String contents = readFile("only-header.csv");
         var lanes = parser.deserialize(contents);
-        assertEquals(lanes.size(), 0);
+        assertEquals(0, lanes.size());
         handler.loadModules(lanes);
         assertNotNull(reg.getLoadedModules(LaneConfig.class));
     }
@@ -64,8 +65,9 @@ public class SpreadsheetTests {
         assertNotNull(lane.laneOptionsConfig.rpmConfig);
         assertTrue(lane.laneOptionsConfig.rpmConfig instanceof AspectRPMConfig);
         assertNotNull(lane.laneOptionsConfig.ffmpegConfig);
-        assertTrue(lane.laneOptionsConfig.ffmpegConfig.size() == 1);
+        assertEquals(1, lane.laneOptionsConfig.ffmpegConfig.size());
         handler.loadModules(lanes);
+        assertNotNull(lanes.get(0).location);
     }
 
 
@@ -74,6 +76,14 @@ public class SpreadsheetTests {
         String contents = readFile("1-camera.csv");
         var lanes = parser.deserialize(contents);
         handler.loadModules(lanes);
+    }
+
+    @Test
+    public void testParseWith1CameraRS350() throws IOException, SensorHubException {
+        String contents = readFile("1-camera-rs350.csv");
+        var lanes = parser.deserialize(contents);
+        handler.loadModules(lanes);
+        assertTrue(lanes.get(0).laneOptionsConfig.rpmConfig instanceof RS350RPMConfig);
     }
 
     @Test
@@ -101,7 +111,7 @@ public class SpreadsheetTests {
     public void testSerializeMultipleLanes() throws IOException, SensorHubException {
         testParseMultipleLanes();
         var lanes = reg.getLoadedModules(LaneSystem.class);
-        var laneConfigs = lanes.stream().map(lane -> lane.getConfiguration()).toList();
+        var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
         String serialized = parser.serialize(laneConfigs);
         assertNotNull(serialized);
         String[] resSplit = serialized.split("\n");
@@ -140,7 +150,7 @@ public class SpreadsheetTests {
 
         // See if "successful" is trustworthy
         var lanes = reg.getLoadedModules(LaneSystem.class);
-        var laneConfigs = lanes.stream().map(lane -> lane.getConfiguration()).toList();
+        var laneConfigs = lanes.stream().map(LaneSystem::getConfiguration).toList();
         assertFalse(laneConfigs.isEmpty());
     }
 
@@ -158,6 +168,21 @@ public class SpreadsheetTests {
     public void testUploadAndDownloadRepeated() throws DataStoreException, IOException {
         for (int i = 0; i < 100; i++)
             testUploadAndDownload();
+    }
+
+    @Test
+    public void testUploadOverwrite() throws DataStoreException, IOException {
+        // Make sure uploading csv twice does not upload same lanes based on UID
+        testUploadAndLoad();
+        var lanes = reg.getLoadedModules(LaneSystem.class);
+        assertEquals(3, lanes.size());
+
+        testUploadAndLoad();
+
+        // Re-query loaded lanes to ensure we're not looking at stale data
+        var lanesAfter = reg.getLoadedModules(LaneSystem.class);
+        // Re-uploading the same config should not change number of loaded lanes
+        assertEquals(3, lanesAfter.size());
     }
 
 }

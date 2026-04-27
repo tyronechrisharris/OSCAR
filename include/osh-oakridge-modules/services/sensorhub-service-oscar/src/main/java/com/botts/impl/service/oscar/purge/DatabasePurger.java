@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -56,6 +57,11 @@ public class DatabasePurger {
     private static final String OUTPUT_NEUTRON_COUNTS = "neutronCounts";
     private static final String OUTPUT_GAMMA_THRESHOLD = "gammaThreshold";
     private static final String OUTPUT_OCCUPANCY = OccupancyOutput.NAME;
+
+    // RS350 data stream output names
+    private static final String OUTPUT_BACKGROUND_REPORT = "backgroundReport";
+    private static final String OUTPUT_FOREGROUND_REPORT = "foregroundReport";
+    private static final String OUTPUT_STATUS = "status";
 
     public DatabasePurger(IObsSystemDatabase database, IBucketStore bucketStore, int occupancyBufferSeconds) {
         this.database = database;
@@ -284,12 +290,15 @@ public class DatabasePurger {
         List<TimeExtent> mergedWindows = mergeAndBufferWindows(windows, buffer);
         log.info("Merged into {} non-overlapping windows with {}s buffer", mergedWindows.size(), occupancyBufferSeconds);
 
-        // Get dataStream IDs for high-volume outputs (including Speed)
+        // Get dataStream IDs for high-volume outputs (Aspect/Rapiscan and RS350)
         Set<BigId> dataStreamIds = getDataStreamIdsByOutputNames(
             OUTPUT_GAMMA_COUNTS,
             OUTPUT_NEUTRON_COUNTS,
             OUTPUT_GAMMA_THRESHOLD,
-            OUTPUT_SPEED
+            OUTPUT_SPEED,
+            OUTPUT_BACKGROUND_REPORT,
+            OUTPUT_FOREGROUND_REPORT,
+            OUTPUT_STATUS
         );
 
         if (dataStreamIds.isEmpty()) {
@@ -425,9 +434,10 @@ public class DatabasePurger {
             // Write CSV header
             writer.write("message,timestamp\n");
 
-            long count = database.getObservationStore()
+            AtomicLong counter = new AtomicLong();
+            database.getObservationStore()
                 .select(filter)
-                .peek(obs -> {
+                .forEach(obs -> {
                     try {
                         String timestamp = obs.getPhenomenonTime().toString();
 
@@ -440,13 +450,13 @@ public class DatabasePurger {
                         }
 
                         writer.write(String.format("%s,%s\n", message, timestamp));
+                        counter.getAndIncrement();
                     } catch (IOException e) {
                         log.warn("Failed to write observation to CSV: {}", e.getMessage());
                     }
-                })
-                .count();
+                });
 
-            log.info("Exported {} DailyFileOutput records to bucket {}/{}", count, DAILY_FILES_BUCKET, objectKey);
+            log.info("Exported {} DailyFileOutput records to bucket {}/{}", counter, DAILY_FILES_BUCKET, objectKey);
         } catch (IOException | DataStoreException e) {
             log.error("Failed to export DailyFileOutput to bucket {}/{}: {}", DAILY_FILES_BUCKET, objectKey, e.getMessage(), e);
         }
