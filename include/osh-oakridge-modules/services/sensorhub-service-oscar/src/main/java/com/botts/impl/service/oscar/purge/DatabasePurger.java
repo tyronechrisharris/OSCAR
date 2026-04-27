@@ -456,7 +456,7 @@ public class DatabasePurger {
                     }
                 });
 
-            log.info("Exported {} DailyFileOutput records to bucket {}/{}", counter, DAILY_FILES_BUCKET, objectKey);
+            log.info("Exported {} DailyFileOutput records to bucket {}/{}", counter.get(), DAILY_FILES_BUCKET, objectKey);
         } catch (IOException | DataStoreException e) {
             log.error("Failed to export DailyFileOutput to bucket {}/{}: {}", DAILY_FILES_BUCKET, objectKey, e.getMessage(), e);
         }

@@ -273,8 +273,7 @@ public class SpreadsheetParser {
             addNullsToRow(r, 8);
         }
 
-        // Add header and vals for default camera
-        // TODO: DO THIS
+        // Add cameras
         for (int i = 0; i < maxCameras; i++) {
             if (opts.ffmpegConfig.size() > i) {
                 var cam = opts.ffmpegConfig.get(i);
@@ -294,6 +293,8 @@ public class SpreadsheetParser {
                         addToRow(r, "H264");
                     } else if (axis.streamPath == AxisCameraConfig.CodecEndpoint.MJPEG) {
                         addToRow(r, "MJPEG");
+                    } else {
+                        addToRow(r, null);
                     }
                     addToRow(r, axis.username);
                     addToRow(r, axis.password);

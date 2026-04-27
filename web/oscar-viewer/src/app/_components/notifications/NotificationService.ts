@@ -38,7 +38,7 @@ export class NotificationService {
             return;
         }
 
-        const options: NotificationOptions = {
+        const options = {
             actions: payload.actions,
             badge: payload.badge,
             body: payload.body,
@@ -49,7 +49,7 @@ export class NotificationService {
             tag: payload.tag
         }
 
-        await this.registration.showNotification(payload.title, options)
+        await this.registration.showNotification(payload.title, options as any)
     }
 
     isSupported(): boolean {
