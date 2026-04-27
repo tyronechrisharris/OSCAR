@@ -11,22 +11,23 @@ public class MqttTicketUtils {
     private static final Logger log = LoggerFactory.getLogger(MqttTicketUtils.class);
     private static final String HMAC_ALGO = "HmacSHA256";
     private static final String AUDIENCE = "mqtt-ws";
+    private static final String SCOPE = "subscribe";
 
     /**
      * Creates a signed MQTT ticket for the given user.
-     * Ticket format: sub:iat:exp:aud:signature
+     * Ticket format: sub:iat:exp:aud:scope:signature
      */
     public static String createTicket(String userId, long ttlMillis) {
         try {
             String secret = System.getProperty("javax.net.ssl.keyStorePassword");
             if (secret == null || secret.isEmpty()) {
-                secret = "temporary-fallback-secret-for-dev";
-                log.warn("javax.net.ssl.keyStorePassword not set, using fallback secret");
+                log.error("javax.net.ssl.keyStorePassword not set, ticket signing failed");
+                return null;
             }
 
             long iat = System.currentTimeMillis();
             long exp = iat + ttlMillis;
-            String payload = userId + ":" + iat + ":" + exp + ":" + AUDIENCE;
+            String payload = userId + ":" + iat + ":" + exp + ":" + AUDIENCE + ":" + SCOPE;
 
             Mac mac = Mac.getInstance(HMAC_ALGO);
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGO));
@@ -55,6 +56,11 @@ public class MqttTicketUtils {
             String signature = ticketStr.substring(lastColon + 1);
             String remaining = ticketStr.substring(0, lastColon);
 
+            int scopeColon = remaining.lastIndexOf(':');
+            if (scopeColon <= 0) return null;
+            String scope = remaining.substring(scopeColon + 1);
+            remaining = remaining.substring(0, scopeColon);
+
             int audColon = remaining.lastIndexOf(':');
             if (audColon <= 0) return null;
             String aud = remaining.substring(audColon + 1);
@@ -70,7 +76,7 @@ public class MqttTicketUtils {
             long iat = Long.parseLong(remaining.substring(iatColon + 1));
             String userId = remaining.substring(0, iatColon);
 
-            if (!AUDIENCE.equals(aud)) {
+            if (!AUDIENCE.equals(aud) || !SCOPE.equals(scope)) {
                 return null;
             }
 
@@ -81,10 +87,10 @@ public class MqttTicketUtils {
 
             String secret = System.getProperty("javax.net.ssl.keyStorePassword");
             if (secret == null || secret.isEmpty()) {
-                secret = "temporary-fallback-secret-for-dev";
+                return null;
             }
 
-            String payload = userId + ":" + iat + ":" + exp + ":" + aud;
+            String payload = userId + ":" + iat + ":" + exp + ":" + aud + ":" + scope;
             Mac mac = Mac.getInstance(HMAC_ALGO);
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGO));
             byte[] sigBytes = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));

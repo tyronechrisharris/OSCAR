@@ -154,7 +154,7 @@ export class LaneMapEntry {
                     protocol: 'mqtt',
                     mode: Mode.REAL_TIME,
                     responseFormat: getObservationResponseFormat(dsObj),
-                    mqttOpts: () => this.parentNode.getMqttOpts(),
+                    mqttOpts: this.parentNode.getMqttOpts(),
                 });
 
                 dsBatch = new ConSysApi(`batchds - ${dsObj.properties.name}`, {
@@ -166,7 +166,7 @@ export class LaneMapEntry {
                     responseFormat: getObservationResponseFormat(dsObj),
                     startTime: "2020-01-01T08:13:25.845Z",
                     endTime: "2055-01-01T08:13:25.845Z",
-                    mqttOpts: () => this.parentNode.getMqttOpts(),
+                    mqttOpts: this.parentNode.getMqttOpts(),
                 });
 
                 rtArray.push(dsRT);
@@ -188,14 +188,14 @@ export class LaneMapEntry {
             protocol: 'mqtt',
             mode: Mode.REAL_TIME,
             responseFormat: 'application/json',
-            mqttOpts: () => this.parentNode.getMqttOpts(),
+            mqttOpts: this.parentNode.getMqttOpts(),
         });
     }
 
     createReplayConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
         return new ConSysApi(`rtds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: () => this.parentNode.getMqttOpts(),
+            mqttOpts: this.parentNode.getMqttOpts(),
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
@@ -209,7 +209,7 @@ export class LaneMapEntry {
     createBatchConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
         return new ConSysApi(`batchds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: () => this.parentNode.getMqttOpts(),
+            mqttOpts: this.parentNode.getMqttOpts(),
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,

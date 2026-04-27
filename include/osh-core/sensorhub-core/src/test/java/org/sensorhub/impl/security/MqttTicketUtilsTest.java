@@ -56,4 +56,25 @@ public class MqttTicketUtilsTest {
         String validatedUser = MqttTicketUtils.validateTicket(tamperedTicket);
         assertNull(validatedUser);
     }
+
+    @Test
+    public void testMissingSecretFails() {
+        System.clearProperty("javax.net.ssl.keyStorePassword");
+        String userId = "testUser";
+
+        String ticket = MqttTicketUtils.createTicket(userId, 10000);
+        assertNull(ticket);
+    }
+
+    @Test
+    public void testTamperedScopeFails() {
+        System.setProperty("javax.net.ssl.keyStorePassword", "test-secret");
+        String userId = "testUser";
+
+        String ticket = MqttTicketUtils.createTicket(userId, 10000);
+        String tamperedTicket = ticket.replace(":subscribe:", ":publish:");
+
+        String validatedUser = MqttTicketUtils.validateTicket(tamperedTicket);
+        assertNull(validatedUser);
+    }
 }

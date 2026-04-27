@@ -74,7 +74,7 @@ export interface INode {
 
     getObservationsApi(): typeof Observations
 
-    getMqttOpts(): Promise<any>
+    getMqttOpts(): any
 
     setSiteMapPath(path: string): void
 
@@ -124,7 +124,7 @@ export class Node implements INode {
     private networkProperties: any;
 
     constructor(options: NodeOptions) {
-        this.id = "node-" + hashString(options.address + "-" + options.port); // TODO: maybe do something else here
+        this.id = "node-" + hashString(options.address + "-" + options.port);
         this.name = options.name;
         this.address = options.address;
         this.port = options.port;
@@ -151,16 +151,22 @@ export class Node implements INode {
             }
         }
 
+        // Initialize API instances with shared networkProperties
         this.dataStreamsApi = new DataStreams(this.networkProperties);
         this.systemsApi = new Systems(this.networkProperties);
         this.observationsApi = new Observations(this.networkProperties);
         this.controlStreamApi = new ControlStreams(this.networkProperties);
         this.oscarServiceSystem = options.oscarServiceSystem || null;
+
+        // Initial credential setup
+        if (this.auth?.username) {
+            this.networkProperties.mqttOpts.username = this.auth.username;
+            this.networkProperties.mqttOpts.password = this.auth.password;
+        }
     }
 
     private isLocalOrigin(): boolean {
-        // Handle port matching correctly - 80/443 might be implicit
-        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+        const currentPort = window.location.port || (window.location.protocol.startsWith('https') ? '443' : '80');
         const nodePort = this.port.toString();
 
         return (this.address === window.location.hostname ||
@@ -169,32 +175,8 @@ export class Node implements INode {
                (nodePort === currentPort);
     }
 
-    async getMqttOpts() {
-        if (this.auth?.username) {
-            return {
-                ...this.networkProperties.mqttOpts,
-                username: this.auth.username,
-                password: this.auth.password
-            };
-        }
-
-        const ticket = await this.ensureMqttTicket();
-
-        // Derive WebSocket URL
-        let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        let wsHost = window.location.host;
-
-        // If connecting to the same node where we are hosted, use relative or current origin
-        if (!this.isLocalOrigin()) {
-            wsHost = `${this.address}:${this.port}`;
-        }
-
-        return {
-            ...this.networkProperties.mqttOpts,
-            endpointUrl: `${wsProtocol}//${wsHost}${this.oshPathRoot}${ticket.wsPath}`,
-            username: ticket.username,
-            password: ticket.password
-        };
+    getMqttOpts() {
+        return this.networkProperties.mqttOpts;
     }
 
     private async ensureMqttTicket() {
@@ -220,11 +202,23 @@ export class Node implements INode {
                     throw new Error(`Failed to fetch MQTT ticket: ${response.status}`);
                 }
 
-                this.mqttTicket = await response.json();
+                const ticket = await response.json();
+                this.mqttTicket = ticket;
 
-                // Update network properties in place so existing API instances see the new ticket
-                const newMqttOpts = await this.getMqttOpts();
-                Object.assign(this.networkProperties.mqttOpts, newMqttOpts);
+                // Derive WebSocket URL - use relative origin for local node
+                let wsProtocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
+                let wsHost = window.location.host;
+
+                if (!this.isLocalOrigin()) {
+                    wsHost = `${this.address}:${this.port}`;
+                }
+
+                // Update the shared mqttOpts object so reconnects pick up new credentials
+                Object.assign(this.networkProperties.mqttOpts, {
+                    endpointUrl: `${wsProtocol}//${wsHost}${this.oshPathRoot}${ticket.wsPath}`,
+                    username: ticket.username,
+                    password: ticket.password
+                });
 
                 return this.mqttTicket;
             } finally {
@@ -314,10 +308,8 @@ export class Node implements INode {
     }
 
     async fetchLaneSystemsAndSubsystems(): Promise<Map<string, LaneMapEntry>> {
-        // Ensure ticket before calling API
         if (!this.auth?.username) await this.ensureMqttTicket();
 
-        // check if node is reachable first
         const isReachable = await this.checkForEndpoint();
 
         if (!isReachable) {
