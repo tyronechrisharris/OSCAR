@@ -74,6 +74,8 @@ export interface INode {
 
     getObservationsApi(): typeof Observations
 
+    getMqttOpts(): Promise<any>
+
     setSiteMapPath(path: string): void
 
     setUpperRightBox(latLong: LatLngExpression): void
@@ -117,6 +119,9 @@ export class Node implements INode {
     oscarServiceSystem: typeof System;
     controlStreamApi: typeof ControlStreams;
 
+    private mqttTicket: any = null;
+    private mqttTicketPromise: Promise<any> | null = null;
+
     constructor(options: NodeOptions) {
         this.id = "node-" + hashString(options.address + "-" + options.port); // TODO: maybe do something else here
         this.name = options.name;
@@ -129,39 +134,12 @@ export class Node implements INode {
         this.isSecure = options.isSecure || false;
         this.isDefaultNode = options.isDefaultNode || false;
 
-
-        let endpointUrl = `${this.address}:${this.port}${this.oshPathRoot}`;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
-            shared: true,
-            prefix: this.csAPIEndpoint,
-            endpointUrl: endpointUrl,
-            keepalive: 15
-        }
-
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.auth.username;
-            if (this.auth?.password) {
-                mqttOpts.password = this.auth.password;
-            }
-        }
-
         let networkProperties = {
             endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`,
             tls: this.isSecure,
             streamProtocol: "mqtt",
-            mqttOpts: mqttOpts,
+            // Use a promise-based getter for mqttOpts to handle lazy ticket acquisition
+            mqttOpts: () => this.getMqttOpts(),
             connectorOpts: {
                 username: this.auth?.username,
                 password: this.auth?.password
@@ -173,7 +151,73 @@ export class Node implements INode {
         this.observationsApi = new Observations(networkProperties);
         this.controlStreamApi = new ControlStreams(networkProperties);
         this.oscarServiceSystem = options.oscarServiceSystem || null;
+    }
 
+    async getMqttOpts() {
+        if (this.auth?.username) {
+            return {
+                shared: true,
+                prefix: this.csAPIEndpoint,
+                endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
+                username: this.auth.username,
+                password: this.auth.password,
+                keepalive: 15
+            };
+        }
+
+        const ticket = await this.ensureMqttTicket();
+
+        // Derive WebSocket URL from window location to be mixed-content safe
+        let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let wsHost = window.location.host;
+
+        // If we are connecting to a different node, use its address/port
+        // But for same-origin, window.location is safest
+        if (this.address !== window.location.hostname && !this.address.includes('localhost') && !this.address.includes('127.0.0.1')) {
+            wsHost = `${this.address}:${this.port}`;
+        }
+
+        return {
+            shared: true,
+            prefix: this.csAPIEndpoint,
+            endpointUrl: `${wsProtocol}//${wsHost}${this.oshPathRoot}${ticket.wsPath}`,
+            username: ticket.username,
+            password: ticket.password,
+            keepalive: 15
+        };
+    }
+
+    private async ensureMqttTicket() {
+        if (this.mqttTicket && new Date(this.mqttTicket.expiresAt).getTime() > Date.now() + 60000) {
+            return this.mqttTicket;
+        }
+
+        if (this.mqttTicketPromise) {
+            return this.mqttTicketPromise;
+        }
+
+        this.mqttTicketPromise = (async () => {
+            try {
+                const response = await fetch(`${this.getConnectedSystemsEndpoint()}/mqtt-ticket`, {
+                    method: 'POST',
+                    headers: {
+                        ...this.getBasicAuthHeader(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch MQTT ticket: ${response.status}`);
+                }
+
+                this.mqttTicket = await response.json();
+                return this.mqttTicket;
+            } finally {
+                this.mqttTicketPromise = null;
+            }
+        })();
+
+        return this.mqttTicketPromise;
     }
 
     getOscarServiceSystem() {
