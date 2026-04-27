@@ -262,6 +262,7 @@ services:
         echo "    abort @not_lan" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
         echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
         echo "}" >> /etc/caddy/Caddyfile
@@ -319,6 +320,7 @@ services:
         echo "    abort @not_lan" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
+        echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
         echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
         echo "}" >> /etc/caddy/Caddyfile
