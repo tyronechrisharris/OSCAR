@@ -158,6 +158,17 @@ export class Node implements INode {
         this.oscarServiceSystem = options.oscarServiceSystem || null;
     }
 
+    private isLocalOrigin(): boolean {
+        // Handle port matching correctly - 80/443 might be implicit
+        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+        const nodePort = this.port.toString();
+
+        return (this.address === window.location.hostname ||
+                this.address === 'localhost' ||
+                this.address === '127.0.0.1') &&
+               (nodePort === currentPort);
+    }
+
     async getMqttOpts() {
         if (this.auth?.username) {
             return {
@@ -169,13 +180,12 @@ export class Node implements INode {
 
         const ticket = await this.ensureMqttTicket();
 
-        // Derive WebSocket URL from window location to be mixed-content safe
+        // Derive WebSocket URL
         let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         let wsHost = window.location.host;
 
-        // If we are connecting to a different node, use its address/port
-        // But for same-origin, window.location is safest
-        if (this.address !== window.location.hostname && !this.address.includes('localhost') && !this.address.includes('127.0.0.1')) {
+        // If connecting to the same node where we are hosted, use relative or current origin
+        if (!this.isLocalOrigin()) {
             wsHost = `${this.address}:${this.port}`;
         }
 
@@ -249,8 +259,8 @@ export class Node implements INode {
         this.lowerLeftBound = latLon;
     }
 
-    setUpperRightBox(latLon: LatLngExpression) {
-        this.upperRightBound = latLon;
+    setUpperRightBox(latLong: LatLngExpression) {
+        this.upperRightBound = latLong;
     }
 
     getDataStreamsApi(): typeof DataStreams {
@@ -258,15 +268,23 @@ export class Node implements INode {
     }
 
     getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false) {
-        let protocol = this.isSecure ? 'https' : 'http';
+        if (this.isLocalOrigin()) {
+            return `${this.oshPathRoot}${this.csAPIEndpoint}`;
+        }
+
+        let protocol = this.isSecure ? 'https:' : 'http:';
         return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`
-            : `${protocol}://${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`;
+            : `${protocol}//${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`;
     }
 
     getFileServerEndpoint(noProtocolPrefix: boolean = false) {
-        let protocol = this.isSecure ? 'https' : 'http';
+        if (this.isLocalOrigin()) {
+            return `${this.oshPathRoot}/buckets`;
+        }
+
+        let protocol = this.isSecure ? 'https:' : 'http:';
         return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}/buckets`
-            : `${protocol}://${this.address}:${this.port}${this.oshPathRoot}/buckets`;
+            : `${protocol}//${this.address}:${this.port}${this.oshPathRoot}/buckets`;
     }
 
     getBasicAuthHeader() {
