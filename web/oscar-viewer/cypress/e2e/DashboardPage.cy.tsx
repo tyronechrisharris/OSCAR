@@ -100,7 +100,7 @@ describe('Dashboard', () => {
 
             cy.url().should('include', '/event-details');
 
-            cy.get('button').filter(':contains("Back")').click();
+            cy.get('button[aria-label="back"], button:has([data-testid="ArrowBackIcon"])').first().click();
             cy.url().should('match', /\/$/);
         });
 

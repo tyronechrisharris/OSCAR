@@ -30,7 +30,7 @@ describe('Event Log', () => {
                 .click({ force: true });
 
             cy.url().should('include', '/event-details');
-            cy.get('button').filter(':has([data-testid="ArrowBackIcon"]), :contains("Back")').first().click();
+            cy.get('button[aria-label="back"], button:has([data-testid="ArrowBackIcon"])').first().click();
             cy.url().should('include', '/event-log');
         });
 

@@ -36,7 +36,7 @@ describe('Report Page (E2E)', () => {
 
     const generateReport = () => {
         cy.wait(200);
-        cy.get('button[type="button"]').filter(':contains("Generate")').should('not.be.disabled').click();
+        cy.get('button[type="button"]').filter('[aria-label*="generate"], :has([data-testid*="Download"])').first().should('not.be.disabled').click();
     };
 
     const verifyReportGeneration = () => {
