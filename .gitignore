@@ -30,3 +30,4 @@ web/oscar-viewer/.next
 web/oscar-viewer/web
 docker_temp
 security-utils/config/
+*.pdf
