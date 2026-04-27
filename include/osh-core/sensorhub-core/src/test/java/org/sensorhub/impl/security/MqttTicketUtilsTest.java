@@ -19,6 +19,19 @@ public class MqttTicketUtilsTest {
     }
 
     @Test
+    public void testUrnUserId() {
+        System.setProperty("javax.net.ssl.keyStorePassword", "test-secret");
+        String userId = "urn:osh:user:admin:12345";
+        long ttl = 10000;
+
+        String ticket = MqttTicketUtils.createTicket(userId, ttl);
+        assertNotNull(ticket);
+
+        String validatedUser = MqttTicketUtils.validateTicket(ticket);
+        assertEquals(userId, validatedUser);
+    }
+
+    @Test
     public void testExpiredTicket() throws InterruptedException {
         System.setProperty("javax.net.ssl.keyStorePassword", "test-secret");
         String userId = "testUser";

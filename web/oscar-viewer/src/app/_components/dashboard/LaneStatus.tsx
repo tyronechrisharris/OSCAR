@@ -188,7 +188,7 @@ export default function LaneStatus(props: { dataSourcesByLane: any, initialLanes
                         <Grid container columns={{sm: 12, md: 24, lg: 36, xl: 48}} spacing={1}>
                             {statusList.map((item) => (
                                 <Grid key={item.id} item sm={8} md={8} lg={8} xl={6}>
-                                    <div onClick={() => handleLaneView(item.name)}>
+                                    <div onClick={() => handleLaneView(item.name)} data-testid={`lane-status-${item.name.replace(/\s+/g, '-').toLowerCase()}`}>
                                         <LaneStatusItem
                                             key={item.id}
                                             id={item.id}

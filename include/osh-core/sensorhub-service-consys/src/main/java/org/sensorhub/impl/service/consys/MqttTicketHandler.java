@@ -27,6 +27,8 @@ public class MqttTicketHandler extends BaseHandler {
     public void doPost(RequestContext ctx) throws InvalidRequestException, IOException, SecurityException {
         IUserInfo user = ctx.getSecurityHandler().getCurrentUser();
         if (user == null || ISecurityManager.ANONYMOUS_USER.equals(user.getId())) {
+            if (ctx.getResponse() != null)
+                ctx.getResponse().setStatus(401);
             ctx.setResponseContentType(ResourceFormat.JSON.getMimeType());
             String response = "{\n  \"status\": 401,\n  \"message\": \"Authentication required\"\n}";
             ctx.getOutputStream().write(response.getBytes());

@@ -32,7 +32,6 @@ Cypress.Commands.add('selectNoneEvent', () => {
         const selectedRow = $rows.filter('.selected-row');
         if (selectedRow.length === 0) {
             cy.get('.MuiDataGrid-row')
-                .filter(':contains("None")')
                 .first()
                 .click();
         }
@@ -44,7 +43,6 @@ Cypress.Commands.add('selectAspectEvent', () => {
         const selectedRow = $rows.filter('.selected-row');
         if (selectedRow.length === 0) {
             cy.get('.MuiDataGrid-row')
-                .filter(':contains("Aspect Lane")')
                 .first()
                 .click();
         }
@@ -93,8 +91,7 @@ Cypress.Commands.add('visitServerPage', () => {
 Cypress.Commands.add('visitLaneViewPage', () => {
     cy.visit('/');
     // Click the first available lane status item in the Lane Status section
-    // Using a more stable selector that doesn't depend on English title text if possible
-    cy.get('.MuiPaper-root').filter(':has([data-testid="CheckCircleIcon"])')
+    cy.get('[data-testid^="lane-status-"]')
         .first()
         .should('be.visible')
         .click();

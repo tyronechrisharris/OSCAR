@@ -52,7 +52,7 @@ export default function LaneSelect(props: {
     }, [props.selectedNode, laneMap]);
 
     return (
-        <FormControl size="small" fullWidth>
+        <FormControl size="small" fullWidth data-testid="lane-selector">
             <InputLabel id="label">{t('laneSelector')}</InputLabel>
             <Select
                 variant="outlined"

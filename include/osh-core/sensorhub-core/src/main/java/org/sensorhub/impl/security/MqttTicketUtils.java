@@ -49,16 +49,26 @@ public class MqttTicketUtils {
         }
 
         try {
-            String[] parts = ticketStr.split(":");
-            if (parts.length != 5) {
-                return null;
-            }
+            // Split from the end to handle URNs containing colons in the userId
+            int lastColon = ticketStr.lastIndexOf(':');
+            if (lastColon <= 0) return null;
+            String signature = ticketStr.substring(lastColon + 1);
+            String remaining = ticketStr.substring(0, lastColon);
 
-            String userId = parts[0];
-            long iat = Long.parseLong(parts[1]);
-            long exp = Long.parseLong(parts[2]);
-            String aud = parts[3];
-            String signature = parts[4];
+            int audColon = remaining.lastIndexOf(':');
+            if (audColon <= 0) return null;
+            String aud = remaining.substring(audColon + 1);
+            remaining = remaining.substring(0, audColon);
+
+            int expColon = remaining.lastIndexOf(':');
+            if (expColon <= 0) return null;
+            long exp = Long.parseLong(remaining.substring(expColon + 1));
+            remaining = remaining.substring(0, expColon);
+
+            int iatColon = remaining.lastIndexOf(':');
+            if (iatColon <= 0) return null;
+            long iat = Long.parseLong(remaining.substring(iatColon + 1));
+            String userId = remaining.substring(0, iatColon);
 
             if (!AUDIENCE.equals(aud)) {
                 return null;

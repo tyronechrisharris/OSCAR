@@ -5,8 +5,7 @@ describe('Report Page (E2E)', () => {
 
     // Helper functions to reduce duplication
     const selectNode = () => {
-        // Use label anchor to avoid matching the Navbar LanguageSelector
-        cy.get('.MuiSelect-select').first().click();
+        cy.get('[data-testid="node-selector"] .MuiSelect-select').click();
         cy.get('.MuiList-root').should('be.visible');
         cy.get('.MuiList-root .MuiMenuItem-root', { timeout: 10000 })
             .should('have.length.greaterThan', 0)
@@ -14,14 +13,11 @@ describe('Report Page (E2E)', () => {
             .click();
     };
 
-    const selectOption = (label: string, value: any, isMultiSelect: boolean) => {
-        cy.contains('label', label)
-            .parent()
-            .find('.MuiSelect-select')
-            .click();
+    const selectOption = (testid: string, value: any, isMultiSelect: boolean) => {
+        cy.get(`[data-testid="${testid}"] .MuiSelect-select`).click();
         cy.get('.MuiList-root').should('be.visible');
 
-        if (label === 'Lane Selector') {
+        if (testid === 'lane-selector') {
             // Lane UIDs are server-generated; skip "Select All" and pick first real lane
             cy.get('.MuiList-root .MuiMenuItem-root').not('[data-value="all"]').first().click();
         } else {
@@ -52,17 +48,17 @@ describe('Report Page (E2E)', () => {
 
     const generateAndVerifyReport = (config: any) => {
         selectNode();
-        selectOption('Report Type', config.reportType, false);
+        selectOption('report-type-select', config.reportType, false);
 
         if (config.lane) {
-            selectOption('Lane Selector', config.lane, true);
+            selectOption('lane-selector', config.lane, true);
         }
 
         if (config.eventType) {
-            selectOption('Event Type', config.eventType, false);
+            selectOption('event-type-select', config.eventType, false);
         }
 
-        selectOption('Time Range', config.timeRange, false);
+        selectOption('time-range-select', config.timeRange, false);
 
         generateReport();
         verifyReportGeneration();

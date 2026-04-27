@@ -40,7 +40,7 @@ export default function TimeRangeSelect(props: {
     };
 
     return (
-        <FormControl size="small" fullWidth>
+        <FormControl size="small" fullWidth data-testid="time-range-select">
             <InputLabel id="label">{t('timeRange')}</InputLabel>
             <Select
                 variant="outlined"
