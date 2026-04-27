@@ -38,7 +38,7 @@ export interface INode {
     lowerLeftBound: LatLngExpression;
     upperRightBound: LatLngExpression;
 
-    getConnectedSystemsEndpoint(noProtocolPrefix: boolean): string,
+    getConnectedSystemsEndpoint(noProtocolPrefix?: boolean): string,
 
     getBasicAuthHeader(): any,
 
@@ -121,6 +121,7 @@ export class Node implements INode {
 
     private mqttTicket: any = null;
     private mqttTicketPromise: Promise<any> | null = null;
+    private networkProperties: any;
 
     constructor(options: NodeOptions) {
         this.id = "node-" + hashString(options.address + "-" + options.port); // TODO: maybe do something else here
@@ -134,34 +135,35 @@ export class Node implements INode {
         this.isSecure = options.isSecure || false;
         this.isDefaultNode = options.isDefaultNode || false;
 
-        let networkProperties = {
-            endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`,
+        this.networkProperties = {
+            endpointUrl: this.getConnectedSystemsEndpoint(),
             tls: this.isSecure,
             streamProtocol: "mqtt",
-            // Use a promise-based getter for mqttOpts to handle lazy ticket acquisition
-            mqttOpts: () => this.getMqttOpts(),
+            mqttOpts: {
+                shared: true,
+                prefix: this.csAPIEndpoint,
+                endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
+                keepalive: 15
+            },
             connectorOpts: {
                 username: this.auth?.username,
                 password: this.auth?.password
             }
         }
 
-        this.dataStreamsApi = new DataStreams(networkProperties);
-        this.systemsApi = new Systems(networkProperties);
-        this.observationsApi = new Observations(networkProperties);
-        this.controlStreamApi = new ControlStreams(networkProperties);
+        this.dataStreamsApi = new DataStreams(this.networkProperties);
+        this.systemsApi = new Systems(this.networkProperties);
+        this.observationsApi = new Observations(this.networkProperties);
+        this.controlStreamApi = new ControlStreams(this.networkProperties);
         this.oscarServiceSystem = options.oscarServiceSystem || null;
     }
 
     async getMqttOpts() {
         if (this.auth?.username) {
             return {
-                shared: true,
-                prefix: this.csAPIEndpoint,
-                endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
+                ...this.networkProperties.mqttOpts,
                 username: this.auth.username,
-                password: this.auth.password,
-                keepalive: 15
+                password: this.auth.password
             };
         }
 
@@ -178,12 +180,10 @@ export class Node implements INode {
         }
 
         return {
-            shared: true,
-            prefix: this.csAPIEndpoint,
+            ...this.networkProperties.mqttOpts,
             endpointUrl: `${wsProtocol}//${wsHost}${this.oshPathRoot}${ticket.wsPath}`,
             username: ticket.username,
-            password: ticket.password,
-            keepalive: 15
+            password: ticket.password
         };
     }
 
@@ -211,6 +211,11 @@ export class Node implements INode {
                 }
 
                 this.mqttTicket = await response.json();
+
+                // Update network properties in place so existing API instances see the new ticket
+                const newMqttOpts = await this.getMqttOpts();
+                Object.assign(this.networkProperties.mqttOpts, newMqttOpts);
+
                 return this.mqttTicket;
             } finally {
                 this.mqttTicketPromise = null;
@@ -291,6 +296,8 @@ export class Node implements INode {
     }
 
     async fetchLaneSystemsAndSubsystems(): Promise<Map<string, LaneMapEntry>> {
+        // Ensure ticket before calling API
+        if (!this.auth?.username) await this.ensureMqttTicket();
 
         // check if node is reachable first
         const isReachable = await this.checkForEndpoint();
@@ -379,6 +386,7 @@ export class Node implements INode {
     }
 
     async fetchSystems(): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let systemsApi = this.getSystemsApi();
 
         let searchedSystems = await systemsApi.searchSystems(new SystemFilter({ searchMembers: true, validTime: "latest" }), 500);
@@ -397,6 +405,7 @@ export class Node implements INode {
     }
 
     async fetchObservations(): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(new ObservationFilter(), 100);
@@ -415,6 +424,7 @@ export class Node implements INode {
     }
 
     async fetchLatestObservationWithFilter(observationFilter: typeof ObservationFilter) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(observationFilter, 1);
@@ -424,6 +434,7 @@ export class Node implements INode {
     }
 
     async fetchObservationsWithFilter(observationFilter: typeof ObservationFilter): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(observationFilter, 100);
@@ -442,6 +453,7 @@ export class Node implements INode {
     }
 
     async fetchDataStreams(laneMap: Map<string, LaneMapEntry>) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const laneIds: string[] = [];
         for (const [, laneEntry] of laneMap) {
             if (laneEntry.parentNode.id != this.id) continue;
@@ -481,6 +493,7 @@ export class Node implements INode {
     }
 
     async fetchDataStream(system: typeof System) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let allDatastreams = [];
         const datastreams = await system.searchDataStreams(new DataStreamFilter({ validTime: "latest" }), 100);
         while (datastreams.hasNext()) {
@@ -491,6 +504,7 @@ export class Node implements INode {
     }
 
     async fetchLaneControlStreams(laneMap: Map<string, LaneMapEntry>) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const laneIds: string[] = [];
         for (const [, laneEntry] of laneMap) {
             if (laneEntry.parentNode.id != this.id) continue;
@@ -523,6 +537,7 @@ export class Node implements INode {
     }
 
     async fetchNodeControlStreams(): Promise<any[]>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let availableControlStreams = [];
         const controlStreamCollection = await this.getControlStreamApi().searchControlStreams(new ControlStreamFilter({ validTime: "latest" }), 100);
         while (controlStreamCollection.hasNext()) {
@@ -537,6 +552,7 @@ export class Node implements INode {
     }
 
     async fetchNodeDataStreams(): Promise<any[]>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let availableDataStreams = [];
         const dataStreamCollection = await this.getDataStreamsApi().searchDataStreams(new DataStreamFilter({ validTime: "latest" }), 100);
         while (dataStreamCollection.hasNext()) {
@@ -551,6 +567,7 @@ export class Node implements INode {
     }
 
     async fetchDataStreamWithObservedProperty(observedProperty: string): Promise<typeof DataStream>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const dataStreamCollection = await this.getDataStreamsApi().searchDataStreams(new DataStreamFilter({ validTime: "latest", observedProperty: observedProperty }), 1);
         let dataStreamResults = await dataStreamCollection.nextPage();
 

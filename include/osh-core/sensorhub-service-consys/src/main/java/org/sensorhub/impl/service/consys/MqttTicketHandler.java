@@ -45,7 +45,7 @@ public class MqttTicketHandler extends BaseHandler {
         ctx.setResponseContentType(ResourceFormat.JSON.getMimeType());
         String response = String.format(
             "{\n" +
-            "  \"wsPath\": \"/sensorhub/mqtt\",\n" +
+            "  \"wsPath\": \"/mqtt\",\n" +
             "  \"username\": \"__mqtt_ticket__\",\n" +
             "  \"password\": \"%s\",\n" +
             "  \"expiresAt\": \"%s\",\n" +
