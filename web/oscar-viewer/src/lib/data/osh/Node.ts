@@ -143,7 +143,7 @@ export class Node implements INode {
             mqttOpts: {
                 shared: true,
                 prefix: this.csAPIEndpoint,
-                endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}`,
+                endpointUrl: this.isLocalOrigin() ? `${window.location.host}${this.oshPathRoot}` : `${this.address}:${this.port}${this.oshPathRoot}`,
                 keepalive: 15
             },
             connectorOpts: {
@@ -271,7 +271,8 @@ export class Node implements INode {
 
     getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false) {
         if (this.isLocalOrigin()) {
-            return `${this.oshPathRoot}${this.csAPIEndpoint}`;
+            return noProtocolPrefix ? window.location.host + this.oshPathRoot + this.csAPIEndpoint
+                : window.location.origin + this.oshPathRoot + this.csAPIEndpoint;
         }
 
         let protocol = this.isSecure ? 'https:' : 'http:';
@@ -281,7 +282,8 @@ export class Node implements INode {
 
     getFileServerEndpoint(noProtocolPrefix: boolean = false) {
         if (this.isLocalOrigin()) {
-            return `${this.oshPathRoot}/buckets`;
+            return noProtocolPrefix ? window.location.host + this.oshPathRoot + '/buckets'
+                : window.location.origin + this.oshPathRoot + '/buckets';
         }
 
         let protocol = this.isSecure ? 'https:' : 'http:';
