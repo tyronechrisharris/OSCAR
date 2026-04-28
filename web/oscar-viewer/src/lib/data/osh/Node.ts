@@ -127,7 +127,8 @@ export class Node implements INode {
     constructor(options: NodeOptions) {
         this.id = "node-" + hashString(options.address + "-" + options.port);
         this.name = options.name;
-        this.address = options.address;
+        // Normalize address: remove protocol, port, and trailing slashes
+        this.address = options.address.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
         this.port = options.port;
         this.oshPathRoot = options.oshPathRoot || '/sensorhub';
         this.csAPIEndpoint = options.csAPIEndpoint || '/api';
@@ -136,8 +137,10 @@ export class Node implements INode {
         this.isSecure = options.isSecure || false;
         this.isDefaultNode = options.isDefaultNode || false;
 
+        // Initialize network properties.
+        // Note: ConsysAPI/osh-js often prepends '//' or protocol, so we provide host+path without leading slash.
         this.networkProperties = {
-            endpointUrl: this.getConnectedSystemsEndpoint(),
+            endpointUrl: this.getConnectedSystemsEndpoint(true),
             tls: this.isSecure,
             streamProtocol: "mqtt",
             mqttOpts: {
@@ -148,7 +151,8 @@ export class Node implements INode {
             },
             connectorOpts: {
                 username: this.auth?.username,
-                password: this.auth?.password
+                password: this.auth?.password,
+                credentials: 'include' // Ensure session cookies are sent for all API requests
             }
         }
 
@@ -167,13 +171,15 @@ export class Node implements INode {
     }
 
     private isLocalOrigin(): boolean {
-        const currentPort = window.location.port || (window.location.protocol.startsWith('https') ? '443' : '80');
+        const currentHostname = window.location.hostname;
+        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
         const nodePort = this.port.toString();
 
-        return (this.address === window.location.hostname ||
-                this.address === 'localhost' ||
-                this.address === '127.0.0.1') &&
-               (nodePort === currentPort);
+        const isSameHost = (this.address === currentHostname) ||
+                           (this.address === 'localhost' && currentHostname === '127.0.0.1') ||
+                           (this.address === '127.0.0.1' && currentHostname === 'localhost');
+
+        return isSameHost && (nodePort === currentPort);
     }
 
     getMqttOpts() {
@@ -269,26 +275,44 @@ export class Node implements INode {
         return this.dataStreamsApi;
     }
 
-    getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false) {
+    getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false): string {
+        const path = this.oshPathRoot + this.csAPIEndpoint;
+        let base: string;
+
         if (this.isLocalOrigin()) {
-            return noProtocolPrefix ? window.location.host + this.oshPathRoot + this.csAPIEndpoint
-                : window.location.origin + this.oshPathRoot + this.csAPIEndpoint;
+            base = window.location.origin;
+        } else {
+            const protocol = this.isSecure ? 'https:' : 'http:';
+            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
+            base = `${protocol}//${this.address}${portPart}`;
         }
 
-        let protocol = this.isSecure ? 'https:' : 'http:';
-        return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`
-            : `${protocol}//${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`;
+        const url = new URL(path, base);
+        if (noProtocolPrefix) {
+            // Return host + path (e.g. "192.168.1.1/sensorhub/api")
+            // This is what libraries that prepend protocol usually expect.
+            return url.host + url.pathname;
+        }
+        return url.toString();
     }
 
-    getFileServerEndpoint(noProtocolPrefix: boolean = false) {
+    getFileServerEndpoint(noProtocolPrefix: boolean = false): string {
+        const path = this.oshPathRoot + '/buckets';
+        let base: string;
+
         if (this.isLocalOrigin()) {
-            return noProtocolPrefix ? window.location.host + this.oshPathRoot + '/buckets'
-                : window.location.origin + this.oshPathRoot + '/buckets';
+            base = window.location.origin;
+        } else {
+            const protocol = this.isSecure ? 'https:' : 'http:';
+            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
+            base = `${protocol}//${this.address}${portPart}`;
         }
 
-        let protocol = this.isSecure ? 'https:' : 'http:';
-        return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}/buckets`
-            : `${protocol}//${this.address}:${this.port}${this.oshPathRoot}/buckets`;
+        const url = new URL(path, base);
+        if (noProtocolPrefix) {
+            return url.host + url.pathname;
+        }
+        return url.toString();
     }
 
     getBasicAuthHeader() {
