@@ -11,9 +11,10 @@ describe('Servers Page (E2E)', () => {
             cy.get('input[name="name"]').clear().type('TEST Non-Local Node');
             cy.get('[name="name"]').should('have.value','TEST Non-Local Node');
 
-            //TODO: put ip addy here
-            cy.get('input[name="address"]').clear().type('100.94.197.23');
-            cy.get('[name="address"]').should('have.value', '100.94.197.23');
+            // Use environment variable for test node address
+            const nodeAddress = Cypress.env('TEST_NODE_ADDRESS') || '127.0.0.1';
+            cy.get('input[name="address"]').clear().type(nodeAddress);
+            cy.get('[name="address"]').should('have.value', nodeAddress);
 
             // TODO: fix NaN when trying to update port reference
             // cy.get('input[name="port"]')
@@ -25,11 +26,13 @@ describe('Servers Page (E2E)', () => {
 
             // cy.get('[name="port"]').should('have.value','8282');
 
-            cy.get('input[name="username"]').clear().type('admin');
-            cy.get('[name="username"]').should('have.value','admin');
+            const username = Cypress.env('AUTH_USERNAME') || 'admin';
+            const password = Cypress.env('AUTH_PASSWORD') || 'oscar';
+            cy.get('input[name="username"]').clear().type(username);
+            cy.get('[name="username"]').should('have.value', username);
 
-            cy.get('input[name="password"]').clear().type('oscar');
-            cy.get('[name="password"]').should('have.value','oscar');
+            cy.get('input[name="password"]').clear().type(password);
+            cy.get('[name="password"]').should('have.value', password);
 
             cy.contains('button','Add Node').click();
             cy.get('[id="saveNode-snackbar"]')
@@ -53,8 +56,10 @@ describe('Servers Page (E2E)', () => {
             cy.get('input[name="name"]').clear().type('Testing Node');
             cy.get('input[name="address"]').clear().type('localhost');
             cy.get('input[name="port"]').clear().type('8282');
-            cy.get('input[name="username"]').clear().type('admin');
-            cy.get('input[name="password"]').clear().type('oscar');
+            const username = Cypress.env('AUTH_USERNAME') || 'admin';
+            const password = Cypress.env('AUTH_PASSWORD') || 'oscar';
+            cy.get('input[name="username"]').clear().type(username);
+            cy.get('input[name="password"]').clear().type(password);
 
 
             cy.contains('button','Save Changes').click();
@@ -76,11 +81,13 @@ describe('Servers Page (E2E)', () => {
         it.skip('Cancel new node', () => {
 
             // fill out node form
+            const username = Cypress.env('AUTH_USERNAME') || 'admin';
+            const password = Cypress.env('AUTH_PASSWORD') || 'oscar';
             cy.get('input[name="name"]').clear().type('Testing Node');
             cy.get('input[name="address"]').clear().type('localhost');
             cy.get('input[name="port"]').clear().type('8282');
-            cy.get('input[name="username"]').clear().type('admin');
-            cy.get('input[name="password"]').clear().type('oscar');
+            cy.get('input[name="username"]').clear().type(username);
+            cy.get('input[name="password"]').clear().type(password);
 
 
             cy.contains('button','Cancel').click();
