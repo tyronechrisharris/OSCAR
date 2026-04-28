@@ -3,12 +3,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- **HMAC-SHA256 MQTT Ticket System**: Replaced the per-datasource proxy-token model with a centralized, short-lived signed ticket system. Tickets are HMAC-SHA256 signed and include proactive refresh logic in the frontend for continuous telemetry availability.
+- **RS350 Support**: Full end-to-end support for RS350 RPMs, including spreadsheet parsing/serialization, statistics counting for gamma/neutron alarms, and high-volume data retention.
+- **PostGIS CQL Guards**: Hardened CQL filtering targeting JSONB fields with `jsonb_typeof` guards to prevent cast errors and ensure correct inequality matching for missing fields.
 - **Hybrid Ingress Support**: Implemented a resilient dual-ingress proxy architecture using Docker Compose profiles (`mesh` and `lan-only`). The system now supports secure direct HTTPS access over the Local Area Network (LAN) using dynamically generated PEM certificates, while maintaining the primary Tailscale mesh.
 - Added Progressive Web App (PWA) capabilities, allowing the client to be installed as a local application with offline support.
 - Integrated Spectroscopic QR Code scanning for Adjudication workflows.
 - Added WebID analysis and result logging to the Adjudication Detail view.
 - Added `bluenviron/mediamtx:latest` as a dedicated sidecar container in `docker-compose.yml` to stabilize RTSP IP Camera streams.
 ### Changed
+- **Video Retention Hardening**: Improved `VideoRetention` logic to gracefully handle missing files and ensure partial artifacts are cleaned up on failure.
+- **FFmpeg Resource Management**: Optimized native FFmpeg resource handling in `MpegTsProcessor` using `av_packet_alloc`.
+- **Import Idempotency**: Spreadsheet imports now validate configurations against canonical UIDs to prevent duplicate lane module creation.
+- **Daily File Export Fix**: Resolved a regression where `dailyFile` CSV exports only contained headers; the system now correctly writes all observation rows.
 - Refactored entire cryptographic architecture to dynamic PEM-first configuration. The `init-secrets` container now securely generates `server.pem` for Caddy and seamlessly bundles `osh-keystore.p12` for Java.
 - Standardized deployment via a "Hybrid Volume Architecture" in `docker-compose.yml` (Named Volumes for secure secrets, Bind Mounts for config data).
 - Striped deprecated `LocalCAUtility` local-file generation from backend startup scripts (`launch.sh` / `launch.bat`), forcing environment variable inheritance.
