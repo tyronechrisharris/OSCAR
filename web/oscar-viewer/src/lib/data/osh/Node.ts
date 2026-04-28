@@ -121,6 +121,7 @@ export class Node implements INode {
 
     private mqttTicket: any = null;
     private mqttTicketPromise: Promise<any> | null = null;
+    private mqttRefreshTimer: any = null;
     private networkProperties: any;
 
     constructor(options: NodeOptions) {
@@ -192,6 +193,7 @@ export class Node implements INode {
             try {
                 const response = await fetch(`${this.getConnectedSystemsEndpoint()}/mqtt-ticket`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         ...this.getBasicAuthHeader(),
                         'Content-Type': 'application/json'
@@ -205,10 +207,11 @@ export class Node implements INode {
                 const ticket = await response.json();
                 this.mqttTicket = ticket;
 
-                // Derive WebSocket URL - use relative origin for local node
+                // Derive WebSocket URL
                 let wsProtocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
                 let wsHost = window.location.host;
 
+                // For non-local nodes, we must use their full address
                 if (!this.isLocalOrigin()) {
                     wsHost = `${this.address}:${this.port}`;
                 }
@@ -219,6 +222,12 @@ export class Node implements INode {
                     username: ticket.username,
                     password: ticket.password
                 });
+
+                // Schedule proactive refresh
+                if (this.mqttRefreshTimer) clearTimeout(this.mqttRefreshTimer);
+                this.mqttRefreshTimer = setTimeout(() => {
+                    this.ensureMqttTicket();
+                }, ticket.refreshAfterSeconds * 1000);
 
                 return this.mqttTicket;
             } finally {
@@ -293,6 +302,7 @@ export class Node implements INode {
         const response = await fetch(ep, {
             method: 'GET',
             mode: 'cors',
+            credentials: 'same-origin',
             headers: {
                 ...this.getBasicAuthHeader(),
                 'Content-Type': 'application/sml+json'
