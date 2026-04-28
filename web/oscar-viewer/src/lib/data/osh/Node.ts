@@ -208,15 +208,11 @@ export class Node implements INode {
                 const ticket = await response.json();
                 this.mqttTicket = ticket;
 
-                // Derive WebSocket URL from the REST API origin to preserve session continuity
-                let wsUrl;
-                if (apiEndpoint.startsWith('http')) {
-                    // Absolute URL: replace protocol and append ticket path
-                    wsUrl = apiEndpoint.replace(/^http/, 'ws').replace(this.csAPIEndpoint + '$', '') + ticket.wsPath;
-                } else {
-                    // Relative URL: use current origin
-                    const wsProtocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
-                    wsUrl = `${wsProtocol}//${window.location.host}${this.oshPathRoot}${ticket.wsPath}`;
+                // Derive absolute WebSocket URL - handle relative URLs returned for local node
+                let wsUrl = ticket.url;
+                if (wsUrl && wsUrl.startsWith('/')) {
+                    const protocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
+                    wsUrl = `${protocol}//${window.location.host}${wsUrl}`;
                 }
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials

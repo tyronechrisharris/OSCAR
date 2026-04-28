@@ -42,16 +42,21 @@ public class MqttTicketHandler extends BaseHandler {
 
         Instant expiresAt = Instant.now().plusMillis(TICKET_TTL_MILLIS);
 
+        // Derive absolute WebSocket URL from the current API root
+        String apiRoot = ctx.getApiRootURL();
+        String wsUrl = apiRoot.replaceFirst("http", "ws").replaceFirst("/api$", "") + "/mqtt";
+
         ctx.setResponseContentType(ResourceFormat.JSON.getMimeType());
         String response = String.format(
             "{\n" +
+            "  \"url\": \"%s\",\n" +
             "  \"wsPath\": \"/mqtt\",\n" +
             "  \"username\": \"__mqtt_ticket__\",\n" +
             "  \"password\": \"%s\",\n" +
             "  \"expiresAt\": \"%s\",\n" +
             "  \"refreshAfterSeconds\": %d\n" +
             "}",
-            ticket, expiresAt.toString(), REFRESH_AFTER_SECONDS
+            wsUrl, ticket, expiresAt.toString(), REFRESH_AFTER_SECONDS
         );
         ctx.getOutputStream().write(response.getBytes());
     }
