@@ -194,7 +194,7 @@ export class Node implements INode {
                 const apiEndpoint = this.getConnectedSystemsEndpoint();
                 const response = await fetch(`${apiEndpoint}/mqtt-ticket`, {
                     method: 'POST',
-                    credentials: 'same-origin',
+                    credentials: 'include',
                     headers: {
                         ...this.getBasicAuthHeader(),
                         'Content-Type': 'application/json'
@@ -305,7 +305,7 @@ export class Node implements INode {
         const response = await fetch(ep, {
             method: 'GET',
             mode: 'cors',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 ...this.getBasicAuthHeader(),
                 'Content-Type': 'application/sml+json'
