@@ -44,7 +44,8 @@ public class MqttTicketHandler extends BaseHandler {
 
         // Derive absolute WebSocket URL from the current API root
         String apiRoot = ctx.getApiRootURL();
-        String wsUrl = apiRoot.replaceFirst("http", "ws").replaceFirst("/api$", "") + "/mqtt";
+        // Case-insensitive replacement of http with ws, and removal of terminal /api or /api/
+        String wsBaseUrl = apiRoot.replaceFirst("(?i)http", "ws").replaceAll("(?i)/api/?$", "");
 
         ctx.setResponseContentType(ResourceFormat.JSON.getMimeType());
         String response = String.format(
@@ -56,7 +57,7 @@ public class MqttTicketHandler extends BaseHandler {
             "  \"expiresAt\": \"%s\",\n" +
             "  \"refreshAfterSeconds\": %d\n" +
             "}",
-            wsUrl, ticket, expiresAt.toString(), REFRESH_AFTER_SECONDS
+            wsBaseUrl, ticket, expiresAt.toString(), REFRESH_AFTER_SECONDS
         );
         ctx.getOutputStream().write(response.getBytes());
     }

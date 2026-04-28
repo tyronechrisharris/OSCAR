@@ -215,17 +215,23 @@ export class Node implements INode {
                 this.mqttTicket = ticket;
 
                 // Derive absolute WebSocket URL - handle relative URLs returned for local node
-                let wsUrl = ticket.url;
-                if (wsUrl && wsUrl.startsWith('/')) {
+                let wsUrlString = ticket.url;
+                if (wsUrlString && wsUrlString.startsWith('/')) {
                     const protocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
-                    wsUrl = `${protocol}//${window.location.host}${wsUrl}`;
+                    wsUrlString = `${protocol}//${window.location.host}${wsUrlString}`;
                 }
+
+                // Parse the URL and extract what osh-js expects (host + path without trailing /mqtt)
+                // URL API doesn't support ws: well, so temporary replacement for parsing
+                const parsedUrl = new URL(wsUrlString.replace(/^ws/i, 'http'));
+                const endpointUrl = parsedUrl.host + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
                 Object.assign(this.networkProperties.mqttOpts, {
-                    endpointUrl: wsUrl,
+                    endpointUrl: endpointUrl,
                     username: ticket.username,
-                    password: ticket.password
+                    password: ticket.password,
+                    mqttPath: '/mqtt'
                 });
 
                 // Schedule proactive refresh
@@ -277,42 +283,43 @@ export class Node implements INode {
 
     getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false): string {
         const path = this.oshPathRoot + this.csAPIEndpoint;
-        let base: string;
 
         if (this.isLocalOrigin()) {
-            base = window.location.origin;
-        } else {
-            const protocol = this.isSecure ? 'https:' : 'http:';
-            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
-            base = `${protocol}//${this.address}${portPart}`;
+            if (noProtocolPrefix) {
+                return window.location.host + path;
+            }
+            return window.location.origin + path;
         }
 
-        const url = new URL(path, base);
+        const protocol = this.isSecure ? 'https:' : 'http:';
+        // Ensure host does not already contain a protocol to prevent double-protocol bugs
+        const host = this.address.replace(/^https?:?\/\//i, '');
+        const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
+
         if (noProtocolPrefix) {
-            // Return host + path (e.g. "192.168.1.1/sensorhub/api")
-            // This is what libraries that prepend protocol usually expect.
-            return url.host + url.pathname;
+            return hostPort + path;
         }
-        return url.toString();
+        return `${protocol}//${hostPort}${path}`;
     }
 
     getFileServerEndpoint(noProtocolPrefix: boolean = false): string {
         const path = this.oshPathRoot + '/buckets';
-        let base: string;
 
         if (this.isLocalOrigin()) {
-            base = window.location.origin;
-        } else {
-            const protocol = this.isSecure ? 'https:' : 'http:';
-            const portPart = (this.port === 80 || this.port === 443) ? '' : `:${this.port}`;
-            base = `${protocol}//${this.address}${portPart}`;
+            if (noProtocolPrefix) {
+                return window.location.host + path;
+            }
+            return window.location.origin + path;
         }
 
-        const url = new URL(path, base);
+        const protocol = this.isSecure ? 'https:' : 'http:';
+        const host = this.address.replace(/^https?:?\/\//i, '');
+        const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
+
         if (noProtocolPrefix) {
-            return url.host + url.pathname;
+            return hostPort + path;
         }
-        return url.toString();
+        return `${protocol}//${hostPort}${path}`;
     }
 
     getBasicAuthHeader() {
