@@ -191,7 +191,8 @@ export class Node implements INode {
 
         this.mqttTicketPromise = (async () => {
             try {
-                const response = await fetch(`${this.getConnectedSystemsEndpoint()}/mqtt-ticket`, {
+                const apiEndpoint = this.getConnectedSystemsEndpoint();
+                const response = await fetch(`${apiEndpoint}/mqtt-ticket`, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -207,18 +208,20 @@ export class Node implements INode {
                 const ticket = await response.json();
                 this.mqttTicket = ticket;
 
-                // Derive WebSocket URL
-                let wsProtocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
-                let wsHost = window.location.host;
-
-                // For non-local nodes, we must use their full address
-                if (!this.isLocalOrigin()) {
-                    wsHost = `${this.address}:${this.port}`;
+                // Derive WebSocket URL from the REST API origin to preserve session continuity
+                let wsUrl;
+                if (apiEndpoint.startsWith('http')) {
+                    // Absolute URL: replace protocol and append ticket path
+                    wsUrl = apiEndpoint.replace(/^http/, 'ws').replace(this.csAPIEndpoint + '$', '') + ticket.wsPath;
+                } else {
+                    // Relative URL: use current origin
+                    const wsProtocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
+                    wsUrl = `${wsProtocol}//${window.location.host}${this.oshPathRoot}${ticket.wsPath}`;
                 }
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
                 Object.assign(this.networkProperties.mqttOpts, {
-                    endpointUrl: `${wsProtocol}//${wsHost}${this.oshPathRoot}${ticket.wsPath}`,
+                    endpointUrl: wsUrl,
                     username: ticket.username,
                     password: ticket.password
                 });

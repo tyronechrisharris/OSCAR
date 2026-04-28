@@ -1,5 +1,9 @@
 package org.sensorhub.impl.security;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.crypto.Mac;
@@ -13,15 +17,43 @@ public class MqttTicketUtils {
     private static final String AUDIENCE = "mqtt-ws";
     private static final String SCOPE = "subscribe";
 
+    private static String getSecret() {
+        // 1. Check system property (set by SensorHubWrapper or JVM arg)
+        String secret = System.getProperty("javax.net.ssl.keyStorePassword");
+        if (secret != null && !secret.isEmpty()) {
+            return secret;
+        }
+
+        // 2. Check environment variable for secret file path
+        String secretPath = System.getenv("KEYSTORE_PASSWORD_FILE");
+        if (secretPath == null || secretPath.isEmpty()) {
+            secretPath = ".app_secrets"; // Default fallback path
+        }
+
+        File file = new File(secretPath);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+                String line = reader.readLine();
+                if (line != null) {
+                    return line.trim();
+                }
+            } catch (Exception e) {
+                log.debug("Error reading secret from {}: {}", secretPath, e.getMessage());
+            }
+        }
+
+        log.error("MQTT ticket signing secret not found (no javax.net.ssl.keyStorePassword or KEYSTORE_PASSWORD_FILE)");
+        return null;
+    }
+
     /**
      * Creates a signed MQTT ticket for the given user.
      * Ticket format: sub:iat:exp:aud:scope:signature
      */
     public static String createTicket(String userId, long ttlMillis) {
         try {
-            String secret = System.getProperty("javax.net.ssl.keyStorePassword");
-            if (secret == null || secret.isEmpty()) {
-                log.error("javax.net.ssl.keyStorePassword not set, ticket signing failed");
+            String secret = getSecret();
+            if (secret == null) {
                 return null;
             }
 
@@ -85,8 +117,8 @@ public class MqttTicketUtils {
                 return null;
             }
 
-            String secret = System.getProperty("javax.net.ssl.keyStorePassword");
-            if (secret == null || secret.isEmpty()) {
+            String secret = getSecret();
+            if (secret == null) {
                 return null;
             }
 
