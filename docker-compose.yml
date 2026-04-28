@@ -2,6 +2,8 @@ services:
   init-secrets:
     image: eclipse-temurin:21.0.6_7-jre-alpine
     container_name: oscar-init-secrets
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - oscar_secrets:/secrets
       - mtx_secrets:/mtx-secrets
@@ -54,6 +56,7 @@ services:
         echo "apiAddress: :9997" >> /mtx-secrets/mediamtx.yml;
         echo "writeQueueSize: 1024" >> /mtx-secrets/mediamtx.yml;
         echo "" >> /mtx-secrets/mediamtx.yml;
+        echo "logLevel: $$LOG_LEVEL" >> /mtx-secrets/mediamtx.yml;
         echo "authMethod: internal" >> /mtx-secrets/mediamtx.yml;
         echo "authInternalUsers:" >> /mtx-secrets/mediamtx.yml;
         echo "- user: $$USER" >> /mtx-secrets/mediamtx.yml;
@@ -96,6 +99,8 @@ services:
       - "ssl_cert_file=/secrets/db-server.crt"
       - "-c"
       - "ssl_key_file=/secrets/db-server.key"
+      - "-c"
+      - "log_min_messages=${LOG_LEVEL:-error}"
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
@@ -136,6 +141,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
       - DB_HOST=${DB_HOST:-osh-postgis}
       - POSTGRES_PASSWORD_FILE=/secrets/.db_password
       - KEYSTORE=/secrets/osh-keystore.p12
@@ -231,6 +237,7 @@ services:
         condition: service_healthy
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -245,7 +252,12 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "$$TAILSCALE_DOMAIN {" > /etc/caddy/Caddyfile
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
@@ -278,6 +290,8 @@ services:
     profiles: ["lan-only"]
     networks:
       - osh-internal
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     ports:
       - "80:80"
       - "443:443"
@@ -297,7 +311,12 @@ services:
       - /bin/sh
       - -c
       - |
-        echo ":443 {" > /etc/caddy/Caddyfile
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo ":443 {" >> /etc/caddy/Caddyfile
         echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
         echo "        flush_interval -1" >> /etc/caddy/Caddyfile
         echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
