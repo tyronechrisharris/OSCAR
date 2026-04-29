@@ -2,6 +2,8 @@ services:
   init-secrets:
     image: eclipse-temurin:21.0.6_7-jre-alpine
     container_name: oscar-init-secrets
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - oscar_secrets:/secrets
       - mtx_secrets:/mtx-secrets
@@ -50,6 +52,7 @@ services:
         echo $$USER > /mtx-secrets/.mediamtx_api_user;
 
         echo "# MediaMTX Configuration for OSCAR (Auto-Generated)" > /mtx-secrets/mediamtx.yml;
+        echo "logLevel: $${LOG_LEVEL:-error}" >> /mtx-secrets/mediamtx.yml;
         echo "api: true" >> /mtx-secrets/mediamtx.yml;
         echo "apiAddress: :9997" >> /mtx-secrets/mediamtx.yml;
         echo "writeQueueSize: 1024" >> /mtx-secrets/mediamtx.yml;
@@ -96,6 +99,8 @@ services:
       - "ssl_cert_file=/secrets/db-server.crt"
       - "-c"
       - "ssl_key_file=/secrets/db-server.key"
+      - "-c"
+      - "log_min_messages=${LOG_LEVEL:-error}"
     environment:
       - POSTGRES_DB=gis
       - POSTGRES_USER=postgres
@@ -150,7 +155,7 @@ services:
       - MEDIAMTX_API_USER_FILE=/mtx_secrets/.mediamtx_api_user
       - MEDIAMTX_API_PASS_FILE=/mtx_secrets/.mediamtx_api_pass
       - MEDIAMTX_IP=${MEDIAMTX_IP:-host.docker.internal}
-      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} ${PROXY_OPTS:-} -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal -Dhttp.nonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal
+      - JAVA_OPTS=-Xmx${BACKEND_JVM_HEAP:-2G} -Xms${BACKEND_JVM_HEAP:-2G} ${PROXY_OPTS:-} -DLOG_LEVEL=${LOG_LEVEL:-error} -DsocksNonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal -Dhttp.nonProxyHosts=localhost|127.*|10.*|172.*|192.168.*|host.docker.internal
     volumes:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
@@ -232,6 +237,7 @@ services:
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
       - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -246,7 +252,12 @@ services:
       - /bin/sh
       - -c
       - |
-        echo ":80 {" > /etc/caddy/Caddyfile
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo ":80 {" >> /etc/caddy/Caddyfile
         echo "    @not_lan {" >> /etc/caddy/Caddyfile
         echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile
@@ -291,6 +302,7 @@ services:
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
       - TAILSCALE_IP=${TAILSCALE_IP:-127.0.0.1}
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -304,7 +316,12 @@ services:
       - /bin/sh
       - -c
       - |
-        echo ":80 {" > /etc/caddy/Caddyfile
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        echo ":80 {" >> /etc/caddy/Caddyfile
         echo "    @not_lan {" >> /etc/caddy/Caddyfile
         echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
         echo "    }" >> /etc/caddy/Caddyfile

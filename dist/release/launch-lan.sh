@@ -37,13 +37,13 @@ if [ ! -f "hivemq-config/logback.xml" ]; then
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="${LOG_LEVEL:-error}">
         <appender-ref ref="STDOUT" />
     </root>
 
     <!-- Suppress verbose auth/session debug logs -->
-    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="WARN" />
-    <logger name="org.sensorhub.impl.service.OshLoginService" level="WARN" />
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="${LOG_LEVEL:-error}" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="${LOG_LEVEL:-error}" />
 
 </configuration>
 INNER_EOF

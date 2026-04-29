@@ -23,18 +23,18 @@
     </encoder>
   </appender>
   
-  <root level="warn">
+  <root level="${LOG_LEVEL:-error}">
     <appender-ref ref="STDOUT" />
   </root>
-  <logger name="org.sensorhub" level="debug">
+  <logger name="org.sensorhub" level="${LOG_LEVEL:-error}">
     <appender-ref ref="MODULE_FILE" />
   </logger>
-  <logger name="com.delta" level="debug">
+  <logger name="com.delta" level="${LOG_LEVEL:-error}">
     <appender-ref ref="MODULE_FILE" />
   </logger>
-  <logger name="org.eclipse.jetty" level="warn" />
-  <logger name="org.eclipse.kura" level="debug" />
-  <logger name="org.vast" level="warn"/>
-  <logger name="org.sensorhub.impl.serialization.kryo" level="debug"/>
+  <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" />
+  <logger name="org.eclipse.kura" level="${LOG_LEVEL:-error}" />
+  <logger name="org.vast" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.sensorhub.impl.serialization.kryo" level="${LOG_LEVEL:-error}"/>
   
 </configuration>
