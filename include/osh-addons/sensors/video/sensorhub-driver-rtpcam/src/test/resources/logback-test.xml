@@ -5,11 +5,11 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n</pattern>
     </encoder>
   </appender>
-  <logger name="org.eclipse.jetty" level="warn"/>
-  <logger name="org.sensorhub" level="debug"/>
-  <logger name="org.sensorhub.impl.sensor.rtpcam" level="trace"/>
-  <logger name="org.sensorhub.impl.sensor.rtpcam.RTCPSender" level="trace"/>
-  <root level="INFO">          
+  <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.sensorhub" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.sensorhub.impl.sensor.rtpcam" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.sensorhub.impl.sensor.rtpcam.RTCPSender" level="${LOG_LEVEL:-error}"/>
+  <root level="${LOG_LEVEL:-error}">
     <appender-ref ref="STDOUT" />
   </root>    
 </configuration>

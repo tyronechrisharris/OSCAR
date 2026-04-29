@@ -5,9 +5,9 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{0} - %msg%n</pattern>
     </encoder>
   </appender>
-  <logger name="org.eclipse.jetty" level="warn"/>
-  <logger name="org.sensorhub" level="debug"/>
-  <root level="INFO">          
+  <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.sensorhub" level="${LOG_LEVEL:-error}"/>
+  <root level="${LOG_LEVEL:-error}">
     <appender-ref ref="STDOUT" />
   </root>    
 </configuration>
