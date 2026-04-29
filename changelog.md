@@ -189,3 +189,4 @@ Release 2.2 request, no updates since 1.3.7.
 - Designated Ubuntu Server 24.04.4 LTS as the preferred deployment environment.
 - Included 'launch-all.sh' in release artifacts.
 - Refactored dynamic logging configuration in Caddy Reverse Proxy and all associated OSH backend `logback.xml` files to natively respect the `LOG_LEVEL` environment variable defaulting to `error`, reducing excessive verbosity.
+- Refactored `Node.ts` to natively support mapping standard internal port paths to external Magic DNS TLS URIs without port interference when configuring MQTT over websockets.
