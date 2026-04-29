@@ -237,7 +237,6 @@ services:
         condition: service_healthy
     environment:
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
-      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -252,36 +251,40 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "{" > /etc/caddy/Caddyfile
-        echo "    log {" >> /etc/caddy/Caddyfile
-        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
+        cat << 'CADDY_EOF' > /etc/caddy/Caddyfile
+        {
+            log {
+                level error
+            }
+        }
+        CADDY_EOF
         echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
-        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
-        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
-        echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "    tls {" >> /etc/caddy/Caddyfile
-        echo "        get_certificate tailscale" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
-        echo ":443 {" >> /etc/caddy/Caddyfile
-        echo "    @not_lan {" >> /etc/caddy/Caddyfile
-        echo "        not remote_ip private_ranges 127.0.0.1 ::1" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "    abort @not_lan" >> /etc/caddy/Caddyfile
-        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
-        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
-        echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
-        echo ":80 {" >> /etc/caddy/Caddyfile
-        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
-        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
+        cat << 'CADDY_EOF' >> /etc/caddy/Caddyfile
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+                header_down Location http:// https://
+            }
+            tls {
+                get_certificate tailscale
+            }
+        }
+        :443 {
+            @not_lan {
+                not remote_ip private_ranges 127.0.0.1 ::1
+            }
+            abort @not_lan
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+                header_down Location http:// https://
+            }
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
+        }
+        :80 {
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+            }
+        }
+        CADDY_EOF
         caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
   osh-proxy-lan:
@@ -290,8 +293,6 @@ services:
     profiles: ["lan-only"]
     networks:
       - osh-internal
-    environment:
-      - LOG_LEVEL=${LOG_LEVEL:-error}
     ports:
       - "80:80"
       - "443:443"
@@ -311,23 +312,25 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "{" > /etc/caddy/Caddyfile
-        echo "    log {" >> /etc/caddy/Caddyfile
-        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
-        echo ":443 {" >> /etc/caddy/Caddyfile
-        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
-        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
-        echo "        header_down Location http:// https://" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "    tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
-        echo ":80 {" >> /etc/caddy/Caddyfile
-        echo "    reverse_proxy http://osh-backend:8282 {" >> /etc/caddy/Caddyfile
-        echo "        flush_interval -1" >> /etc/caddy/Caddyfile
-        echo "    }" >> /etc/caddy/Caddyfile
-        echo "}" >> /etc/caddy/Caddyfile
+        cat << 'CADDY_EOF' > /etc/caddy/Caddyfile
+        {
+            log {
+                level error
+            }
+        }
+        :443 {
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+                header_down Location http:// https://
+            }
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
+        }
+        :80 {
+            reverse_proxy http://osh-backend:8282 {
+                flush_interval -1
+            }
+        }
+        CADDY_EOF
         caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
 
 networks:
