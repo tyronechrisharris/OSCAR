@@ -23,19 +23,19 @@
         </encoder>
     </appender>
 
-    <root level="${LOG_LEVEL:-error}">
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="org.sensorhub" level="${LOG_LEVEL:-error}">
+    <logger name="org.sensorhub" level="info">
         <appender-ref ref="MODULE_FILE" />
     </logger>
 
     <!-- Suppress verbose auth/session debug logs -->
-    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="${LOG_LEVEL:-error}" />
-    <logger name="org.sensorhub.impl.service.OshLoginService" level="${LOG_LEVEL:-error}" />
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="info" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="info" />
 
-    <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" />
-    <logger name="org.vast" level="${LOG_LEVEL:-error}"/>
+    <logger name="org.eclipse.jetty" level="warn" />
+    <logger name="org.vast" level="warn"/>
 
 </configuration>

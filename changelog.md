@@ -3,7 +3,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- **Global Log Level Configuration**: Added a `LOG_LEVEL` environment variable to `.env` (default `error`) which standardizes logging output across the OSH backend, PostGIS database, MediaMTX, and Caddy proxies.
 - **HMAC-SHA256 MQTT Ticket System**: Replaced the per-datasource proxy-token model with a centralized, short-lived signed ticket system. Tickets are HMAC-SHA256 signed and include proactive refresh logic in the frontend for continuous telemetry availability.
 - **RS350 Support**: Full end-to-end support for RS350 RPMs, including spreadsheet parsing/serialization, statistics counting for gamma/neutron alarms, and high-volume data retention.
 - **PostGIS CQL Guards**: Hardened CQL filtering targeting JSONB fields with `jsonb_typeof` guards to prevent cast errors and ensure correct inequality matching for missing fields.

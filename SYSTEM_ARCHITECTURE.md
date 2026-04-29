@@ -44,7 +44,6 @@ OSCAR is designed to scale from edge devices to enterprise environments. You can
 - **MediaMTX RTSP Server**: `8554` (Bound to host, intercepts camera streams)
 
 ### Network Flows:
-- **Logging Configuration**: The entire stack (OSH backend, PostGIS database, MediaMTX, and Caddy proxies) respects a global `LOG_LEVEL` environment variable defined in `.env` (default is `error`). This ensures clean output for production usage while allowing verbosity adjustments for troubleshooting.
 - **Client to OSH**: Clients interact with OSH through its REST API and Web UI via the reverse proxy on ports `80` or `443`. The system supports **Hybrid Ingress**:
   - **Tailscale Mesh**: Secure access via MagicDNS using Let's Encrypt certificates managed by Tailscale.
   - **LAN HTTPS Fallback**: Direct access over the local network using the dynamically generated Root CA and Server certificates.

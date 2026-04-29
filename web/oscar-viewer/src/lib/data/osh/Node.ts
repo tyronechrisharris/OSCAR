@@ -172,15 +172,14 @@ export class Node implements INode {
 
     private isLocalOrigin(): boolean {
         const currentHostname = window.location.hostname;
+        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+        const nodePort = this.port.toString();
 
         const isSameHost = (this.address === currentHostname) ||
                            (this.address === 'localhost' && currentHostname === '127.0.0.1') ||
                            (this.address === '127.0.0.1' && currentHostname === 'localhost');
 
-        // If the configured node address matches the browser's hostname, treat it as the local origin.
-        // We ignore port mismatches (e.g., node configured with internal 8282 vs browser on 443)
-        // to ensure all traffic routes correctly through the reverse proxy.
-        return isSameHost;
+        return isSameHost && (nodePort === currentPort);
     }
 
     getMqttOpts() {
@@ -225,16 +224,7 @@ export class Node implements INode {
                 // Parse the URL and extract what osh-js expects (host + path without trailing /mqtt)
                 // URL API doesn't support ws: well, so temporary replacement for parsing
                 const parsedUrl = new URL(wsUrlString.replace(/^ws/i, 'http'));
-
-                // If the backend returns a URL pointing to the backend's internal port (e.g., 8282),
-                // but the hostname matches the browser's current origin, we must route the WebSocket
-                // through the reverse proxy (window.location.host) instead of hitting the port directly.
-                let targetHost = parsedUrl.host;
-                if (parsedUrl.hostname === window.location.hostname) {
-                    targetHost = window.location.host;
-                }
-
-                const endpointUrl = targetHost + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
+                const endpointUrl = parsedUrl.host + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
                 Object.assign(this.networkProperties.mqttOpts, {
