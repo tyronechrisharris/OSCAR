@@ -23,14 +23,14 @@
     </encoder>
   </appender>
   
-  <root level="warn">
+  <root level="${LOG_LEVEL:-error}">
     <appender-ref ref="STDOUT" />
   </root>
-  <logger name="org.sensorhub" level="debug">
+  <logger name="org.sensorhub" level="${LOG_LEVEL:-error}">
     <appender-ref ref="MODULE_FILE" />
   </logger>
-  <logger name="org.sensorhub.impl.sensor.bno055" level="trace"/>
-  <logger name="org.eclipse.jetty" level="warn" />
-  <logger name="org.vast" level="warn"/>
+  <logger name="org.sensorhub.impl.sensor.bno055" level="${LOG_LEVEL:-error}"/>
+  <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" />
+  <logger name="org.vast" level="${LOG_LEVEL:-error}"/>
   
 </configuration>
