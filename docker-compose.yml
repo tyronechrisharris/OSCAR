@@ -230,6 +230,7 @@ services:
       osh-backend:
         condition: service_healthy
     environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
       - TAILSCALE_DOMAIN=${TAILSCALE_DOMAIN:-invalid.local}
     volumes:
       - caddy_data:/data
@@ -245,13 +246,11 @@ services:
       - /bin/sh
       - -c
       - |
-        cat << 'CADDY_EOF' > /etc/caddy/Caddyfile
-        {
-            log {
-                level ${LOG_LEVEL:-error}
-            }
-        }
-        CADDY_EOF
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
         echo "$$TAILSCALE_DOMAIN {" >> /etc/caddy/Caddyfile
         cat << 'CADDY_EOF' >> /etc/caddy/Caddyfile
             reverse_proxy http://osh-backend:8282 {
@@ -293,6 +292,8 @@ services:
     depends_on:
       osh-backend:
         condition: service_healthy
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-error}
     volumes:
       - caddy_data:/data
       - caddy_config:/config
@@ -306,12 +307,12 @@ services:
       - /bin/sh
       - -c
       - |
-        cat << 'CADDY_EOF' > /etc/caddy/Caddyfile
-        {
-            log {
-                level ${LOG_LEVEL:-error}
-            }
-        }
+        echo "{" > /etc/caddy/Caddyfile
+        echo "    log {" >> /etc/caddy/Caddyfile
+        echo "        level $$LOG_LEVEL" >> /etc/caddy/Caddyfile
+        echo "    }" >> /etc/caddy/Caddyfile
+        echo "}" >> /etc/caddy/Caddyfile
+        cat << 'CADDY_EOF' >> /etc/caddy/Caddyfile
         :443 {
             reverse_proxy http://osh-backend:8282 {
                 flush_interval -1
