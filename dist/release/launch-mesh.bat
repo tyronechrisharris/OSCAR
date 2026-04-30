@@ -27,11 +27,35 @@ if exist "%FULL_PATH%" (
     "Remove-Item $zip;"
 )
 
+if not exist "hivemq-config" mkdir "hivemq-config"
+
+echo Synchronizing hivemq-config\logback.xml...
+(
+echo ^<?xml version="1.0" encoding="UTF-8"?^>
+echo ^<configuration^>
+echo     ^<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"^>
+echo         ^<encoder^>
+echo             ^<pattern^>%%d{yyyy-MM-dd HH:mm:ss.SSS} %%-5level %%logger{0} [%%thread] - %%msg%%n^</pattern^>
+echo         ^</encoder^>
+echo     ^</appender^>
+echo     ^<root level="${LOG_LEVEL:-error}"^>
+echo         ^<appender-ref ref="STDOUT" /^>
+echo     ^</root^>
+echo     ^<logger name="org.sensorhub" level="${LOG_LEVEL:-error}" /^>
+echo     ^<logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" /^>
+echo     ^<logger name="com.zaxxer.hikari" level="${LOG_LEVEL:-error}" /^>
+echo     ^<logger name="org.hivemq" level="${LOG_LEVEL:-error}" /^>
+echo     ^<logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="${LOG_LEVEL:-error}" /^>
+echo     ^<logger name="org.sensorhub.impl.service.OshLoginService" level="${LOG_LEVEL:-error}" /^>
+echo ^</configuration^>
+) > "hivemq-config\logback.xml"
+
 echo Generating MediaMTX configuration...
 if not exist "%TARGET_DIR%mtx-secrets" mkdir "%TARGET_DIR%mtx-secrets"
 
 :: We generate a simplified configuration mimicking the docker-compose init-secrets process
 echo # MediaMTX Configuration for OSCAR (Auto-Generated Windows) > "%TARGET_DIR%mtx-secrets\mediamtx.yml"
+echo logLevel: %LOG_LEVEL:-error% >> "%TARGET_DIR%mtx-secrets\mediamtx.yml"
 echo api: true >> "%TARGET_DIR%mtx-secrets\mediamtx.yml"
 echo apiAddress: :9997 >> "%TARGET_DIR%mtx-secrets\mediamtx.yml"
 echo writeQueueSize: 1024 >> "%TARGET_DIR%mtx-secrets\mediamtx.yml"
