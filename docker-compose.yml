@@ -44,7 +44,7 @@ services:
         chown 999:999 /secrets/db-server.key /secrets/db-server.crt;
       fi;
 
-      if [ ! -f /mtx-secrets/mediamtx.yml ]; then
+      if [ ! -f /mtx-secrets/mediamtx.yml ] || [ "$$LOG_LEVEL" = "error" ]; then
         if [ "$$LOG_LEVEL" != "error" ]; then echo "Generating secure MediaMTX configuration in segmented volume..."; fi;
         PASS=$$(openssl rand -hex 16);
         USER="oscar-admin";

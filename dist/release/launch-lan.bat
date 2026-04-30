@@ -33,6 +33,7 @@ echo Synchronizing hivemq-config\logback.xml...
 (
 echo ^<?xml version="1.0" encoding="UTF-8"?^>
 echo ^<configuration^>
+echo     ^<statusListener class="ch.qos.logback.core.status.NopStatusListener" /^>
 echo     ^<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"^>
 echo         ^<encoder^>
 echo             ^<pattern^>%%d{yyyy-MM-dd HH:mm:ss.SSS} %%-5level %%logger{0} [%%thread] - %%msg%%n^</pattern^>

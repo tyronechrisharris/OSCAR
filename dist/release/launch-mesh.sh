@@ -28,6 +28,8 @@ echo "Synchronizing hivemq-config/logback.xml..."
 cat << 'INNER_EOF' > hivemq-config/logback.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Suppress logback's own internal status messages -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
     <!-- general logging in console -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">

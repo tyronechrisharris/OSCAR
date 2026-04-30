@@ -3,7 +3,9 @@
 # Disables shell globbing to protect JAVA_OPTS containing wildcards (e.g., 10.*)
 set -f
 
-echo "Waiting 30 seconds for PostGIS spatial extensions to settle..."
+if [ "${LOG_LEVEL:-error}" != "error" ]; then
+    echo "Waiting 30 seconds for PostGIS spatial extensions to settle..."
+fi
 sleep 30
 
 # Move to application directory
