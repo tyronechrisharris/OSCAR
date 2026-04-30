@@ -155,7 +155,8 @@ services:
       - ./osh-node-oscar/config:/app/config
       - ./osh-node-oscar/db:/app/db
       - ./osh-node-oscar/files:/app/files
-      - ./dist/config/standard/logback.xml:/app/hivemq-config/logback.xml:ro
+      - ./hivemq-config/logback.xml:/app/logback.xml:ro
+      - ./hivemq-config/logback.xml:/app/hivemq-config/logback.xml:ro
       - oscar_secrets:/secrets:ro
       - mtx_secrets:/mtx_secrets:ro
     networks:
@@ -270,6 +271,7 @@ services:
                 flush_interval -1
                 header_down Location http:// https://
             }
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
         :80 {
             reverse_proxy http://osh-backend:8282 {
@@ -317,6 +319,7 @@ services:
                 flush_interval -1
                 header_down Location http:// https://
             }
+            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
         :80 {
             reverse_proxy http://osh-backend:8282 {

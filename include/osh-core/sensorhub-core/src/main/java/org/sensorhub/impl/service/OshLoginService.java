@@ -333,6 +333,10 @@ public class OshLoginService implements LoginService
                     otp = possibleOtp;
                     providedPwd = providedPwd.substring(0, idx);
                 }
+                else if (possibleOtp.isEmpty())
+                {
+                    providedPwd = providedPwd.substring(0, idx);
+                }
             }
 
             // Check password
