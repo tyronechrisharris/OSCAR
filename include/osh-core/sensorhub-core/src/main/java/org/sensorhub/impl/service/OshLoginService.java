@@ -324,7 +324,7 @@ public class OshLoginService implements LoginService
             String otp = null;
 
             // Try to extract OTP from password (format password:otp)
-            if (providedPwd.length() > 6 && providedPwd.contains(":"))
+            if (providedPwd.contains(":"))
             {
                 int idx = providedPwd.lastIndexOf(':');
                 String possibleOtp = providedPwd.substring(idx + 1);

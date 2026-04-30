@@ -270,7 +270,6 @@ services:
                 flush_interval -1
                 header_down Location http:// https://
             }
-            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
         :80 {
             reverse_proxy http://osh-backend:8282 {
@@ -318,7 +317,6 @@ services:
                 flush_interval -1
                 header_down Location http:// https://
             }
-            tls /etc/caddy/certs/server.pem /etc/caddy/certs/server.key
         }
         :80 {
             reverse_proxy http://osh-backend:8282 {
