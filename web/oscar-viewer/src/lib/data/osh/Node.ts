@@ -386,8 +386,8 @@ export class Node implements INode {
         if (!systems || systems.length == 0) return;
 
         systems.sort((a, b) => {
-            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
-            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
+            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || a.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
+            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || b.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
             return aIsLane - bIsLane;
         });
 
@@ -395,7 +395,7 @@ export class Node implements INode {
 
         // filter into lanes
         for (let system of systems) {
-            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX)) {
+            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || system.properties.properties?.uid.includes("urn:sandia:system:")) {
                 let laneName = system.properties.properties.name;
 
                 if (laneMap.has(laneName)) {
@@ -420,14 +420,18 @@ export class Node implements INode {
                     const laneUid = entry.laneSystem?.properties?.properties?.uid;
                     if (!laneUid) continue;
 
-                    const laneParts = laneUid.split(":");
-                    const laneIdx = laneParts.indexOf("lane");
-                    if (laneIdx < 0) continue;
-
-                    const laneSuffix = laneParts[laneIdx + 1];
+                    let laneSuffix;
+                    if (laneUid.includes("urn:sandia:system:")) {
+                        laneSuffix = entry.laneName;
+                    } else {
+                        const laneParts = laneUid.split(":");
+                        const laneIdx = laneParts.indexOf("lane");
+                        if (laneIdx < 0) continue;
+                        laneSuffix = laneParts[laneIdx + 1];
+                    }
 
                     const isStandardSubsystem =
-                        uidParts[uidParts.length - 1] === laneSuffix;
+                        uidParts[uidParts.length - 1] === laneSuffix || uidParts[uidParts.length - 1] === entry.laneName;
 
                     let isFFmpegSubsystem = false;
 
