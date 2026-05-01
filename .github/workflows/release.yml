@@ -210,9 +210,27 @@ jobs:
 
       - name: Prepare Artifacts
         run: |
+          # 1. Create a lightweight oscar.zip containing only deployment scripts and configs
+          mkdir oscar_bundle
+          cp dist/release/launch-*.sh oscar_bundle/
+          cp dist/release/launch-*.bat oscar_bundle/
+          cp dist/release/stop-*.sh oscar_bundle/
+          cp dist/release/stop-*.bat oscar_bundle/
+          cp dist/release/reset-node.sh oscar_bundle/
+          cp docker-compose.yml oscar_bundle/
+          cp .env oscar_bundle/
+          cp .env.template oscar_bundle/
+
+          # Ensure all shell scripts are executable
+          chmod +x oscar_bundle/*.sh
+
+          # Create the small zip
+          zip -j oscar.zip oscar_bundle/*
+
+          # 2. Handle the main release artifact (the full stack zip)
           cd build/distributions
           # The artifact is named oscar-<version>.zip or osh-node-oscar-<version>.zip.
-          # We rename it to the release tag version format required: oscar_M-DD-YYYY_A.zip
+          # We rename it to the release tag version format required.
           ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
           if [ -n "$ORIGINAL_ZIP" ]; then
             mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
@@ -237,15 +255,5 @@ jobs:
           body: ${{ env.RELEASE_NOTES }}
           files: |
             build/distributions/${{ env.TAG_NAME }}.zip
-            docker-compose.yml
-            .env
-            .env.template
-            dist/release/launch-all.sh
-            dist/release/launch-all.bat
-            dist/release/launch-mesh.sh
-            dist/release/launch-mesh.bat
-            dist/release/launch-lan.sh
-            dist/release/launch-lan.bat
-            dist/release/stop-all.sh
-            dist/release/stop-all.bat
+            oscar.zip
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}
