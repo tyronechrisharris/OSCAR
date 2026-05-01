@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
@@ -57,6 +59,23 @@ jobs:
           echo "Contents of build/distributions:"
           ls -lah build/distributions || true
 
+      - name: Generate Incremental Date Tag
+        id: generate_tag
+        run: |
+          TODAY=$(date +'%Y%m%d')
+          LATEST_TAG=$(git tag -l "${TODAY}*" | sort -V | tail -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            SUFFIX="a"
+          else
+            LAST_CHAR="${LATEST_TAG: -1}"
+            SUFFIX=$(echo "$LAST_CHAR" | tr 'a-y' 'b-z')
+          fi
+
+          NEW_TAG="${TODAY}${SUFFIX}"
+          echo "Calculated new tag: $NEW_TAG"
+          echo "IMAGE_TAG=$NEW_TAG" >> $GITHUB_ENV
+
       - name: Determine Release Details
         id: release_info
         env:
@@ -67,13 +86,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           EOF_DELIM=$(cat /proc/sys/kernel/random/uuid)
-          DATE_STR=$(date +'%-m-%d-%Y')
-          TIME_STR=$(date +'%H%M')
-          BASE_TAG="oscar_${DATE_STR}"
+          TAG_NAME="${{ env.IMAGE_TAG }}"
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             if [ "${INPUT_TYPE}" = "latest" ]; then
-              TAG_NAME="${BASE_TAG}_${TIME_STR}"
               if [ -n "${INPUT_SUFFIX}" ]; then
                 CLEAN_SUFFIX=$(echo "${INPUT_SUFFIX}" | tr -dc '[:alnum:]_.-')
                 TAG_NAME="${TAG_NAME}_${CLEAN_SUFFIX}"
@@ -82,7 +98,7 @@ jobs:
               echo "RELEASE_NAME=Manual Production Release ${TAG_NAME}" >> $GITHUB_ENV
               echo "IS_PRERELEASE=false" >> $GITHUB_ENV
             else
-              TAG_NAME="${BASE_TAG}_dev_${TIME_STR}"
+              TAG_NAME="${TAG_NAME}_dev"
               if [ -n "${INPUT_SUFFIX}" ]; then
                 CLEAN_SUFFIX=$(echo "${INPUT_SUFFIX}" | tr -dc '[:alnum:]_.-')
                 TAG_NAME="${TAG_NAME}_${CLEAN_SUFFIX}"
@@ -97,16 +113,6 @@ jobs:
             echo "${EOF_DELIM}" >> $GITHUB_ENV
           else
             # Automated release from merged PR
-            # Find the next available letter suffix (A, B, C...)
-            SUFFIX="A"
-            for letter in {A..Z}; do
-              if ! gh release view "${BASE_TAG}_${letter}" >/dev/null 2>&1; then
-                SUFFIX="${letter}"
-                break
-              fi
-            done
-
-            TAG_NAME="${BASE_TAG}_${SUFFIX}"
             echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
             echo "RELEASE_NAME=Auto-Release ${TAG_NAME}" >> $GITHUB_ENV
             echo "IS_PRERELEASE=false" >> $GITHUB_ENV
@@ -116,6 +122,11 @@ jobs:
             echo "${PR_BODY}" >> $GITHUB_ENV
             echo "${EOF_DELIM}" >> $GITHUB_ENV
           fi
+
+      - name: Prepare Release Environment File
+        run: |
+          cp .env.template .env
+          sed -i "s/IMAGE_TAG=.*/IMAGE_TAG=${{ env.IMAGE_TAG }}/" .env
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -169,14 +180,14 @@ jobs:
 
           if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
             # Production Release (Manual or Merged PR)
-            echo "Building and pushing Production images with tags: latest and ${{ env.TAG_NAME }}"
-            BACKEND_TAGS="-t ${DOCKER_USER}/oscar-backend:latest -t ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }}"
-            POSTGIS_TAGS="-t ${DOCKER_USER}/oscar-postgis:latest -t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }}"
+            echo "Building and pushing Production images with tags: latest and ${{ env.IMAGE_TAG }}"
+            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:latest -t ${DOCKER_USER}/osh-backend:${{ env.IMAGE_TAG }}"
+            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:latest -t ${DOCKER_USER}/postgis:${{ env.IMAGE_TAG }}"
           else
             # Dev Release
-            echo "Building and pushing Dev images with tag: ${{ env.TAG_NAME }}"
-            BACKEND_TAGS="-t ${DOCKER_USER}/oscar-backend:${{ env.TAG_NAME }}"
-            POSTGIS_TAGS="-t ${DOCKER_USER}/oscar-postgis:${{ env.TAG_NAME }}"
+            echo "Building and pushing Dev images with tag: ${{ env.IMAGE_TAG }}"
+            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:${{ env.IMAGE_TAG }}"
+            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:${{ env.IMAGE_TAG }}"
           fi
 
           # OSH Backend
@@ -219,7 +230,8 @@ jobs:
           files: |
             build/distributions/${{ env.TAG_NAME }}.zip
             docker-compose.yml
-            .env.example
+            .env
+            .env.template
             dist/release/launch-all.sh
             dist/release/launch-all.bat
             dist/release/launch-mesh.sh

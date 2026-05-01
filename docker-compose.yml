@@ -82,7 +82,7 @@ services:
     depends_on:
       init-secrets:
         condition: service_completed_successfully
-    image: harristc825/oscar-postgis:${OSCAR_VERSION:-latest}
+    image: tyronechrisharris/postgis:${IMAGE_TAG:-latest}
     container_name: oscar-postgis-container
     logging:
       driver: "json-file"
@@ -126,7 +126,7 @@ services:
       start_period: 60s
 
   osh-backend:
-    image: harristc825/oscar-backend:${OSCAR_VERSION:-latest}
+    image: tyronechrisharris/osh-backend:${IMAGE_TAG:-latest}
     container_name: oscar-backend-container
     logging:
       driver: "json-file"
