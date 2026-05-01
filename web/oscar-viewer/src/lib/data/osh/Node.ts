@@ -308,7 +308,10 @@ export class Node implements INode {
             return window.location.origin + path;
         }
 
-        const protocol = this.isSecure ? 'https:' : 'http:';
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
         // Ensure host does not already contain a protocol to prevent double-protocol bugs
         const host = this.address.replace(/^https?:?\/\//i, '');
         const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
@@ -329,7 +332,10 @@ export class Node implements INode {
             return window.location.origin + path;
         }
 
-        const protocol = this.isSecure ? 'https:' : 'http:';
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
         const host = this.address.replace(/^https?:?\/\//i, '');
         const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
 

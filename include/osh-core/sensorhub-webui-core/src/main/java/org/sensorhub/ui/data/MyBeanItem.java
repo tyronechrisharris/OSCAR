@@ -115,6 +115,9 @@ public class MyBeanItem<BeanType> implements Item
                 Class<?> eltType = (Class<?>)listType.getActualTypeArguments()[0];
                 
                 Collection<?> listObj = (Collection<?>)fieldVal;
+                if (listObj != null) {
+                    listObj = new java.util.ArrayList<>(listObj);
+                }
                 MyBeanItemContainer<Object> container = new MyBeanItemContainer<>(listObj, eltType, fullName + PROP_SEPARATOR);
                 addItemProperty(fullName, new ContainerProperty(bean, f, container));
             }
@@ -132,6 +135,9 @@ public class MyBeanItem<BeanType> implements Item
                 Class<?> eltType = (Class<?>)mapType.getActualTypeArguments()[1];
                 
                 Map<String, ?> mapObj = (Map<String, ?>)fieldVal;
+                if (mapObj != null) {
+                    mapObj = new java.util.LinkedHashMap<>(mapObj);
+                }
                 MyBeanItemContainer<Object> container = new MyBeanItemContainer<>(mapObj, eltType, fullName + PROP_SEPARATOR);
                 addItemProperty(fullName, new MapProperty(bean, f, container));
             }
