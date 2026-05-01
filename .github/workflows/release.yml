@@ -123,11 +123,6 @@ jobs:
             echo "${EOF_DELIM}" >> $GITHUB_ENV
           fi
 
-      - name: Prepare Release Environment File
-        run: |
-          cp .env.template .env
-          sed -i "s/IMAGE_TAG=.*/IMAGE_TAG=${{ env.IMAGE_TAG }}/" .env
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -180,14 +175,14 @@ jobs:
 
           if [ "${{ env.IS_PRERELEASE }}" = "false" ]; then
             # Production Release (Manual or Merged PR)
-            echo "Building and pushing Production images with tags: latest and ${{ env.IMAGE_TAG }}"
-            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:latest -t ${DOCKER_USER}/osh-backend:${{ env.IMAGE_TAG }}"
-            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:latest -t ${DOCKER_USER}/postgis:${{ env.IMAGE_TAG }}"
+            echo "Building and pushing Production images with tags: latest and ${{ env.TAG_NAME }}"
+            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:latest -t ${DOCKER_USER}/osh-backend:${{ env.TAG_NAME }}"
+            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:latest -t ${DOCKER_USER}/postgis:${{ env.TAG_NAME }}"
           else
             # Dev Release
-            echo "Building and pushing Dev images with tag: ${{ env.IMAGE_TAG }}"
-            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:${{ env.IMAGE_TAG }}"
-            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:${{ env.IMAGE_TAG }}"
+            echo "Building and pushing Dev images with tag: ${{ env.TAG_NAME }}"
+            BACKEND_TAGS="-t ${DOCKER_USER}/osh-backend:${{ env.TAG_NAME }}"
+            POSTGIS_TAGS="-t ${DOCKER_USER}/postgis:${{ env.TAG_NAME }}"
           fi
 
           # OSH Backend
@@ -199,6 +194,19 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 --push \
             ${POSTGIS_TAGS} \
             -f ./postgis/Dockerfile ./postgis
+
+      - name: Prepare Release Environment File
+        run: |
+          # The extraction process above might have brought in its own .env.template
+          # Ensure we are using the one from the build context and updating it.
+          if [ -f .env.template ]; then
+            cp .env.template .env
+            sed -i "s/IMAGE_TAG=.*/IMAGE_TAG=${{ env.TAG_NAME }}/" .env
+            sed -i "s/IMAGE_TAG=.*/IMAGE_TAG=${{ env.TAG_NAME }}/" .env.template
+          else
+            echo "WARNING: .env.template not found after extraction. Falling back to simple .env creation."
+            echo "IMAGE_TAG=${{ env.TAG_NAME }}" > .env
+          fi
 
       - name: Prepare Artifacts
         run: |
