@@ -27,10 +27,13 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.util.security.Credential;
 import org.sensorhub.api.security.ISecurityManager;
 import org.sensorhub.api.security.IUserInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class OshLoginService implements LoginService
 {
+    private static final Logger log = LoggerFactory.getLogger(OshLoginService.class);
     final ISecurityManager securityManager;
     IdentityService identityService = new DefaultIdentityService();
 
