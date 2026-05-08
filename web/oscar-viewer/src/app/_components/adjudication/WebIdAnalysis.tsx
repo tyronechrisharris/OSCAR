@@ -222,7 +222,7 @@ export default function WebIdAnalysis(props: {
                 <Stack direction={"column"} spacing={1}>
                     <Typography variant="h5">{t('webIdAnalysisLog')}</Typography>
                 </Stack>
-                <Box sx={{ width: '100%' }}>
+                <Box sx={{ height: 400, width: '100%' }}>
                     <DataGrid
                         rows={filteredLog}
                         columns={logColumns}

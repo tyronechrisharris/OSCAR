@@ -18,6 +18,14 @@ public class ConnectionManager {
 
     private static final Logger log = LoggerFactory.getLogger(ConnectionManager.class);
 
+    // HikariCP Configuration Constants
+    private static final int MAX_POOL_SIZE = 8;
+    private static final int MIN_IDLE_CONNECTIONS = 0;
+    private static final long CONNECTION_TIMEOUT_MS = 30_000L;
+    private static final long MAX_LIFETIME_MS = 15 * 60 * 1000L;
+    private static final long KEEPALIVE_TIME_MS = 5 * 60 * 1000L;
+    private static final long IDLE_TIMEOUT_MS = 2 * 60 * 1000L;
+
     public enum BatchStatus {
         SUCCESS,        // code >= 0
         SUCCESS_UNKNOWN, // code == -2
@@ -32,6 +40,7 @@ public class ConnectionManager {
     private int batchSize = 100;
     protected final ConcurrentLinkedDeque<String> batchList = new ConcurrentLinkedDeque<>();
     protected final ReentrantLock transactionLock = new ReentrantLock();
+
     /**
      * Use separate ThreadSafeBatchExecutor to execute batch queries
      * @param url
@@ -77,15 +86,17 @@ public class ConnectionManager {
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(login);
         config.setPassword(effectivePassword);
-        config.setMaximumPoolSize(20);
-        config.setConnectionTimeout(1000 * 60 * 5); // 5 minutes
+        
+        // Apply constants
+        config.setMaximumPoolSize(MAX_POOL_SIZE);
+        config.setMinimumIdle(MIN_IDLE_CONNECTIONS);
+        config.setConnectionTimeout(CONNECTION_TIMEOUT_MS);
+        config.setMaxLifetime(MAX_LIFETIME_MS);
+        config.setKeepaliveTime(KEEPALIVE_TIME_MS);
+        config.setIdleTimeout(IDLE_TIMEOUT_MS);
+        
         config.setInitializationFailTimeout(180000); // 3 minutes
 
-        config.setMaxLifetime(20 * 60 * 1000);      // 20 minutes
-        config.setKeepaliveTime(5 * 60 * 1000);     // 5 minutes
-        config.setIdleTimeout(10 * 60 * 1000);
-
-//                        config.setMaximumPoolSize(200_000);
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -124,6 +135,7 @@ public class ConnectionManager {
             this.commit();
         }
     }
+    
     protected void commitBatch() {
         if(batchList.isEmpty()) {
             return;
@@ -161,6 +173,7 @@ public class ConnectionManager {
         }
 
     }
+    
     public void commit() {
         try {
             this.commitBatch();
