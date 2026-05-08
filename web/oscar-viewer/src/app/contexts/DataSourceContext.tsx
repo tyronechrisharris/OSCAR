@@ -60,9 +60,17 @@ export default function DataSourceProvider({children}: { children: ReactNode }) 
                 await node.fetchDataStreams(nodeLaneMap);
                 await node.fetchLaneControlStreams(nodeLaneMap);
 
+                await node.prepareMqtt();
 
                 for (const [key, mapEntry] of nodeLaneMap.entries()) {
                     try {
+                        const mqttOpts = node.getMqttOpts();
+                        console.info(`[MQTT Init] creating datasources for ${key} on ${node.name}`, {
+                            endpointUrl: mqttOpts?.endpointUrl,
+                            username: mqttOpts?.username,
+                            mqttPath: mqttOpts?.mqttPath,
+                            hasPassword: !!mqttOpts?.password
+                        });
                         mapEntry.addDefaultConSysApis();
                     } catch (e) {
                         console.error(`[ERROR] addDefaultConSysApis failed for ${key}:`, e);

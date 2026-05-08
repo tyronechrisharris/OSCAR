@@ -59,9 +59,12 @@ public class OshAuthenticator implements SimpleAuthenticator
                     String ticketStr = new String(pwd);
                     String ticketUser = MqttTicketUtils.validateTicket(ticketStr);
                     if (ticketUser != null) {
+                        oshExt.log.info("MQTT ticket auth success: user={}", ticketUser);
                         authInput.getConnectionInformation().getConnectionAttributeStore().putAsString(MQTT_USER_PROP, ticketUser);
                         authOutput.authenticateSuccessfully();
                         return;
+                    } else {
+                        oshExt.log.warn("MQTT ticket auth failed");
                     }
                 }
 
