@@ -16,7 +16,7 @@ export default function HLSVideoComponent({videoSource, selectedNode}: {videoSou
         if (!videoSource || !selectedNode || !videoRef.current)
             return;
 
-        const tls = selectedNode.isSecure ? "s" : "";
+        const tls = selectedNode.isSecure || (typeof window !== 'undefined' && window.location.protocol === 'https:') ? "s" : "";
         const src = `http${tls}://${selectedNode.address}:${selectedNode.port}${selectedNode.oshPathRoot}/buckets/${videoSource}`
 
         const loadHls = async () => {

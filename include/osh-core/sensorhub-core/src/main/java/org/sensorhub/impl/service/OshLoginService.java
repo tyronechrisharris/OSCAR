@@ -27,10 +27,13 @@ import org.eclipse.jetty.server.UserIdentity;
 import org.eclipse.jetty.util.security.Credential;
 import org.sensorhub.api.security.ISecurityManager;
 import org.sensorhub.api.security.IUserInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class OshLoginService implements LoginService
 {
+    private static final Logger log = LoggerFactory.getLogger(OshLoginService.class);
     final ISecurityManager securityManager;
     IdentityService identityService = new DefaultIdentityService();
 
@@ -51,15 +54,11 @@ public class OshLoginService implements LoginService
     public static String getBridgedUser(HttpServletRequest req, ISecurityManager securityManager)
     {
         try {
-            System.err.println("--- [DEBUG] getBridgedUser called for path: " + req.getRequestURI());
-            System.err.println("--- [DEBUG] Remote user: " + req.getRemoteUser());
             // 1. First check local session for performance
             javax.servlet.http.HttpSession localSession = req.getSession(false);
             if (localSession != null) {
-                System.err.println("--- [DEBUG] localSession id: " + localSession.getId());
                 String user = (String) localSession.getAttribute("VERIFIED_USER");
                 if (user != null) {
-                    System.err.println("--- [DEBUG] found VERIFIED_USER in localSession: " + user);
                     return user;
                 }
 
@@ -70,17 +69,13 @@ public class OshLoginService implements LoginService
                         String found = entry.substring(cid.length() + 1);
                         localSession.setAttribute("VERIFIED_USER", found);
                         localSession.setAttribute("2FA_VERIFIED", true);
-                        System.err.println("--- [DEBUG] found VERIFIED_USER via bridged localSession: " + found);
                         return found;
                     }
                 }
-            } else {
-                System.err.println("--- [DEBUG] localSession is null");
             }
 
             // 2. Search all cookies for a bridged session
             String cookieHeader = req.getHeader("Cookie");
-            System.err.println("--- [DEBUG] Cookie header: " + cookieHeader);
             if (cookieHeader != null) {
                 for (String cookie : cookieHeader.split(";")) {
                     String[] parts = cookie.trim().split("=", 2);
@@ -97,7 +92,6 @@ public class OshLoginService implements LoginService
                                         localSession.setAttribute("2FA_VERIFIED", true);
                                         localSession.setAttribute("VERIFIED_USER", foundUser);
                                     }
-                                    System.err.println("--- [DEBUG] found user via cookie JSESSIONID bridge: " + foundUser);
                                     return foundUser;
                                 }
                             }
@@ -105,17 +99,10 @@ public class OshLoginService implements LoginService
                     }
                 }
             }
-
-            // Check auth header directly to see if it's there
-            String authHeader = req.getHeader("Authorization");
-            if (authHeader != null) {
-                System.err.println("--- [DEBUG] Authorization header is present: " + authHeader.substring(0, Math.min(10, authHeader.length())) + "...");
-            }
-
         } catch (Exception e) {
-            System.err.println("--- [DEBUG] Error in getBridgedUser: " + e.getMessage());
+            // Only log if something goes fundamentally wrong
+            log.warn("Error in getBridgedUser", e);
         }
-        System.err.println("--- [DEBUG] getBridgedUser returning null");
         return null;
     }
 
@@ -163,7 +150,7 @@ public class OshLoginService implements LoginService
                 }
             }
         } catch (Exception e) {
-            System.err.println("--- [DEBUG] Error validating API key: " + e.getMessage());
+            log.warn("Error validating API key", e);
         }
 
         return null;
@@ -324,13 +311,17 @@ public class OshLoginService implements LoginService
             String otp = null;
 
             // Try to extract OTP from password (format password:otp)
-            if (providedPwd.length() > 6 && providedPwd.contains(":"))
+            if (providedPwd.contains(":"))
             {
                 int idx = providedPwd.lastIndexOf(':');
                 String possibleOtp = providedPwd.substring(idx + 1);
                 if (possibleOtp.length() == 6 && possibleOtp.chars().allMatch(Character::isDigit))
                 {
                     otp = possibleOtp;
+                    providedPwd = providedPwd.substring(0, idx);
+                }
+                else if (possibleOtp.isEmpty())
+                {
                     providedPwd = providedPwd.substring(0, idx);
                 }
             }

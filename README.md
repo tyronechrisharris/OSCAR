@@ -7,16 +7,15 @@ The easiest way to begin using OSCAR is to use the pre-built release assets.
 
 1. **Ensure Docker is installed and running** on your system.
 2. Navigate to the **Latest Release** on GitHub.
-3. Download the following required files:
+3. Download and extract **`oscar.zip`**. This bundle contains all the necessary deployment scripts and configuration files, including:
    - `docker-compose.yml`
    - `.env.example`
-   - `stop-all.sh` (or `stop-all.bat` for Windows)
-4. Download the **launch script** that matches your desired architecture and operating system:
-   - **LAN-Only Deployment:** Download `launch-lan.sh` (or `launch-lan.bat`). Use this if you only want to access the system over your local network.
-   - **Tailscale Mesh Deployment:** Download `launch-mesh.sh` (or `launch-mesh.bat`). Use this to securely expose the system over Tailscale.
-5. Rename `.env.example` to `.env`.
+   - `launch-lan.sh` / `launch-lan.bat`
+   - `launch-mesh.sh` / `launch-mesh.bat`
+   - `stop-all.sh` / `stop-all.bat`
+4. Rename `.env.example` to `.env`.
    - **If using Mesh:** Open `.env` and configure `TS_AUTHKEY` with your Tailscale auth key, and `TAILSCALE_DOMAIN` with your static Tailnet URL.
-6. Launch the system by running your downloaded launch script (e.g., `./launch-mesh.sh`).
+5. Launch the system by running the launch script that matches your desired deployment type (e.g., `./launch-mesh.sh` for Mesh or `./launch-lan.sh` for LAN-only).
 7. Access the system:
    - **LAN:** Open `https://localhost` or `http://localhost` (or the machine IP) in your browser.
    - **Mesh:** Open `https://[your-tailscale-domain]` in your browser.

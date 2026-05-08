@@ -314,6 +314,12 @@ public class RequestContext
     {
         return data;
     }
+
+
+    public HttpServletResponse getResponse()
+    {
+        return resp;
+    }
     
     
     public void setData(Object data)

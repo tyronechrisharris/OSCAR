@@ -681,7 +681,7 @@ public class MpegTsProcessor extends Thread {
 
         try {
             // Create an AV packet container to pass data to demuxer
-            avPacket = new AVPacket();
+            avPacket = avcodec.av_packet_alloc();
 
             // Read frames
             long startTime = System.currentTimeMillis();
@@ -691,10 +691,12 @@ public class MpegTsProcessor extends Thread {
 
             while (!terminateProcessing.get() && (retCode = av_read_frame(avFormatContext, avPacket)) >= 0) {
                 boolean skipProcessing = true;
-                for (DataBufferListener listener : videoDataBufferListeners.keySet()) {
-                    if (listener.isWriting()) {
-                        skipProcessing = false;
-                        break;
+                synchronized (videoDataBufferListeners) {
+                    for (DataBufferListener listener : videoDataBufferListeners.keySet()) {
+                        if (listener.isWriting()) {
+                            skipProcessing = false;
+                            break;
+                        }
                     }
                 }
                 if (skipProcessing) {
@@ -781,7 +783,8 @@ public class MpegTsProcessor extends Thread {
             if (avPacket != null)
             {
                 av_packet_unref(avPacket);
-                avPacket.deallocate();
+                av_packet_free(avPacket);
+                avPacket = null;
             }
         }
     }
@@ -818,6 +821,19 @@ public class MpegTsProcessor extends Thread {
             }
 
             streamOpened = false;
+        }
+
+        synchronized (videoDataBufferListeners) {
+            videoDataBufferListeners.clear();
+        }
+
+        if (decodeQueue != null) {
+            AVPacket p;
+            while ((p = decodeQueue.poll()) != null) {
+                av_packet_unref(p);
+                av_packet_free(p);
+            }
+            decodeQueue.clear();
         }
     }
 

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Suppress logback's own internal status messages -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
     <!-- general logging in console -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -8,12 +10,17 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="${LOG_LEVEL:-error}">
         <appender-ref ref="STDOUT" />
     </root>
 
+    <logger name="org.sensorhub" level="${LOG_LEVEL:-error}" />
+    <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" />
+    <logger name="com.zaxxer.hikari" level="${LOG_LEVEL:-error}" />
+    <logger name="org.hivemq" level="${LOG_LEVEL:-error}" />
+
     <!-- Suppress verbose auth/session debug logs -->
-    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="WARN" />
-    <logger name="org.sensorhub.impl.service.OshLoginService" level="WARN" />
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="${LOG_LEVEL:-error}" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="${LOG_LEVEL:-error}" />
 
 </configuration>

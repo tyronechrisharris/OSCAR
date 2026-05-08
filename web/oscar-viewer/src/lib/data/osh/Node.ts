@@ -38,7 +38,7 @@ export interface INode {
     lowerLeftBound: LatLngExpression;
     upperRightBound: LatLngExpression;
 
-    getConnectedSystemsEndpoint(noProtocolPrefix: boolean): string,
+    getConnectedSystemsEndpoint(noProtocolPrefix?: boolean): string,
 
     getBasicAuthHeader(): any,
 
@@ -73,6 +73,8 @@ export interface INode {
     getControlStreamApi(): typeof ControlStreams
 
     getObservationsApi(): typeof Observations
+
+    getMqttOpts(): any
 
     setSiteMapPath(path: string): void
 
@@ -117,10 +119,16 @@ export class Node implements INode {
     oscarServiceSystem: typeof System;
     controlStreamApi: typeof ControlStreams;
 
+    private mqttTicket: any = null;
+    private mqttTicketPromise: Promise<any> | null = null;
+    private mqttRefreshTimer: any = null;
+    private networkProperties: any;
+
     constructor(options: NodeOptions) {
-        this.id = "node-" + hashString(options.address + "-" + options.port); // TODO: maybe do something else here
+        this.id = "node-" + hashString(options.address + "-" + options.port);
         this.name = options.name;
-        this.address = options.address;
+        // Normalize address: remove protocol, port, and trailing slashes
+        this.address = options.address.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0];
         this.port = options.port;
         this.oshPathRoot = options.oshPathRoot || '/sensorhub';
         this.csAPIEndpoint = options.csAPIEndpoint || '/api';
@@ -129,51 +137,133 @@ export class Node implements INode {
         this.isSecure = options.isSecure || false;
         this.isDefaultNode = options.isDefaultNode || false;
 
-
-        let endpointUrl = `${this.address}:${this.port}${this.oshPathRoot}`;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
-            shared: true,
-            prefix: this.csAPIEndpoint,
-            endpointUrl: endpointUrl,
-            keepalive: 15
-        }
-
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.auth.username;
-            if (this.auth?.password) {
-                mqttOpts.password = this.auth.password;
-            }
-        }
-
-        let networkProperties = {
-            endpointUrl: `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`,
+        // Initialize network properties.
+        // Note: ConsysAPI/osh-js often prepends '//' or protocol, so we provide host+path without leading slash.
+        this.networkProperties = {
+            endpointUrl: this.getConnectedSystemsEndpoint(true),
             tls: this.isSecure,
             streamProtocol: "mqtt",
-            mqttOpts: mqttOpts,
+            mqttOpts: {
+                shared: true,
+                prefix: this.csAPIEndpoint,
+                endpointUrl: this.isLocalOrigin() ? `${window.location.host}${this.oshPathRoot}` : `${this.address}${this.port && this.port !== 80 && this.port !== 443 ? ':' + this.port : ''}${this.oshPathRoot}`,
+                keepalive: 15
+            },
             connectorOpts: {
                 username: this.auth?.username,
-                password: this.auth?.password
+                password: this.auth?.password,
+                credentials: 'include' // Ensure session cookies are sent for all API requests
             }
         }
 
-        this.dataStreamsApi = new DataStreams(networkProperties);
-        this.systemsApi = new Systems(networkProperties);
-        this.observationsApi = new Observations(networkProperties);
-        this.controlStreamApi = new ControlStreams(networkProperties);
+        // Initialize API instances with shared networkProperties
+        this.dataStreamsApi = new DataStreams(this.networkProperties);
+        this.systemsApi = new Systems(this.networkProperties);
+        this.observationsApi = new Observations(this.networkProperties);
+        this.controlStreamApi = new ControlStreams(this.networkProperties);
         this.oscarServiceSystem = options.oscarServiceSystem || null;
 
+        // Initial credential setup
+        if (this.auth?.username) {
+            this.networkProperties.mqttOpts.username = this.auth.username;
+            this.networkProperties.mqttOpts.password = this.auth.password;
+        }
+    }
+
+    private isLocalOrigin(): boolean {
+        const currentHostname = window.location.hostname;
+
+        const isSameHost = (this.address === currentHostname) ||
+                           (this.address === 'localhost' && currentHostname === '127.0.0.1') ||
+                           (this.address === '127.0.0.1' && currentHostname === 'localhost');
+
+        // If the configured node address matches the browser's hostname, treat it as the local origin.
+        // We ignore port mismatches (e.g., node configured with internal 8282 vs browser on 443)
+        // to ensure all traffic routes correctly through the reverse proxy.
+        return isSameHost;
+    }
+
+    getMqttOpts() {
+        return this.networkProperties.mqttOpts;
+    }
+
+    private async ensureMqttTicket() {
+        if (this.mqttTicket && new Date(this.mqttTicket.expiresAt).getTime() > Date.now() + 60000) {
+            return this.mqttTicket;
+        }
+
+        if (this.mqttTicketPromise) {
+            return this.mqttTicketPromise;
+        }
+
+        this.mqttTicketPromise = (async () => {
+            try {
+                const apiEndpoint = this.getConnectedSystemsEndpoint();
+                const response = await fetch(`${apiEndpoint}/mqtt-ticket`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        ...this.getBasicAuthHeader(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch MQTT ticket: ${response.status}`);
+                }
+
+                const ticket = await response.json();
+                this.mqttTicket = ticket;
+
+                // Derive absolute WebSocket URL - handle relative URLs returned for local node
+                let wsUrlString = ticket.url;
+                if (wsUrlString && wsUrlString.startsWith('/')) {
+                    const protocol = window.location.protocol.startsWith('https') ? 'wss:' : 'ws:';
+                    wsUrlString = `${protocol}//${window.location.host}${wsUrlString}`;
+                }
+
+                // Parse the URL and extract what osh-js expects (host + path without trailing /mqtt)
+                // URL API doesn't support ws: well, so temporary replacement for parsing
+                const parsedUrl = new URL(wsUrlString.replace(/^ws/i, 'http'));
+                let targetHost = parsedUrl.host;
+
+                // If the configured node address matches the browser's hostname, route the WebSocket
+                // through the reverse proxy (window.location.host) instead of hitting the port directly.
+                // We also check against window.location.hostname in case the backend resolved a bare MagicDNS or local name
+                // Ignore matching 'localhost' if we are not operating natively on localhost
+                if (
+                    this.address === window.location.hostname ||
+                    parsedUrl.hostname === window.location.hostname ||
+                    (parsedUrl.hostname === 'localhost' && window.location.hostname === '127.0.0.1') ||
+                    (parsedUrl.hostname === '127.0.0.1' && window.location.hostname === 'localhost') ||
+                    window.location.hostname.endsWith('ts.net') // Always override local IP with Tailscale MagicDNS
+                ) {
+                     targetHost = window.location.host;
+                }
+
+                const endpointUrl = targetHost + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
+
+                // Update the shared mqttOpts object so reconnects pick up new credentials
+                Object.assign(this.networkProperties.mqttOpts, {
+                    endpointUrl: endpointUrl,
+                    username: ticket.username,
+                    password: ticket.password,
+                    mqttPath: '/mqtt'
+                });
+
+                // Schedule proactive refresh
+                if (this.mqttRefreshTimer) clearTimeout(this.mqttRefreshTimer);
+                this.mqttRefreshTimer = setTimeout(() => {
+                    this.ensureMqttTicket();
+                }, ticket.refreshAfterSeconds * 1000);
+
+                return this.mqttTicket;
+            } finally {
+                this.mqttTicketPromise = null;
+            }
+        })();
+
+        return this.mqttTicketPromise;
     }
 
     getOscarServiceSystem() {
@@ -200,24 +290,59 @@ export class Node implements INode {
         this.lowerLeftBound = latLon;
     }
 
-    setUpperRightBox(latLon: LatLngExpression) {
-        this.upperRightBound = latLon;
+    setUpperRightBox(latLong: LatLngExpression) {
+        this.upperRightBound = latLong;
     }
 
     getDataStreamsApi(): typeof DataStreams {
         return this.dataStreamsApi;
     }
 
-    getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false) {
-        let protocol = this.isSecure ? 'https' : 'http';
-        return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`
-            : `${protocol}://${this.address}:${this.port}${this.oshPathRoot}${this.csAPIEndpoint}`;
+    getConnectedSystemsEndpoint(noProtocolPrefix: boolean = false): string {
+        const path = this.oshPathRoot + this.csAPIEndpoint;
+
+        if (this.isLocalOrigin()) {
+            if (noProtocolPrefix) {
+                return window.location.host + path;
+            }
+            return window.location.origin + path;
+        }
+
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
+        // Ensure host does not already contain a protocol to prevent double-protocol bugs
+        const host = this.address.replace(/^https?:?\/\//i, '');
+        const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
+
+        if (noProtocolPrefix) {
+            return hostPort + path;
+        }
+        return `${protocol}//${hostPort}${path}`;
     }
 
-    getFileServerEndpoint(noProtocolPrefix: boolean = false) {
-        let protocol = this.isSecure ? 'https' : 'http';
-        return noProtocolPrefix ? `${this.address}:${this.port}${this.oshPathRoot}/buckets`
-            : `${protocol}://${this.address}:${this.port}${this.oshPathRoot}/buckets`;
+    getFileServerEndpoint(noProtocolPrefix: boolean = false): string {
+        const path = this.oshPathRoot + '/buckets';
+
+        if (this.isLocalOrigin()) {
+            if (noProtocolPrefix) {
+                return window.location.host + path;
+            }
+            return window.location.origin + path;
+        }
+
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
+        const host = this.address.replace(/^https?:?\/\//i, '');
+        const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
+
+        if (noProtocolPrefix) {
+            return hostPort + path;
+        }
+        return `${protocol}//${hostPort}${path}`;
     }
 
     getBasicAuthHeader() {
@@ -232,6 +357,7 @@ export class Node implements INode {
         const response = await fetch(ep, {
             method: 'GET',
             mode: 'cors',
+            credentials: 'include',
             headers: {
                 ...this.getBasicAuthHeader(),
                 'Content-Type': 'application/sml+json'
@@ -247,8 +373,8 @@ export class Node implements INode {
     }
 
     async fetchLaneSystemsAndSubsystems(): Promise<Map<string, LaneMapEntry>> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
 
-        // check if node is reachable first
         const isReachable = await this.checkForEndpoint();
 
         if (!isReachable) {
@@ -260,8 +386,8 @@ export class Node implements INode {
         if (!systems || systems.length == 0) return;
 
         systems.sort((a, b) => {
-            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
-            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
+            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || a.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
+            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || b.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
             return aIsLane - bIsLane;
         });
 
@@ -269,7 +395,7 @@ export class Node implements INode {
 
         // filter into lanes
         for (let system of systems) {
-            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX)) {
+            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || system.properties.properties?.uid.includes("urn:sandia:system:")) {
                 let laneName = system.properties.properties.name;
 
                 if (laneMap.has(laneName)) {
@@ -294,14 +420,18 @@ export class Node implements INode {
                     const laneUid = entry.laneSystem?.properties?.properties?.uid;
                     if (!laneUid) continue;
 
-                    const laneParts = laneUid.split(":");
-                    const laneIdx = laneParts.indexOf("lane");
-                    if (laneIdx < 0) continue;
-
-                    const laneSuffix = laneParts[laneIdx + 1];
+                    let laneSuffix;
+                    if (laneUid.includes("urn:sandia:system:")) {
+                        laneSuffix = entry.laneName;
+                    } else {
+                        const laneParts = laneUid.split(":");
+                        const laneIdx = laneParts.indexOf("lane");
+                        if (laneIdx < 0) continue;
+                        laneSuffix = laneParts[laneIdx + 1];
+                    }
 
                     const isStandardSubsystem =
-                        uidParts[uidParts.length - 1] === laneSuffix;
+                        uidParts[uidParts.length - 1] === laneSuffix || uidParts[uidParts.length - 1] === entry.laneName;
 
                     let isFFmpegSubsystem = false;
 
@@ -335,6 +465,7 @@ export class Node implements INode {
     }
 
     async fetchSystems(): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let systemsApi = this.getSystemsApi();
 
         let searchedSystems = await systemsApi.searchSystems(new SystemFilter({ searchMembers: true, validTime: "latest" }), 500);
@@ -353,6 +484,7 @@ export class Node implements INode {
     }
 
     async fetchObservations(): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(new ObservationFilter(), 100);
@@ -371,6 +503,7 @@ export class Node implements INode {
     }
 
     async fetchLatestObservationWithFilter(observationFilter: typeof ObservationFilter) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(observationFilter, 1);
@@ -380,6 +513,7 @@ export class Node implements INode {
     }
 
     async fetchObservationsWithFilter(observationFilter: typeof ObservationFilter): Promise<any[]> {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let observationsApi = this.getObservationsApi();
 
         let searchedObservations = await observationsApi.searchObservations(observationFilter, 100);
@@ -398,6 +532,7 @@ export class Node implements INode {
     }
 
     async fetchDataStreams(laneMap: Map<string, LaneMapEntry>) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const laneIds: string[] = [];
         for (const [, laneEntry] of laneMap) {
             if (laneEntry.parentNode.id != this.id) continue;
@@ -437,6 +572,7 @@ export class Node implements INode {
     }
 
     async fetchDataStream(system: typeof System) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let allDatastreams = [];
         const datastreams = await system.searchDataStreams(new DataStreamFilter({ validTime: "latest" }), 100);
         while (datastreams.hasNext()) {
@@ -447,6 +583,7 @@ export class Node implements INode {
     }
 
     async fetchLaneControlStreams(laneMap: Map<string, LaneMapEntry>) {
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const laneIds: string[] = [];
         for (const [, laneEntry] of laneMap) {
             if (laneEntry.parentNode.id != this.id) continue;
@@ -479,6 +616,7 @@ export class Node implements INode {
     }
 
     async fetchNodeControlStreams(): Promise<any[]>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let availableControlStreams = [];
         const controlStreamCollection = await this.getControlStreamApi().searchControlStreams(new ControlStreamFilter({ validTime: "latest" }), 100);
         while (controlStreamCollection.hasNext()) {
@@ -493,6 +631,7 @@ export class Node implements INode {
     }
 
     async fetchNodeDataStreams(): Promise<any[]>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         let availableDataStreams = [];
         const dataStreamCollection = await this.getDataStreamsApi().searchDataStreams(new DataStreamFilter({ validTime: "latest" }), 100);
         while (dataStreamCollection.hasNext()) {
@@ -507,6 +646,7 @@ export class Node implements INode {
     }
 
     async fetchDataStreamWithObservedProperty(observedProperty: string): Promise<typeof DataStream>{
+        if (!this.auth?.username) await this.ensureMqttTicket();
         const dataStreamCollection = await this.getDataStreamsApi().searchDataStreams(new DataStreamFilter({ validTime: "latest", observedProperty: observedProperty }), 1);
         let dataStreamResults = await dataStreamCollection.nextPage();
 

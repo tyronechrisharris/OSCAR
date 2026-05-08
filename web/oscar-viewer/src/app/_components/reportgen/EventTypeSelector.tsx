@@ -31,7 +31,7 @@ export default function EventTypeSelect(props: {
     };
 
     return (
-        <FormControl size="small" fullWidth>
+        <FormControl size="small" fullWidth data-testid="event-type-select">
             <InputLabel id="label">{t('eventType')}</InputLabel>
             <Select
                 variant="outlined"

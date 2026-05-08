@@ -231,7 +231,7 @@ jobs:
           cd build/distributions
           # The artifact is named oscar-<version>.zip or osh-node-oscar-<version>.zip.
           # We rename it to the release tag version format required.
-          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
+          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | grep -v "^oscar.zip$" | head -n 1 || true)
           if [ -n "$ORIGINAL_ZIP" ]; then
             mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
           else

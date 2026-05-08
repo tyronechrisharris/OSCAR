@@ -136,9 +136,9 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
 
 
     public void initMsgHandler() throws SensorHubException, IOException{
-//        if(commProviderModule == null || !commProviderModule.isStarted()){
-//            throw new SensorHubException("Comm provider is not initialized or not started");
-//        }
+        if(commProviderModule == null || !commProviderModule.isStarted()){
+            throw new SensorHubException("Comm provider is not initialized or not started");
+        }
 
         // Connect to input stream
         InputStream msgIn = new BufferedInputStream(commProviderModule.getInputStream());
@@ -365,7 +365,7 @@ public class RapiscanSensor extends AbstractSensorModule<RapiscanConfig> {
             return;
 
         try {
-            if (messageHandler == null)
+            if (messageHandler == null || commProviderModule == null)
                 return;
 
             long timeSinceMsg = messageHandler.getTimeSinceLastMessage();

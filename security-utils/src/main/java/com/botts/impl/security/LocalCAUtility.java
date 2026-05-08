@@ -47,8 +47,10 @@ public class LocalCAUtility {
         File secretsFile = new File(secretsPath);
 
         String password;
+        boolean debugEnabled = !"error".equalsIgnoreCase(System.getenv("LOG_LEVEL")) && !"error".equalsIgnoreCase(System.getProperty("LOG_LEVEL"));
+
         if (!keystoreFile.exists()) {
-            System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate at " + keystoreFile.getAbsolutePath() + "...");
+            if (debugEnabled) System.out.println("Keystore does not exist. Generating persistent Root CA and Leaf Certificate at " + keystoreFile.getAbsolutePath() + "...");
 
             // 1. Generate Keystore Password
             password = generateRandomPassword(32);
@@ -82,7 +84,7 @@ public class LocalCAUtility {
             exportCertificatePem("config/osh-leaf.crt", leafCert);
             exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
 
-            System.out.println("Persistent CA and Leaf Certificate generated successfully.");
+            if (debugEnabled) System.out.println("Persistent CA and Leaf Certificate generated successfully.");
         } else {
             // Check for renewal
             if (secretsFile.exists()) {
@@ -109,7 +111,7 @@ public class LocalCAUtility {
             Date expirationThreshold = new Date(System.currentTimeMillis() + thirtyDaysMillis);
 
             if (leafCert.getNotAfter().before(expirationThreshold)) {
-                System.out.println("Leaf certificate expires within 30 days. Attempting renewal...");
+                if (debugEnabled) System.out.println("Leaf certificate expires within 30 days. Attempting renewal...");
 
                 PrivateKey rootPrivKey = (PrivateKey) ks.getKey(rootAlias, password.toCharArray());
                 X509Certificate rootCert = (X509Certificate) ks.getCertificate(rootAlias);
@@ -134,9 +136,9 @@ public class LocalCAUtility {
                 exportCertificatePem("config/osh-leaf.crt", renewedLeafCert);
                 exportPrivateKey("config/osh-leaf.key", leafKeyPair.getPrivate());
 
-                System.out.println("Leaf certificate renewed successfully.");
+                if (debugEnabled) System.out.println("Leaf certificate renewed successfully.");
             } else {
-                System.out.println("Leaf certificate is still valid for more than 30 days. No renewal needed.");
+                if (debugEnabled) System.out.println("Leaf certificate is still valid for more than 30 days. No renewal needed.");
             }
         }
     }
