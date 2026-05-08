@@ -51,7 +51,7 @@ public class MyBeanItemContainer<BeanType> extends AbstractInMemoryContainer<Obj
             // add collection members as bean items
             if (beanCollection != null)
             {
-                for (BeanType o: (Collection<BeanType>)beanCollection)
+                for (BeanType o: new java.util.ArrayList<BeanType>((Collection<BeanType>)beanCollection))
                     addBean(o, prefix);
             }
         }
@@ -75,7 +75,7 @@ public class MyBeanItemContainer<BeanType> extends AbstractInMemoryContainer<Obj
             // add map entries as bean items
             if (beanMap != null)
             {
-                for (Entry<String, ?> entry: beanMap.entrySet())
+                for (Entry<String, ?> entry: new java.util.ArrayList<>(beanMap.entrySet()))
                     addBean(entry.getKey(), (BeanType)entry.getValue(), prefix);
             }
         }

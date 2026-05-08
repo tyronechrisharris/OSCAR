@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.eclipse.jetty.util.security.Credential;
 import org.sensorhub.api.security.ISecurityManager;
+import org.sensorhub.impl.security.MqttTicketUtils;
 import com.hivemq.extension.sdk.api.auth.SimpleAuthenticator;
 import com.hivemq.extension.sdk.api.auth.parameter.SimpleAuthInput;
 import com.hivemq.extension.sdk.api.auth.parameter.SimpleAuthOutput;
@@ -54,6 +55,16 @@ public class OshAuthenticator implements SimpleAuthenticator
                     .map(buf -> StandardCharsets.UTF_8.decode(buf).array())
                     .orElse(new char[0]);
                 
+                if ("__mqtt_ticket__".equals(userID)) {
+                    String ticketStr = new String(pwd);
+                    String ticketUser = MqttTicketUtils.validateTicket(ticketStr);
+                    if (ticketUser != null) {
+                        authInput.getConnectionInformation().getConnectionAttributeStore().putAsString(MQTT_USER_PROP, ticketUser);
+                        authOutput.authenticateSuccessfully();
+                        return;
+                    }
+                }
+
                 if ("__proxy_token__".equals(userID)) {
                     String tokenStr = new String(pwd);
                     String proxiedUser = OshExtension.consumeProxyToken(tokenStr);

@@ -208,7 +208,7 @@
   <text
      x="310"
      y="400"
-     id="text19">Auth (Bifurcated)</text>
+     id="text19">Auth &amp; MQTT Tickets</text>
   <rect
      x="300"
      y="420"

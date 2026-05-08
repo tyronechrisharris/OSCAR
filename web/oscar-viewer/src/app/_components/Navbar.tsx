@@ -154,13 +154,17 @@ export default function Navbar({children}: { children: React.ReactNode }) {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then((registration) => {
-                    console.log('[PWA] Service Worker registered:', registration.scope);
-                })
-                .catch((error) => {
-                    console.error('[PWA] Service Worker registration failed:', error);
-                });
+            try {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[PWA] Service Worker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.warn('[PWA] Service Worker registration failed (SSL/Network error?):', error);
+                    });
+            } catch (err) {
+                console.warn('[PWA] Service Worker registration threw an exception:', err);
+            }
 
             const handleServiceWorkerMessage = (event: MessageEvent) => {
                 if (event.data?.type === 'VIEW_ALARM' && event.data.eventData) {

@@ -11,7 +11,6 @@ describe('National View Page (E2E)', () => {
             const selectedRow = $rows.filter('.selected-row');
             if (selectedRow.length === 0) {
                 cy.get('.MuiDataGrid-row')
-                    .filter(':contains("Local Node")')
                     .first()
                     .click();
             }

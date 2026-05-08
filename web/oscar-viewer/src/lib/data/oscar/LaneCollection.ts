@@ -142,35 +142,6 @@ export class LaneMapEntry {
                 console.warn("Skipping invalid datastream:", dsObj);
                 continue;
             }
-            let mqttOptUrlArray = (dsObj.networkProperties.endpointUrl).split("/");
-            let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
-
-
-            let endpointUrl = mqttOptUrl;
-            let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-            let useProxyToken = !this.parentNode.auth?.username;
-
-            if (useProxyToken) {
-                // osh-js will automatically append '/mqtt' to the endpoint.
-                // Using a fragment '#' prevents the appended string from corrupting the query string.
-                endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-            }
-
-            let mqttOpts: any = {
-                shared: true,
-                prefix: this.parentNode.csAPIEndpoint,
-                endpointUrl: endpointUrl,
-                keepalive: 15
-            }
-            if (useProxyToken) {
-                mqttOpts.username = "__proxy_token__";
-                mqttOpts.password = token;
-            } else {
-                mqttOpts.username = this.parentNode.auth.username;
-                if (this.parentNode.auth?.password) {
-                    mqttOpts.password = this.parentNode.auth.password;
-                }
-            }
 
             try {
                 let dsRT: typeof ConSysApi = null;
@@ -183,7 +154,7 @@ export class LaneMapEntry {
                     protocol: 'mqtt',
                     mode: Mode.REAL_TIME,
                     responseFormat: getObservationResponseFormat(dsObj),
-                    mqttOpts: mqttOpts,
+                    mqttOpts: this.parentNode.getMqttOpts(),
                 });
 
                 dsBatch = new ConSysApi(`batchds - ${dsObj.properties.name}`, {
@@ -195,7 +166,7 @@ export class LaneMapEntry {
                     responseFormat: getObservationResponseFormat(dsObj),
                     startTime: "2020-01-01T08:13:25.845Z",
                     endTime: "2055-01-01T08:13:25.845Z",
-                    mqttOpts: mqttOpts,
+                    mqttOpts: this.parentNode.getMqttOpts(),
                 });
 
                 rtArray.push(dsRT);
@@ -210,16 +181,6 @@ export class LaneMapEntry {
     }
 
     createRealTimeConSysApi(stream: typeof DataStream | typeof ControlStream) {
-        let mqttOptUrlArray = (stream.networkProperties.endpointUrl).split("/");
-        let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
-
-        let mqttOpts = {
-            shared: true,
-            prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: mqttOptUrl,
-            username: this.parentNode.auth.username,
-            password: this.parentNode.auth.password,
-        }
         return new ConSysApi(`rtds - ${stream.properties.name}`, {
             endpointUrl: stream.networkProperties.endpointUrl,
             resource:  typeof stream == DataStream ? `/datastreams/${stream.properties.id}/observations` : `/controlstreams/${stream.properties.id}/status`,
@@ -227,43 +188,14 @@ export class LaneMapEntry {
             protocol: 'mqtt',
             mode: Mode.REAL_TIME,
             responseFormat: 'application/json',
-            mqttOpts: mqttOpts,
+            mqttOpts: this.parentNode.getMqttOpts(),
         });
     }
 
     createReplayConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
-        let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
-        let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
-
-        let endpointUrl = mqttOptUrl;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.parentNode.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
-            shared: true,
-            prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl,
-            keepalive: 15
-        }
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.parentNode.auth.username;
-            if (this.parentNode.auth?.password) {
-                mqttOpts.password = this.parentNode.auth.password;
-            }
-        }
-
         return new ConSysApi(`rtds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: mqttOpts,
+            mqttOpts: this.parentNode.getMqttOpts(),
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
@@ -275,39 +207,9 @@ export class LaneMapEntry {
     }
 
     createBatchConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
-
-        let mqttOptUrlArray = (datastream.networkProperties.endpointUrl).split("/");
-        let mqttOptUrl = mqttOptUrlArray[0] + "/" + mqttOptUrlArray[1];
-
-        let endpointUrl = mqttOptUrl;
-        let token = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-        let useProxyToken = !this.parentNode.auth?.username;
-
-        if (useProxyToken) {
-            // osh-js will automatically append '/mqtt' to the endpoint.
-            // Using a fragment '#' prevents the appended string from corrupting the query string.
-            endpointUrl = `${endpointUrl}/mqtt?proxyToken=${token}#`;
-        }
-
-        let mqttOpts: any = {
-            shared: true,
-            prefix: this.parentNode.csAPIEndpoint,
-            endpointUrl: endpointUrl,
-            keepalive: 15
-        }
-        if (useProxyToken) {
-            mqttOpts.username = "__proxy_token__";
-            mqttOpts.password = token;
-        } else {
-            mqttOpts.username = this.parentNode.auth.username;
-            if (this.parentNode.auth?.password) {
-                mqttOpts.password = this.parentNode.auth.password;
-            }
-        }
-
         return new ConSysApi(`batchds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: mqttOpts,
+            mqttOpts: this.parentNode.getMqttOpts(),
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,

@@ -36,7 +36,7 @@ export default function ReportTypeSelect(props: {
     };
 
     return (
-        <FormControl size="small" fullWidth>
+        <FormControl size="small" fullWidth data-testid="report-type-select">
             <InputLabel id="label">{t('reportType')}</InputLabel>
             <Select
                 variant="outlined"

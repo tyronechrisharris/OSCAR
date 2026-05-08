@@ -27,4 +27,6 @@ docker run \
   -v "$(pwd)/pgdata:/var/lib/postgresql/data" \
   -v "$POSTGRES_PASSWORD_FILE:/run/secrets/db_password" \
   -d \
-  oscar-postgis-arm
+  oscar-postgis-arm \
+  -c log_min_messages=error \
+  -c log_min_error_statement=error

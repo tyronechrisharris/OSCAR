@@ -191,10 +191,19 @@ jobs:
 
       - name: Prepare Artifacts
         run: |
+          # Create a bundle with all executable scripts and required files
+          mkdir -p build/release-bundle
+          cp docker-compose.yml .env.example build/release-bundle/
+          cp -r dist/release/* build/release-bundle/
+
+          cd build/release-bundle
+          zip -r ../distributions/oscar.zip .
+          cd ../..
+
           cd build/distributions
           # The artifact is named oscar-<version>.zip or osh-node-oscar-<version>.zip.
           # We rename it to the release tag version format required: oscar_M-DD-YYYY_A.zip
-          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | head -n 1 || true)
+          ORIGINAL_ZIP=$(ls oscar-*.zip 2>/dev/null | grep -v "^oscar.zip$" | head -n 1 || true)
           if [ -n "$ORIGINAL_ZIP" ]; then
             mv "$ORIGINAL_ZIP" "${TAG_NAME}.zip"
           else
@@ -218,14 +227,7 @@ jobs:
           body: ${{ env.RELEASE_NOTES }}
           files: |
             build/distributions/${{ env.TAG_NAME }}.zip
+            build/distributions/oscar.zip
             docker-compose.yml
             .env.example
-            dist/release/launch-all.sh
-            dist/release/launch-all.bat
-            dist/release/launch-mesh.sh
-            dist/release/launch-mesh.bat
-            dist/release/launch-lan.sh
-            dist/release/launch-lan.bat
-            dist/release/stop-all.sh
-            dist/release/stop-all.bat
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}

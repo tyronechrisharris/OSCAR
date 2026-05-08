@@ -32,6 +32,7 @@ import org.sensorhub.impl.service.consys.deployment.DeploymentMembersHandler;
 import org.sensorhub.impl.service.consys.feature.FeatureHandler;
 import org.sensorhub.impl.service.consys.feature.FoiHandler;
 import org.sensorhub.impl.service.consys.feature.FoiHistoryHandler;
+import org.sensorhub.impl.service.consys.MqttTicketHandler;
 import org.sensorhub.impl.service.consys.home.CollectionHandler;
 import org.sensorhub.impl.service.consys.home.ConformanceHandler;
 import org.sensorhub.impl.service.consys.home.HomePageHandler;
@@ -302,6 +303,9 @@ public class ConSysApiService extends AbstractHttpServiceModule<ConSysApiService
         var collectionHandler = new CollectionHandler();
         rootHandler.addSubResource(collectionHandler);
         
+        // MQTT tickets
+        rootHandler.addSubResource(new MqttTicketHandler());
+
         // static web resources (for HTML output)
         var jarStaticResourceHandler = new JarStaticResourceHandler();
         rootHandler.addSubResource(jarStaticResourceHandler);

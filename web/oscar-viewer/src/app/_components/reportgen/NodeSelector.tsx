@@ -28,7 +28,7 @@ export default function NodeSelect(props: {
     };
 
     return (
-        <FormControl size="small" fullWidth>
+        <FormControl size="small" fullWidth data-testid="node-selector">
             <InputLabel id="label">{t('nodeSelector')}</InputLabel>
             <Select
                 variant="outlined"

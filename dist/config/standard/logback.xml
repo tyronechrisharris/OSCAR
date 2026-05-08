@@ -23,11 +23,11 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <root level="${LOG_LEVEL:-error}">
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="org.sensorhub" level="info">
+    <logger name="org.sensorhub" level="${LOG_LEVEL:-error}">
         <appender-ref ref="MODULE_FILE" />
     </logger>
 
