@@ -13,7 +13,7 @@ RUN apt-get update && \
 # Copy build artifacts
 COPY ./osh-node-oscar/lib /app/lib
 COPY ./osh-node-oscar/web /app/web
-COPY ./osh-node-oscar/logback.xml /app/logback.xml
+# COPY ./osh-node-oscar/logback.xml /app/logback.xml
 COPY ./osh-node-oscar/config.json /app/config.json
 COPY ./osh-node-oscar/config /app/config
 

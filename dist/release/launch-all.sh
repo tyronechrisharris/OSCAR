@@ -24,11 +24,12 @@ if [ ! -d "hivemq-config" ]; then
     mkdir -p hivemq-config
 fi
 
-if [ ! -f "hivemq-config/logback.xml" ]; then
-    echo "Creating hivemq-config/logback.xml..."
-    cat << 'INNER_EOF' > hivemq-config/logback.xml
+echo "Synchronizing hivemq-config/logback.xml..."
+cat << 'INNER_EOF' > hivemq-config/logback.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Suppress logback's own internal status messages -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
 
     <!-- general logging in console -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -37,17 +38,21 @@ if [ ! -f "hivemq-config/logback.xml" ]; then
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="${LOG_LEVEL:-error}">
         <appender-ref ref="STDOUT" />
     </root>
 
+    <logger name="org.sensorhub" level="${LOG_LEVEL:-error}" />
+    <logger name="org.eclipse.jetty" level="${LOG_LEVEL:-error}" />
+    <logger name="com.zaxxer.hikari" level="${LOG_LEVEL:-error}" />
+    <logger name="org.hivemq" level="${LOG_LEVEL:-error}" />
+
     <!-- Suppress verbose auth/session debug logs -->
-    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="WARN" />
-    <logger name="org.sensorhub.impl.service.OshLoginService" level="WARN" />
+    <logger name="org.sensorhub.impl.service.BridgedAuthenticator" level="${LOG_LEVEL:-error}" />
+    <logger name="org.sensorhub.impl.service.OshLoginService" level="${LOG_LEVEL:-error}" />
 
 </configuration>
 INNER_EOF
-fi
 
 # 1. Native MediaMTX check for macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -82,6 +87,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
     cat << 'INNER_EOF_MTX' > "${TARGET_DIR}/mtx-secrets/mediamtx.yml"
 # MediaMTX Configuration for OSCAR (Auto-Generated macOS)
+logLevel: ${LOG_LEVEL:-error}
 api: true
 apiAddress: :9997
 writeQueueSize: 1024

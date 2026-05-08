@@ -31,7 +31,7 @@ export default function LaneVideoPlayback({selectedNode, videos, modeType, start
     const [videoDuration, setVideoDuration] = useState<number>(0);
     const [isUpdatingFromSlider, setIsUpdatingFromSlider] = useState(false);
     const [selVideoIdx, setSelVidIdx] = useState<number>(0);
-    const tls = selectedNode ? (selectedNode.isSecure ? 'https' : 'http') : '';
+    const tls = selectedNode ? ((selectedNode.isSecure || (typeof window !== 'undefined' && window.location.protocol === 'https:')) ? 'https' : 'http') : '';
 
 
     useEffect(() => {

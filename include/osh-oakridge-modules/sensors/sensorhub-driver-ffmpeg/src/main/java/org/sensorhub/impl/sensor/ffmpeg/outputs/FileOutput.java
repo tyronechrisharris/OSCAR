@@ -179,6 +179,10 @@ public class FileOutput<FFMPEGConfigType extends FFMPEGConfig> extends AbstractS
                 writeCallback = null;
                 seekCallback = null;
 
+                if (this.parentSensor.getProcessor() == null) {
+                    throw new IOException("Processor is not initialized");
+                }
+
                 avCodecParameters = this.parentSensor.getProcessor().getCodecParams();
                 if (avCodecParameters == null) {
                     throw new IOException("Already writing to file " + this.fileName);

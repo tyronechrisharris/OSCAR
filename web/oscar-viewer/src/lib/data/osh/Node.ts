@@ -146,7 +146,7 @@ export class Node implements INode {
             mqttOpts: {
                 shared: true,
                 prefix: this.csAPIEndpoint,
-                endpointUrl: this.isLocalOrigin() ? `${window.location.host}${this.oshPathRoot}` : `${this.address}:${this.port}${this.oshPathRoot}`,
+                endpointUrl: this.isLocalOrigin() ? `${window.location.host}${this.oshPathRoot}` : `${this.address}${this.port && this.port !== 80 && this.port !== 443 ? ':' + this.port : ''}${this.oshPathRoot}`,
                 keepalive: 15
             },
             connectorOpts: {
@@ -172,14 +172,15 @@ export class Node implements INode {
 
     private isLocalOrigin(): boolean {
         const currentHostname = window.location.hostname;
-        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-        const nodePort = this.port.toString();
 
         const isSameHost = (this.address === currentHostname) ||
                            (this.address === 'localhost' && currentHostname === '127.0.0.1') ||
                            (this.address === '127.0.0.1' && currentHostname === 'localhost');
 
-        return isSameHost && (nodePort === currentPort);
+        // If the configured node address matches the browser's hostname, treat it as the local origin.
+        // We ignore port mismatches (e.g., node configured with internal 8282 vs browser on 443)
+        // to ensure all traffic routes correctly through the reverse proxy.
+        return isSameHost;
     }
 
     getMqttOpts() {
@@ -224,7 +225,23 @@ export class Node implements INode {
                 // Parse the URL and extract what osh-js expects (host + path without trailing /mqtt)
                 // URL API doesn't support ws: well, so temporary replacement for parsing
                 const parsedUrl = new URL(wsUrlString.replace(/^ws/i, 'http'));
-                const endpointUrl = parsedUrl.host + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
+                let targetHost = parsedUrl.host;
+
+                // If the configured node address matches the browser's hostname, route the WebSocket
+                // through the reverse proxy (window.location.host) instead of hitting the port directly.
+                // We also check against window.location.hostname in case the backend resolved a bare MagicDNS or local name
+                // Ignore matching 'localhost' if we are not operating natively on localhost
+                if (
+                    this.address === window.location.hostname ||
+                    parsedUrl.hostname === window.location.hostname ||
+                    (parsedUrl.hostname === 'localhost' && window.location.hostname === '127.0.0.1') ||
+                    (parsedUrl.hostname === '127.0.0.1' && window.location.hostname === 'localhost') ||
+                    window.location.hostname.endsWith('ts.net') // Always override local IP with Tailscale MagicDNS
+                ) {
+                     targetHost = window.location.host;
+                }
+
+                const endpointUrl = targetHost + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
                 Object.assign(this.networkProperties.mqttOpts, {
@@ -291,7 +308,10 @@ export class Node implements INode {
             return window.location.origin + path;
         }
 
-        const protocol = this.isSecure ? 'https:' : 'http:';
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
         // Ensure host does not already contain a protocol to prevent double-protocol bugs
         const host = this.address.replace(/^https?:?\/\//i, '');
         const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
@@ -312,7 +332,10 @@ export class Node implements INode {
             return window.location.origin + path;
         }
 
-        const protocol = this.isSecure ? 'https:' : 'http:';
+        let protocol = this.isSecure ? 'https:' : 'http:';
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            protocol = 'https:';
+        }
         const host = this.address.replace(/^https?:?\/\//i, '');
         const hostPort = (this.port === 80 || this.port === 443) ? host : `${host}:${this.port}`;
 
@@ -363,8 +386,8 @@ export class Node implements INode {
         if (!systems || systems.length == 0) return;
 
         systems.sort((a, b) => {
-            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
-            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) ? 0 : 1;
+            const aIsLane = a.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || a.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
+            const bIsLane = b.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || b.properties.properties?.uid.includes("urn:sandia:system:") ? 0 : 1;
             return aIsLane - bIsLane;
         });
 
@@ -372,7 +395,7 @@ export class Node implements INode {
 
         // filter into lanes
         for (let system of systems) {
-            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX)) {
+            if (system.properties.properties?.uid.includes(SYSTEM_UID_PREFIX) || system.properties.properties?.uid.includes("urn:sandia:system:")) {
                 let laneName = system.properties.properties.name;
 
                 if (laneMap.has(laneName)) {
@@ -397,14 +420,18 @@ export class Node implements INode {
                     const laneUid = entry.laneSystem?.properties?.properties?.uid;
                     if (!laneUid) continue;
 
-                    const laneParts = laneUid.split(":");
-                    const laneIdx = laneParts.indexOf("lane");
-                    if (laneIdx < 0) continue;
-
-                    const laneSuffix = laneParts[laneIdx + 1];
+                    let laneSuffix;
+                    if (laneUid.includes("urn:sandia:system:")) {
+                        laneSuffix = entry.laneName;
+                    } else {
+                        const laneParts = laneUid.split(":");
+                        const laneIdx = laneParts.indexOf("lane");
+                        if (laneIdx < 0) continue;
+                        laneSuffix = laneParts[laneIdx + 1];
+                    }
 
                     const isStandardSubsystem =
-                        uidParts[uidParts.length - 1] === laneSuffix;
+                        uidParts[uidParts.length - 1] === laneSuffix || uidParts[uidParts.length - 1] === entry.laneName;
 
                     let isFFmpegSubsystem = false;
 
