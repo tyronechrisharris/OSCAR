@@ -539,17 +539,21 @@ export class Node implements INode {
             laneIds.push(laneEntry.laneSystem.properties.id);
         }
 
-        const dataStreamCollection = await this.getDataStreamsApi()
-            .searchDataStreams(
-                new DataStreamFilter({
-                    system: laneIds.join(","),
-                    validTime: "latest"
-                }), 1000);
-
         const allDataStreams = [];
-        while (dataStreamCollection.hasNext()) {
-            const dataStreams = await dataStreamCollection.nextPage();
-            allDataStreams.push(...dataStreams);
+        // Chunk laneIds to prevent exceeding URI length limits (e.g. 10 at a time)
+        for (let i = 0; i < laneIds.length; i += 10) {
+            const chunk = laneIds.slice(i, i + 10);
+            const dataStreamCollection = await this.getDataStreamsApi()
+                .searchDataStreams(
+                    new DataStreamFilter({
+                        system: chunk.join(","),
+                        validTime: "latest"
+                    }), 1000);
+
+            while (dataStreamCollection.hasNext()) {
+                const dataStreams = await dataStreamCollection.nextPage();
+                allDataStreams.push(...dataStreams);
+            }
         }
 
         console.log(allDataStreams)
@@ -590,17 +594,20 @@ export class Node implements INode {
             laneIds.push(laneEntry.laneSystem.properties.id);
         }
 
-        const controlStreamCollection = await this.getControlStreamApi()
-            .searchControlStreams(
-                new ControlStreamFilter({
-                    system: laneIds.join(","),
-                    validTime: "latest"
-                }), 1000);
-
         const allControlStreams = [];
-        while (controlStreamCollection.hasNext()) {
-            const controlStreams = await controlStreamCollection.nextPage();
-            allControlStreams.push(...controlStreams);
+        for (let i = 0; i < laneIds.length; i += 10) {
+            const chunk = laneIds.slice(i, i + 10);
+            const controlStreamCollection = await this.getControlStreamApi()
+                .searchControlStreams(
+                    new ControlStreamFilter({
+                        system: chunk.join(","),
+                        validTime: "latest"
+                    }), 1000);
+
+            while (controlStreamCollection.hasNext()) {
+                const controlStreams = await controlStreamCollection.nextPage();
+                allControlStreams.push(...controlStreams);
+            }
         }
 
         for (const controlStream of allControlStreams) {
