@@ -553,6 +553,20 @@ public abstract class RestApiServlet extends HttpServlet
 
     public String getApiRootURL(HttpServletRequest req)
     {
+        if (req != null)
+        {
+            String forwardedProto = req.getHeader("X-Forwarded-Proto");
+            String forwardedHost = req.getHeader("X-Forwarded-Host");
+
+            if (forwardedProto != null && forwardedHost != null)
+            {
+                // Construct root URL from forwarded headers to avoid internal port leakage
+                String contextPath = req.getContextPath();
+                String servletPath = req.getServletPath();
+                return forwardedProto + "://" + forwardedHost + contextPath + servletPath;
+            }
+        }
+
         if (rootUrl.contains("localhost") && req != null)
             return rootUrl.replace("localhost", req.getServerName());
         

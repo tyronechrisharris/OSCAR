@@ -295,7 +295,9 @@ export class Node implements INode {
 
                 // Schedule proactive refresh
                 if (this.mqttRefreshTimer) clearTimeout(this.mqttRefreshTimer);
+                console.info(`[MQTT Ticket] scheduling proactive refresh in ${ticket.refreshAfterSeconds} seconds for ${this.address}`);
                 this.mqttRefreshTimer = setTimeout(() => {
+                    console.info(`[MQTT Ticket] starting proactive refresh for ${this.address}`);
                     this.ensureMqttTicket(true);
                 }, ticket.refreshAfterSeconds * 1000);
 
