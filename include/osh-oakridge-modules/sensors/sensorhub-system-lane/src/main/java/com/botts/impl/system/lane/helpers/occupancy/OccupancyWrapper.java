@@ -141,6 +141,7 @@ public class OccupancyWrapper {
         stateManager.clearListeners();
 
         stateManager.addListener((from, to) -> {
+            logger.info("[Occupancy Wrapper] state transition: {} -> {} for system {}", from, to, rpm != null ? rpm.getUniqueIdentifier() : "unknown");
             // Start recording if leaving non-occupancy state
             if (from == StateManager.State.NON_OCCUPANCY) {
                 wasAlarming = false;
@@ -149,8 +150,13 @@ public class OccupancyWrapper {
                 fileNames = new ArrayList<>(size);
                 //observationHelper.clear();
 
+                if (size == 0) {
+                    logger.warn("[Occupancy Wrapper] no cameras attached to system {}", rpm != null ? rpm.getUniqueIdentifier() : "unknown");
+                }
+
                 for(int i = 0; i < size; i++) {
-                    IStreamingControlInterface commandInterface = cameras.get(i).getCommandInputs().values().stream().findFirst().get();
+                    FFMPEGSensorBase<?> cam = cameras.get(i);
+                    IStreamingControlInterface commandInterface = cam.getCommandInputs().values().stream().findFirst().get();
                     DataComponent command = commandInterface.getCommandDescription().clone();
                     command.renewDataBlock();
                     DataChoice fileIO = (DataChoice) command.getComponent(0);
@@ -164,6 +170,7 @@ public class OccupancyWrapper {
                     String fileName = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss_SSS").withLocale(Locale.US).withZone(ZoneId.systemDefault()).format(startTime) + ".mp4";
                     item.getData().setStringValue(fileName); // TODO Make sure this file name works, maybe add which alarm triggered
                     fileNames.add(fileName);
+                    logger.info("[Occupancy Wrapper] sending CMD_OPEN_FILE to {} with filename {}", cam.getUniqueIdentifier(), fileName);
                     commandInterface.submitCommand(new CommandData(++cmdId, command.getData()));
 
                 }
@@ -177,7 +184,8 @@ public class OccupancyWrapper {
                 observationHelper.notifyOccupancyEnd();
 
                 for (int i = 0; i < size; i++) {
-                    IStreamingControlInterface commandInterface = cameras.get(i).getCommandInputs().values().stream().findFirst().get();
+                    FFMPEGSensorBase<?> cam = cameras.get(i);
+                    IStreamingControlInterface commandInterface = cam.getCommandInputs().values().stream().findFirst().get();
                     DataComponent command = commandInterface.getCommandDescription().clone();
                     command.renewDataBlock();
                     DataChoice fileIO = (DataChoice) command.getComponent(0);
@@ -207,7 +215,9 @@ public class OccupancyWrapper {
                     }
 
                      */
-                    observationHelper.addFfmpegOut(((FileControl)commandInterface).getFileName(), size);
+                    String lastFileName = ((FileControl)commandInterface).getFileName();
+                    observationHelper.addFfmpegOut(lastFileName, size);
+                    logger.info("[Occupancy Wrapper] sending CMD_CLOSE_FILE to {} (wasAlarming={}, filename={})", cam.getUniqueIdentifier(), wasAlarming, lastFileName);
                     commandInterface.submitCommand(new CommandData(++cmdId, command.getData()));
                 }
                 wasAlarming = false;

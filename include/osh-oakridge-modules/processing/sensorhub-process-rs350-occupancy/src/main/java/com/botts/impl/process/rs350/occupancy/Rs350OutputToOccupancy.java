@@ -192,6 +192,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
                 .build();
 
         var db = hub.getDatabaseRegistry().getFederatedDatabase();
+        logger.info("[Rs350 Ingest] checking datastreams for system {}", inputSystemID);
 
         for (String dataStreamName : dataStreamNames) {
             // Get output data from input system UID
@@ -216,9 +217,11 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
                         .thenAccept(subscription -> {
                             subscriptions.add(subscription);
                             subscription.request(Long.MAX_VALUE);
-                            logger.info("Started subscription to " + dataStreamName);
+                            logger.info("[Rs350 Ingest] started subscription to {} for system {}", dataStreamName, inputSystemID);
                         });
 
+            } else {
+                logger.warn("[Rs350 Ingest] datastream {} not found for system {}", dataStreamName, inputSystemID);
             }
         }
 
@@ -233,8 +236,9 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
 
     private void processDataEvent(ObsEvent event) {
         String outputName = event.getOutputName();
+        logger.trace("[Rs350 Ingest] received event {} for system {}", outputName, inputSystemID);
         if (!ALL_OUTPUTS.contains(outputName)) {
-            logger.warn("Received data event for unknown output: {}", outputName);
+            logger.warn("[Rs350 Ingest] received data event for unknown output: {} for system {}", outputName, inputSystemID);
             return;
         }
 
@@ -244,7 +248,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
             case ALARM_NAME -> processAlarm(obsResults);
             case BACKGROUND_NAME -> processBackground(obsResults);
             case FOREGROUND_NAME -> processForeground(obsResults);
-            default -> logger.debug("(Default) Received data event for unknown output: {}", outputName);
+            default -> logger.debug("[Rs350 Ingest] (Default) received data event for unknown output: {} for system {}", outputName, inputSystemID);
         }
     }
 
@@ -254,6 +258,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
                 return;
             }
             lastAlarmTime = System.currentTimeMillis();
+            logger.info("[Rs350 Ingest] processing alarm for system {}", inputSystemID);
 
             DataComponent alarmComponent = ((DataComponent) allInputs.get(ALARM_NAME)).copy();
 
@@ -297,6 +302,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
     // Concerned w/ max gamma and neutron counts
     private synchronized void processForeground(DataBlock... eventRecords) {
         DataComponent foregroundComponent = ((DataComponent) allInputs.get(FOREGROUND_NAME)).copy();
+        logger.trace("[Rs350 Ingest] processing foreground report for system {}", inputSystemID);
 
         for (DataBlock eventRecord : eventRecords) {
             foregroundComponent.setData(eventRecord);
@@ -316,6 +322,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
     // Concerned with background neutron counts
     private synchronized void processBackground(DataBlock... eventRecords) {
         DataComponent backgroundComponent = ((DataComponent) allInputs.get(BACKGROUND_NAME)).copy();
+        logger.trace("[Rs350 Ingest] processing background report for system {}", inputSystemID);
 
         for (DataBlock eventRecord : eventRecords) {
             backgroundComponent.setData(eventRecord);
@@ -344,7 +351,7 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
                 setOccupancyOutput(occupancy);
                 doPublishOccupancy = false;
                 lastOccupancyPublish = now;
-                logger.info("Publishing occupancy output");
+                logger.info("[Rs350 Ingest] publishing occupancy output for system {}", inputSystemID);
             }
 
             lastDailyFileTime = now;

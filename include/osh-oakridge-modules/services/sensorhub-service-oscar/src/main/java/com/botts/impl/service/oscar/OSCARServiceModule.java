@@ -28,13 +28,18 @@ import com.botts.impl.service.oscar.video.VideoRetention;
 import org.sensorhub.impl.utils.rad.interfaces.IWebIdProvider;
 import org.sensorhub.impl.utils.rad.webid.WebIdClient;
 import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
+import com.botts.impl.system.lane.LaneSystem;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.data.IDataProducerModule;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
 import org.sensorhub.api.datastore.obs.ObsFilter;
+import org.sensorhub.api.datastore.system.SystemFilter;
+import org.sensorhub.api.module.IModule;
 import org.sensorhub.api.module.ModuleEvent;
 import org.sensorhub.impl.module.AbstractModule;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +61,7 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
     VideoRetention videoRetention;
     DatabasePurger databasePurger;
     WebIdResourceHandler webIdResourceHandler;
+    private java.util.concurrent.ScheduledExecutorService diagnosticScheduler;
 
     @Override
     protected void doInit() throws SensorHubException {
@@ -156,6 +162,96 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
 
         if (videoRetention != null)
             videoRetention.start();
+
+        // Schedule diagnostic table logging
+        diagnosticScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(
+                new org.sensorhub.utils.NamedThreadFactory("OSCAR-Diagnostics"));
+        diagnosticScheduler.schedule(this::logDiagnosticTable, 30, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    private void logDiagnosticTable() {
+        try {
+            logger.info("========================================= OSCAR PIPELINE DIAGNOSTICS =========================================");
+            logger.info(String.format("| %-12s | %-30s | %-30s | %-10s | %-10s | %-10s | %-5s |",
+                    "Lane", "RPM UID", "FFmpeg UID", "Gamma Obs", "Neutr Obs", "Occ Obs", "Clips"));
+            logger.info("---------------------------------------------------------------------------------------------------------------");
+
+            IObsSystemDatabase db = getParentHub().getDatabaseRegistry().getFederatedDatabase();
+            var modules = getParentHub().getModuleRegistry().getLoadedModules();
+
+            for (IModule<?> module : modules) {
+                if (module instanceof LaneSystem lane) {
+                    String laneName = lane.getName();
+                    String rpmUid = "N/A";
+                    String ffmpegUid = "N/A";
+                    long gammaCount = 0;
+                    long neutronCount = 0;
+                    long occupancyCount = 0;
+                    int clipCount = 0;
+
+                    for (IModule<?> member : lane.getMembers().values()) {
+                        String uid = member.getUniqueIdentifier();
+                        if (uid == null) continue;
+
+                        if (uid.contains("sensor:rapiscan") || uid.contains("sensor:aspect") || uid.contains("sensor:rs350")) {
+                            rpmUid = uid;
+                            gammaCount = countObs(db, uid, "gammaCounts");
+                            neutronCount = countObs(db, uid, "neutronCounts");
+                        } else if (uid.contains("sensor:ffmpeg")) {
+                            ffmpegUid = uid;
+                            clipCount = countClipsOnDisk(uid);
+                        } else if (uid.contains("process:rs350-occupancy") || member.getClass().getSimpleName().contains("Occupancy")) {
+                            occupancyCount = countObs(db, uid, "occupancy");
+                        }
+                    }
+
+                    logger.info(String.format("| %-12s | %-30s | %-30s | %-10d | %-10d | %-10d | %-5d |",
+                            laneName,
+                            truncate(rpmUid, 30),
+                            truncate(ffmpegUid, 30),
+                            gammaCount,
+                            neutronCount,
+                            occupancyCount,
+                            clipCount));
+                }
+            }
+            logger.info("===============================================================================================================");
+        } catch (Exception e) {
+            logger.error("Error generating diagnostic table", e);
+        }
+    }
+
+    private long countObs(IObsSystemDatabase db, String systemUid, String outputName) {
+        try {
+            return db.getObservationStore().countMatchingEntries(new ObsFilter.Builder()
+                    .withDataStreams(new DataStreamFilter.Builder()
+                            .withSystems(new SystemFilter.Builder().withUniqueIDs(systemUid).build())
+                            .withOutputNames(outputName)
+                            .build())
+                    .build());
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private int countClipsOnDisk(String ffmpegUid) {
+        try {
+            // sanitize UID for filename
+            String dirName = ffmpegUid.replace(":", "-");
+            File clipsDir = new File("files/videos/clips/" + dirName);
+            if (clipsDir.exists() && clipsDir.isDirectory()) {
+                File[] files = clipsDir.listFiles((dir, name) -> name.endsWith(".mp4"));
+                return (files != null) ? files.length : 0;
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return 0;
+    }
+
+    private String truncate(String s, int n) {
+        if (s == null) return "";
+        return s.length() > n ? "..." + s.substring(s.length() - n + 3) : s;
     }
 
     @Override
@@ -176,6 +272,10 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
 
         if (videoRetention != null)
             videoRetention.stop();
+
+        if (diagnosticScheduler != null) {
+            diagnosticScheduler.shutdown();
+        }
 
         super.doStop();
     }
