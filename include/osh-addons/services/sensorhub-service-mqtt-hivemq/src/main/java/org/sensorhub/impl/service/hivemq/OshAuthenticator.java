@@ -52,7 +52,7 @@ public class OshAuthenticator implements SimpleAuthenticator
             {
                 var userID = authInput.getConnectPacket().getUserName().orElse(null);
                 var pwd = authInput.getConnectPacket().getPassword()
-                    .map(buf -> StandardCharsets.UTF_8.decode(buf).array())
+                    .map(buf -> StandardCharsets.UTF_8.decode(buf).toString().toCharArray())
                     .orElse(new char[0]);
                 
                 if ("__mqtt_ticket__".equals(userID)) {

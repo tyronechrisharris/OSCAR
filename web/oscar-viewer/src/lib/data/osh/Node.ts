@@ -42,7 +42,7 @@ export interface INode {
 
     getBasicAuthHeader(): any,
 
-    prepareMqtt(): Promise<void>,
+    prepareMqtt(): Promise<boolean>,
 
     fetchSystems(): Promise<any[]>,
 
@@ -189,8 +189,9 @@ export class Node implements INode {
         return this.networkProperties.mqttOpts;
     }
 
-    async prepareMqtt(): Promise<void> {
-        await this.ensureMqttTicket();
+    async prepareMqtt(): Promise<boolean> {
+        const ticket = await this.ensureMqttTicket();
+        return !!ticket;
     }
 
     private async ensureMqttTicket() {
@@ -216,7 +217,7 @@ export class Node implements INode {
                 });
 
                 if (!response.ok) {
-                    console.warn(`[MQTT Ticket] fetch failed with status ${response.status} for ${this.address}. Falling back to default credentials.`);
+                    console.warn(`[MQTT Ticket] fetch failed with status ${response.status} for ${this.address}.`);
                     return null;
                 }
 
@@ -577,8 +578,6 @@ export class Node implements INode {
             const dataStreams = await dataStreamCollection.nextPage();
             allDataStreams.push(...dataStreams);
         }
-
-        console.log(allDataStreams)
 
         for (const dataStream of allDataStreams) {
             for (const [, laneEntry] of laneMap) {
