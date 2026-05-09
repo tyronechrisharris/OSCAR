@@ -212,8 +212,8 @@ export class Node implements INode {
         return isValid;
     }
 
-    private async ensureMqttTicket() {
-        if (this.mqttTicket && new Date(this.mqttTicket.expiresAt).getTime() > Date.now() + 60000) {
+    private async ensureMqttTicket(force: boolean = false) {
+        if (!force && this.mqttTicket && new Date(this.mqttTicket.expiresAt).getTime() > Date.now() + 60000) {
             return this.mqttTicket;
         }
 
@@ -281,10 +281,10 @@ export class Node implements INode {
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
                 Object.assign(this.networkProperties.mqttOpts, {
-                    endpointUrl: endpointUrl,
+                    endpointUrl,
                     username: ticket.username,
                     password: ticket.password,
-                    mqttPath: mqttPath
+                    mqttPath
                 });
 
                 console.info("[MQTT Ticket] mqttOpts updated", {
@@ -296,7 +296,7 @@ export class Node implements INode {
                 // Schedule proactive refresh
                 if (this.mqttRefreshTimer) clearTimeout(this.mqttRefreshTimer);
                 this.mqttRefreshTimer = setTimeout(() => {
-                    this.ensureMqttTicket();
+                    this.ensureMqttTicket(true);
                 }, ticket.refreshAfterSeconds * 1000);
 
                 return this.mqttTicket;
