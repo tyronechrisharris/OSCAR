@@ -64,7 +64,7 @@ export default function DataSourceProvider({children}: { children: ReactNode }) 
                 if (!mqttReady) {
                     console.error(`[MQTT Init] FAILED to prepare MQTT ticket for node ${node.name}. Skipping live datasource creation.`);
                     nodeLaneMap.forEach((value: LaneMapEntry, key: string) => allLanes.set(key, value));
-                    continue;
+                    return;
                 }
 
                 for (const [key, mapEntry] of nodeLaneMap.entries()) {

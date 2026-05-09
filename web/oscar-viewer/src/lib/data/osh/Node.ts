@@ -190,8 +190,26 @@ export class Node implements INode {
     }
 
     async prepareMqtt(): Promise<boolean> {
-        const ticket = await this.ensureMqttTicket();
-        return !!ticket;
+        await this.ensureMqttTicket();
+        const opts = this.getMqttOpts();
+
+        const isValid =
+            opts.username === "__mqtt_ticket__" &&
+            !!opts.password &&
+            !!opts.endpointUrl &&
+            !!opts.mqttPath;
+
+        if (!isValid) {
+            console.warn(`[MQTT Init] Validation failed for node ${this.name}:`, {
+                hasUsername: !!opts.username,
+                isTicketUser: opts.username === "__mqtt_ticket__",
+                hasPassword: !!opts.password,
+                hasEndpoint: !!opts.endpointUrl,
+                hasMqttPath: !!opts.mqttPath
+            });
+        }
+
+        return isValid;
     }
 
     private async ensureMqttTicket() {
