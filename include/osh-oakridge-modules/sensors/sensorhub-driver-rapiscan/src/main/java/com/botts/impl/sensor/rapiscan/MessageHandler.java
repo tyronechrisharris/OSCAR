@@ -48,6 +48,9 @@ public class MessageHandler {
     int neutronMax;
     int gammaMax;
 
+    private final java.util.concurrent.atomic.AtomicLong messageCounter = new java.util.concurrent.atomic.AtomicLong(0);
+    private long lastLogTime = 0;
+
     private volatile long timeSinceLastMessage;
 
     private final InputStream msgIn;
@@ -193,6 +196,13 @@ public class MessageHandler {
     }
 
     void onNewMainChar(String mainChar, String[] csvLine) {
+        long count = messageCounter.incrementAndGet();
+        long now = System.currentTimeMillis();
+        if (now - lastLogTime > 60000) {
+            parentSensor.getLogger().info("[Rapiscan Driver] Heartbeat: received {} total messages for sensor {}", count, parentSensor.getUniqueIdentifier());
+            lastLogTime = now;
+        }
+
         if (parentSensor.getLogger().isDebugEnabled()) {
             parentSensor.getLogger().debug("[Rapiscan Raw] char={} line={}", mainChar, String.join(",", csvLine));
         }

@@ -253,7 +253,7 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
         
         // continue when streaming actually starts
         ctx.getStreamHandler().setStartCallback(() -> {
-            
+            ctx.getLogger().info("[ObsHandler] starting stream for URI {}", ctx.getRequestUrl());
             try
             {
                 // init binding and get datastream info
@@ -266,6 +266,7 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
             }
             catch (IOException e)
             {
+                ctx.getLogger().error("[ObsHandler] error initializing binding for {}", ctx.getRequestUrl(), e);
                 throw new IllegalStateException("Error initializing binding", e);
             }
         });
@@ -321,6 +322,7 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
             @Override
             public void onNext(ObsEvent event)
             {
+                ctx.getLogger().trace("[ObsHandler] received event for datastream {}", dsID);
                 for (var obs: event.getObservations())
                 {
                     if (foiIDs == null || foiIDs.contains(obs.getFoiID()))
@@ -342,10 +344,12 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
                     }
                     
                     binding.serialize(null, obs, false);
+                    ctx.getLogger().trace("[ObsHandler] sending observation packet for datastream {}", dsID);
                     streamHandler.sendPacket();
                 }
                 catch (IOException e)
                 {
+                    ctx.getLogger().warn("[ObsHandler] error sending packet for datastream {}: {}", dsID, e.getMessage());
                     subscription.cancel();
                     throw new CallbackException(e);
                 }

@@ -129,6 +129,7 @@ public class ConSysApiMqttConnector implements IMqttHandler
     {
         try
         {
+            servlet.getLogger().info("[MQTT Bridge] onSubscribe: topic={} user={}", topic, userID);
             // register new subscription if needed
             var sub = subscribers.compute(topic, (k, v) -> {
                 // create subscriber if needed
@@ -140,6 +141,7 @@ public class ConSysApiMqttConnector implements IMqttHandler
             // always evaluate request because we need to check for permissions
             // even if subscriber was already created
             var ctx = getResourceContext(topic, sub);
+            servlet.getLogger().info("[MQTT Bridge] parsed topic {} to URI {}", topic, ctx.getRequestUrl());
             servlet.getSecurityHandler().setCurrentUser(userID);
             servlet.getRootHandler().doGet(ctx);
             

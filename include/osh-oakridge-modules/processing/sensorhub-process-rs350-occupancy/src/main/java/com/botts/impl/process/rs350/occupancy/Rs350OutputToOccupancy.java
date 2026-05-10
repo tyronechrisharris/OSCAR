@@ -92,6 +92,8 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
     private boolean reportingDailyFile = false;
 
     private boolean hasStarted = false;
+    private final java.util.concurrent.atomic.AtomicLong eventCounter = new java.util.concurrent.atomic.AtomicLong(0);
+    private long lastLogTime = 0;
 
     // Will be "cheating" a bit: subscribing to datastreams here instead of using data queues and sml process
     // TODO: When creating an occupancy based on an alarm, make SURE that the category is Radiological.
@@ -236,6 +238,13 @@ public class Rs350OutputToOccupancy extends ExecutableProcessImpl implements ISe
 
     private void processDataEvent(ObsEvent event) {
         String outputName = event.getOutputName();
+        long count = eventCounter.incrementAndGet();
+        long now = System.currentTimeMillis();
+        if (now - lastLogTime > 60000) {
+            logger.info("[Rs350 Ingest] Heartbeat: received {} total events for system {}", count, inputSystemID);
+            lastLogTime = now;
+        }
+
         logger.trace("[Rs350 Ingest] received event {} for system {}", outputName, inputSystemID);
         if (!ALL_OUTPUTS.contains(outputName)) {
             logger.warn("[Rs350 Ingest] received data event for unknown output: {} for system {}", outputName, inputSystemID);

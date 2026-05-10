@@ -166,7 +166,7 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
         // Schedule diagnostic table logging
         diagnosticScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(
                 new org.sensorhub.utils.NamedThreadFactory("OSCAR-Diagnostics"));
-        diagnosticScheduler.schedule(this::logDiagnosticTable, 30, java.util.concurrent.TimeUnit.SECONDS);
+        diagnosticScheduler.scheduleAtFixedRate(this::logDiagnosticTable, 30, 300, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     private void logDiagnosticTable() {
@@ -197,11 +197,19 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
                             rpmUid = uid;
                             gammaCount = countObs(db, uid, "gammaCounts");
                             neutronCount = countObs(db, uid, "neutronCounts");
+
+                            checkMissingOutputs(laneName, uid, "gammaCounts", gammaCount);
+                            checkMissingOutputs(laneName, uid, "neutronCounts", neutronCount);
+                            checkMissingOutputs(laneName, uid, "alarm", countObs(db, uid, "alarm"));
+                            checkMissingOutputs(laneName, uid, "backgroundReport", countObs(db, uid, "backgroundReport"));
+                            checkMissingOutputs(laneName, uid, "foregroundReport", countObs(db, uid, "foregroundReport"));
+                            checkMissingOutputs(laneName, uid, "dailyFile", countObs(db, uid, "dailyFile"));
                         } else if (uid.contains("sensor:ffmpeg")) {
                             ffmpegUid = uid;
                             clipCount = countClipsOnDisk(uid);
                         } else if (uid.contains("process:rs350-occupancy") || member.getClass().getSimpleName().contains("Occupancy")) {
                             occupancyCount = countObs(db, uid, "occupancy");
+                            checkMissingOutputs(laneName, uid, "occupancy", occupancyCount);
                         }
                     }
 
@@ -221,6 +229,12 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
         }
     }
 
+    private void checkMissingOutputs(String laneName, String systemUid, String outputName, long count) {
+        if (count == 0) {
+            logger.warn("[OSCAR Diagnostic] Expected output {} is missing data for lane {} (system {})", outputName, laneName, systemUid);
+        }
+    }
+
     private long countObs(IObsSystemDatabase db, String systemUid, String outputName) {
         try {
             return db.getObservationStore().countMatchingEntries(new ObsFilter.Builder()
@@ -237,16 +251,30 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
     private int countClipsOnDisk(String ffmpegUid) {
         try {
             // sanitize UID for filename
-            String dirName = ffmpegUid.replace(":", "-");
-            File clipsDir = new File("files/videos/clips/" + dirName);
-            if (clipsDir.exists() && clipsDir.isDirectory()) {
-                File[] files = clipsDir.listFiles((dir, name) -> name.endsWith(".mp4"));
-                return (files != null) ? files.length : 0;
+            String prefix = ffmpegUid.replace(":", "-");
+            File clipsRoot = new File("files/videos/clips");
+            if (clipsRoot.exists() && clipsRoot.isDirectory()) {
+                return countFilesWithPrefixRecursively(clipsRoot, prefix);
             }
         } catch (Exception e) {
             // ignore
         }
         return 0;
+    }
+
+    private int countFilesWithPrefixRecursively(File dir, String prefix) {
+        int count = 0;
+        File[] entries = dir.listFiles();
+        if (entries != null) {
+            for (File entry : entries) {
+                if (entry.isDirectory()) {
+                    count += countFilesWithPrefixRecursively(entry, prefix);
+                } else if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".mp4")) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private String truncate(String s, int n) {
