@@ -270,12 +270,13 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
                 if (entry.isDirectory()) {
                     // Check if the directory name itself starts with the prefix (the new layout)
                     if (entry.getName().startsWith(prefix)) {
-                        count += countMp4InDir(entry);
+                        count += countAllFilesRecursively(entry);
+                    } else {
+                        count += countMatchingFilesRecursively(entry, prefix);
                     }
-                    count += countMatchingFilesRecursively(entry, prefix);
                 } else {
                     // Check if the file name starts with the prefix (the old layout or individual clips)
-                    if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".mp4")) {
+                    if (entry.getName().startsWith(prefix)) {
                         count++;
                     }
                 }
@@ -284,9 +285,19 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
         return count;
     }
 
-    private int countMp4InDir(File dir) {
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".mp4"));
-        return (files != null) ? files.length : 0;
+    private int countAllFilesRecursively(File dir) {
+        int count = 0;
+        File[] entries = dir.listFiles();
+        if (entries != null) {
+            for (File entry : entries) {
+                if (entry.isDirectory()) {
+                    count += countAllFilesRecursively(entry);
+                } else {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private String truncate(String s, int n) {

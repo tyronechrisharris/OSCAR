@@ -312,7 +312,8 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
                         .withLatestResult()
                         .build()).findFirst().ifPresent(latestObs -> {
                             latestObsTime = latestObs.getResultTime();
-                            sendObs(latestObs);
+                            var stats = statsMap.computeIfAbsent(dsID, k -> new DatastreamStats());
+                            sendObs(latestObs, stats);
                             needDedup = true;
                         });
                 }
