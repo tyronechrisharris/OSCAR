@@ -31,6 +31,7 @@ import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
 import com.botts.impl.system.lane.LaneSystem;
 import org.sensorhub.api.common.SensorHubException;
 import org.sensorhub.api.data.IDataProducerModule;
+import org.sensorhub.api.system.ISystemDriver;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
 import org.sensorhub.api.datastore.obs.ObsFilter;
@@ -190,8 +191,12 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
                     int clipCount = 0;
 
                     for (IModule<?> member : lane.getMembers().values()) {
-                        String uid = member.getUniqueIdentifier();
-                        if (uid == null) continue;
+                        String uid = null;
+                        if (member instanceof ISystemDriver systemDriver) {
+                            uid = systemDriver.getUniqueIdentifier();
+                        }
+
+                        if (uid == null || uid.isBlank()) continue;
 
                         if (uid.contains("sensor:rapiscan") || uid.contains("sensor:aspect") || uid.contains("sensor:rs350")) {
                             rpmUid = uid;
