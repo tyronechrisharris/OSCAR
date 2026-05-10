@@ -75,12 +75,16 @@ public class ConSysApiMqttConnector implements IMqttHandler
         @Override
         public void sendPacket() throws IOException
         {
+            if (servlet.getLogger().isInfoEnabled())
+                servlet.getLogger().info("[MQTT Bridge] sending packet: topic={} size={} bytes", topic, os.size());
             os.send();
         }
         
         @Override
         public void sendPacket(long correlId) throws IOException
         {
+            if (servlet.getLogger().isInfoEnabled())
+                servlet.getLogger().info("[MQTT Bridge] sending packet: topic={} correlId={} size={} bytes", topic, correlId, os.size());
             os.send(correlId);
         }
 

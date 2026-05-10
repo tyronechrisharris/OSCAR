@@ -250,11 +250,11 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
 
     private int countClipsOnDisk(String ffmpegUid) {
         try {
-            // sanitize UID for filename
+            // sanitize UID for prefix matching
             String prefix = ffmpegUid.replace(":", "-");
             File clipsRoot = new File("files/videos/clips");
             if (clipsRoot.exists() && clipsRoot.isDirectory()) {
-                return countFilesWithPrefixRecursively(clipsRoot, prefix);
+                return countMatchingFilesRecursively(clipsRoot, prefix);
             }
         } catch (Exception e) {
             // ignore
@@ -262,19 +262,31 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
         return 0;
     }
 
-    private int countFilesWithPrefixRecursively(File dir, String prefix) {
+    private int countMatchingFilesRecursively(File dir, String prefix) {
         int count = 0;
         File[] entries = dir.listFiles();
         if (entries != null) {
             for (File entry : entries) {
                 if (entry.isDirectory()) {
-                    count += countFilesWithPrefixRecursively(entry, prefix);
-                } else if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".mp4")) {
-                    count++;
+                    // Check if the directory name itself starts with the prefix (the new layout)
+                    if (entry.getName().startsWith(prefix)) {
+                        count += countMp4InDir(entry);
+                    }
+                    count += countMatchingFilesRecursively(entry, prefix);
+                } else {
+                    // Check if the file name starts with the prefix (the old layout or individual clips)
+                    if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".mp4")) {
+                        count++;
+                    }
                 }
             }
         }
         return count;
+    }
+
+    private int countMp4InDir(File dir) {
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".mp4"));
+        return (files != null) ? files.length : 0;
     }
 
     private String truncate(String s, int n) {

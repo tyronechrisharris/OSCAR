@@ -76,6 +76,14 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
     final SystemDatabaseTransactionHandler transactionHandler;
     final ScheduledExecutorService threadPool;
     final Map<String, CustomObsFormat> customFormats;
+    private final Map<BigId, DatastreamStats> statsMap = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class DatastreamStats {
+        final java.util.concurrent.atomic.AtomicLong eventCount = new java.util.concurrent.atomic.AtomicLong(0);
+        final java.util.concurrent.atomic.AtomicLong obsCount = new java.util.concurrent.atomic.AtomicLong(0);
+        final java.util.concurrent.atomic.AtomicLong packetCount = new java.util.concurrent.atomic.AtomicLong(0);
+        long lastLogTime = 0;
+    }
     
     
     public static class ObsHandlerContextData
@@ -322,15 +330,21 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
             @Override
             public void onNext(ObsEvent event)
             {
+                var stats = statsMap.computeIfAbsent(dsID, k -> new DatastreamStats());
+                stats.eventCount.incrementAndGet();
+
                 ctx.getLogger().trace("[ObsHandler] received event for datastream {}", dsID);
                 for (var obs: event.getObservations())
                 {
                     if (foiIDs == null || foiIDs.contains(obs.getFoiID()))
-                        sendObs(obs);
+                    {
+                        stats.obsCount.incrementAndGet();
+                        sendObs(obs, stats);
+                    }
                 }
             }
             
-            protected void sendObs(IObsData obs)
+            protected void sendObs(IObsData obs, DatastreamStats stats)
             {
                 try
                 {
@@ -346,6 +360,18 @@ public class ObsHandler extends BaseResourceHandler<BigId, IObsData, ObsFilter, 
                     binding.serialize(null, obs, false);
                     ctx.getLogger().trace("[ObsHandler] sending observation packet for datastream {}", dsID);
                     streamHandler.sendPacket();
+
+                    long pCount = stats.packetCount.incrementAndGet();
+                    long now = System.currentTimeMillis();
+                    synchronized (stats)
+                    {
+                        if (now - stats.lastLogTime > 60000)
+                        {
+                            ctx.getLogger().info("[ObsHandler] Datastream {} Heartbeat: events={}, observations={}, packetsSent={}",
+                                    dsID, stats.eventCount.get(), stats.obsCount.get(), pCount);
+                            stats.lastLogTime = now;
+                        }
+                    }
                 }
                 catch (IOException e)
                 {
