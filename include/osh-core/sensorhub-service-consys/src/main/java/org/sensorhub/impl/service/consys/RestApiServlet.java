@@ -561,9 +561,9 @@ public abstract class RestApiServlet extends HttpServlet
             if (forwardedProto != null && forwardedHost != null)
             {
                 // Construct root URL from forwarded headers to avoid internal port leakage
-                String contextPath = req.getContextPath();
-                String servletPath = req.getServletPath();
-                return forwardedProto + "://" + forwardedHost + contextPath + servletPath;
+                // We use the path from the configured rootUrl to ensure it's not lost
+                String path = rootUrl.replaceFirst("(?i)https?://[^/]+", "");
+                return forwardedProto + "://" + forwardedHost + path;
             }
         }
 

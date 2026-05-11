@@ -257,6 +257,9 @@ export class Node implements INode {
                     wsUrlString = `${protocol}//${window.location.host}${wsUrlString}`;
                 }
 
+                // Defensive fix: strip any trailing "null" from backend malformed URL
+                wsUrlString = wsUrlString.replace(/null(?=\/?$)/, '');
+
                 // Parse the URL and extract what osh-js expects (host + path without trailing /mqtt)
                 // URL API doesn't support ws: well, so temporary replacement for parsing
                 const parsedUrl = new URL(wsUrlString.replace(/^ws/i, 'http'));
@@ -276,7 +279,12 @@ export class Node implements INode {
                      targetHost = window.location.host;
                 }
 
-                const endpointUrl = targetHost + parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
+                let endpointPath = parsedUrl.pathname.replace(/\/mqtt\/?$/, '');
+                if (!endpointPath || endpointPath === '/') {
+                    endpointPath = this.oshPathRoot;
+                }
+
+                const endpointUrl = targetHost + endpointPath;
                 const mqttPath = ticket.wsPath || '/mqtt';
 
                 // Update the shared mqttOpts object so reconnects pick up new credentials
