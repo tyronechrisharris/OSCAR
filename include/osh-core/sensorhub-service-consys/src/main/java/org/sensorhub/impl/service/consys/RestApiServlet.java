@@ -555,15 +555,18 @@ public abstract class RestApiServlet extends HttpServlet
     {
         if (req != null)
         {
-            String forwardedProto = req.getHeader("X-Forwarded-Proto");
-            String forwardedHost = req.getHeader("X-Forwarded-Host");
+            String proto = req.getHeader("X-Forwarded-Proto");
+            if (proto == null) proto = req.getScheme();
 
-            if (forwardedProto != null && forwardedHost != null)
+            String host = req.getHeader("X-Forwarded-Host");
+            if (host == null) host = req.getHeader("Host");
+
+            if (proto != null && host != null)
             {
-                // Construct root URL from forwarded headers to avoid internal port leakage
+                // Construct root URL from headers to avoid internal port leakage
                 // We use the path from the configured rootUrl to ensure it's not lost
                 String path = rootUrl.replaceFirst("(?i)https?://[^/]+", "");
-                return forwardedProto + "://" + forwardedHost + path;
+                return proto + "://" + host + path;
             }
         }
 
