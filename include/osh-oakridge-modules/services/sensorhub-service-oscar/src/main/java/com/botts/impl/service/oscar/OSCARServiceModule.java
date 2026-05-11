@@ -28,13 +28,19 @@ import com.botts.impl.service.oscar.video.VideoRetention;
 import org.sensorhub.impl.utils.rad.interfaces.IWebIdProvider;
 import org.sensorhub.impl.utils.rad.webid.WebIdClient;
 import com.botts.impl.service.oscar.webid.WebIdResourceHandler;
+import com.botts.impl.system.lane.LaneSystem;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.data.IDataProducerModule;
+import org.sensorhub.api.system.ISystemDriver;
 import org.sensorhub.api.database.IObsSystemDatabase;
 import org.sensorhub.api.datastore.obs.DataStreamFilter;
 import org.sensorhub.api.datastore.obs.ObsFilter;
+import org.sensorhub.api.datastore.system.SystemFilter;
+import org.sensorhub.api.module.IModule;
 import org.sensorhub.api.module.ModuleEvent;
 import org.sensorhub.impl.module.AbstractModule;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +62,7 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
     VideoRetention videoRetention;
     DatabasePurger databasePurger;
     WebIdResourceHandler webIdResourceHandler;
+    private java.util.concurrent.ScheduledExecutorService diagnosticScheduler;
 
     @Override
     protected void doInit() throws SensorHubException {
@@ -156,6 +163,151 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
 
         if (videoRetention != null)
             videoRetention.start();
+
+        // Schedule diagnostic table logging
+        diagnosticScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(
+                new org.sensorhub.utils.NamedThreadFactory("OSCAR-Diagnostics"));
+        diagnosticScheduler.scheduleAtFixedRate(this::logDiagnosticTable, 30, 300, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    private void logDiagnosticTable() {
+        try {
+            logger.info("========================================= OSCAR PIPELINE DIAGNOSTICS =========================================");
+            logger.info(String.format("| %-12s | %-30s | %-30s | %-10s | %-10s | %-10s | %-5s |",
+                    "Lane", "RPM UID", "FFmpeg UID", "Gamma Obs", "Neutr Obs", "Occ Obs", "Clips"));
+            logger.info("---------------------------------------------------------------------------------------------------------------");
+
+            IObsSystemDatabase db = getParentHub().getDatabaseRegistry().getFederatedDatabase();
+            var modules = getParentHub().getModuleRegistry().getLoadedModules();
+
+            for (IModule<?> module : modules) {
+                if (module instanceof LaneSystem lane) {
+                    String laneName = lane.getName();
+                    String rpmUid = "N/A";
+                    String ffmpegUid = "N/A";
+                    long gammaCount = 0;
+                    long neutronCount = 0;
+                    long occupancyCount = 0;
+                    int clipCount = 0;
+
+                    for (IModule<?> member : lane.getMembers().values()) {
+                        String uid = null;
+                        if (member instanceof ISystemDriver systemDriver) {
+                            uid = systemDriver.getUniqueIdentifier();
+                        }
+
+                        if (uid == null || uid.isBlank()) continue;
+
+                        if (uid.contains("sensor:rapiscan") || uid.contains("sensor:aspect") || uid.contains("sensor:rs350")) {
+                            rpmUid = uid;
+                            gammaCount = countObs(db, uid, "gammaCounts");
+                            neutronCount = countObs(db, uid, "neutronCounts");
+
+                            checkMissingOutputs(laneName, uid, "gammaCounts", gammaCount);
+                            checkMissingOutputs(laneName, uid, "neutronCounts", neutronCount);
+                            checkMissingOutputs(laneName, uid, "alarm", countObs(db, uid, "alarm"));
+                            checkMissingOutputs(laneName, uid, "backgroundReport", countObs(db, uid, "backgroundReport"));
+                            checkMissingOutputs(laneName, uid, "foregroundReport", countObs(db, uid, "foregroundReport"));
+                            checkMissingOutputs(laneName, uid, "dailyFile", countObs(db, uid, "dailyFile"));
+                        } else if (uid.contains("sensor:ffmpeg")) {
+                            ffmpegUid = uid;
+                            clipCount = countClipsOnDisk(uid);
+                        } else if (uid.contains("process:rs350-occupancy") || member.getClass().getSimpleName().contains("Occupancy")) {
+                            occupancyCount = countObs(db, uid, "occupancy");
+                            checkMissingOutputs(laneName, uid, "occupancy", occupancyCount);
+                        }
+                    }
+
+                    logger.info(String.format("| %-12s | %-30s | %-30s | %-10d | %-10d | %-10d | %-5d |",
+                            laneName,
+                            truncate(rpmUid, 30),
+                            truncate(ffmpegUid, 30),
+                            gammaCount,
+                            neutronCount,
+                            occupancyCount,
+                            clipCount));
+                }
+            }
+            logger.info("===============================================================================================================");
+        } catch (Exception e) {
+            logger.error("Error generating diagnostic table", e);
+        }
+    }
+
+    private void checkMissingOutputs(String laneName, String systemUid, String outputName, long count) {
+        if (count == 0) {
+            logger.warn("[OSCAR Diagnostic] Expected output {} is missing data for lane {} (system {})", outputName, laneName, systemUid);
+        }
+    }
+
+    private long countObs(IObsSystemDatabase db, String systemUid, String outputName) {
+        try {
+            return db.getObservationStore().countMatchingEntries(new ObsFilter.Builder()
+                    .withDataStreams(new DataStreamFilter.Builder()
+                            .withSystems(new SystemFilter.Builder().withUniqueIDs(systemUid).build())
+                            .withOutputNames(outputName)
+                            .build())
+                    .build());
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private int countClipsOnDisk(String ffmpegUid) {
+        try {
+            // sanitize UID for prefix matching
+            String prefix = ffmpegUid.replace(":", "-");
+            File clipsRoot = new File("files/videos/clips");
+            if (clipsRoot.exists() && clipsRoot.isDirectory()) {
+                return countMatchingFilesRecursively(clipsRoot, prefix);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return 0;
+    }
+
+    private int countMatchingFilesRecursively(File dir, String prefix) {
+        int count = 0;
+        File[] entries = dir.listFiles();
+        if (entries != null) {
+            for (File entry : entries) {
+                if (entry.isDirectory()) {
+                    // Check if the directory name itself starts with the prefix (the new layout)
+                    if (entry.getName().startsWith(prefix)) {
+                        count += countAllFilesRecursively(entry);
+                    } else {
+                        count += countMatchingFilesRecursively(entry, prefix);
+                    }
+                } else {
+                    // Check if the file name starts with the prefix (the old layout or individual clips)
+                    if (entry.getName().startsWith(prefix)) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    private int countAllFilesRecursively(File dir) {
+        int count = 0;
+        File[] entries = dir.listFiles();
+        if (entries != null) {
+            for (File entry : entries) {
+                if (entry.isDirectory()) {
+                    count += countAllFilesRecursively(entry);
+                } else {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private String truncate(String s, int n) {
+        if (s == null) return "";
+        return s.length() > n ? "..." + s.substring(s.length() - n + 3) : s;
     }
 
     @Override
@@ -176,6 +328,10 @@ public class OSCARServiceModule extends AbstractModule<OSCARServiceConfig> imple
 
         if (videoRetention != null)
             videoRetention.stop();
+
+        if (diagnosticScheduler != null) {
+            diagnosticScheduler.shutdown();
+        }
 
         super.doStop();
     }

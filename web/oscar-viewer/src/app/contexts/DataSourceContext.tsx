@@ -60,9 +60,22 @@ export default function DataSourceProvider({children}: { children: ReactNode }) 
                 await node.fetchDataStreams(nodeLaneMap);
                 await node.fetchLaneControlStreams(nodeLaneMap);
 
+                const mqttReady = await node.prepareMqtt();
+                if (!mqttReady) {
+                    console.error(`[MQTT Init] FAILED to prepare MQTT ticket for node ${node.name}. Skipping live datasource creation.`);
+                    nodeLaneMap.forEach((value: LaneMapEntry, key: string) => allLanes.set(key, value));
+                    return;
+                }
 
                 for (const [key, mapEntry] of nodeLaneMap.entries()) {
                     try {
+                        const mqttOpts = node.getMqttOpts();
+                        console.info(`[MQTT Init] creating datasources for ${key} on ${node.name}`, {
+                            endpointUrl: mqttOpts?.endpointUrl,
+                            username: mqttOpts?.username,
+                            mqttPath: mqttOpts?.mqttPath,
+                            hasPassword: !!mqttOpts?.password
+                        });
                         mapEntry.addDefaultConSysApis();
                     } catch (e) {
                         console.error(`[ERROR] addDefaultConSysApis failed for ${key}:`, e);

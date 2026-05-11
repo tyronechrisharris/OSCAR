@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- **HMAC-SHA256 MQTT Ticket System**: Replaced the per-datasource proxy-token model with a centralized, short-lived signed ticket system. Tickets are HMAC-SHA256 signed and include proactive refresh logic in the frontend for continuous telemetry availability.
+- **HMAC-SHA256 MQTT Ticket System**: Replaced the per-datasource proxy-token model with a centralized, short-lived signed ticket system. Tickets are HMAC-SHA256 signed at the connector level, significantly improving performance for high-density deployments (50+ lanes).
+- **Reverse Proxy URL Hardening**: Fixed a critical bug in `getApiRootURL()` that caused internal port leakage and context loss when deployed behind a reverse proxy; the system now correctly honors `X-Forwarded-*` headers while preserving the `/sensorhub/api` path.
+- **Frontend MQTT Resiliency**: Implemented defensive URL parsing in `Node.ts` to handle malformed backend ticket responses and ensures valid MQTT credentials are fully prepared before initializing telemetry streams.
 - **RS350 Support**: Full end-to-end support for RS350 RPMs, including spreadsheet parsing/serialization, statistics counting for gamma/neutron alarms, and high-volume data retention.
 - **PostGIS CQL Guards**: Hardened CQL filtering targeting JSONB fields with `jsonb_typeof` guards to prevent cast errors and ensure correct inequality matching for missing fields.
 - **Hybrid Ingress Support**: Implemented a resilient dual-ingress proxy architecture using Docker Compose profiles (`mesh` and `lan-only`). The system now supports secure direct HTTPS access over the Local Area Network (LAN) using dynamically generated PEM certificates, while maintaining the primary Tailscale mesh.

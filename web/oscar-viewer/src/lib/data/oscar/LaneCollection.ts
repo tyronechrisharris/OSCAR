@@ -132,6 +132,15 @@ export class LaneMapEntry {
     addDefaultConSysApis() {
         this.resetDatasources();
 
+        const mqttOpts = this.parentNode.getMqttOpts();
+        if (mqttOpts.username !== "__mqtt_ticket__" || !mqttOpts.password) {
+            console.error(`[MQTT Guard] Refusing to create datasources for lane ${this.laneName}: Missing or invalid MQTT ticket credentials.`, {
+                username: mqttOpts.username,
+                hasPassword: !!mqttOpts.password
+            });
+            return;
+        }
+
         let rtArray: any[] = [];
         let batchArray: any[] = [];
 
@@ -181,6 +190,10 @@ export class LaneMapEntry {
     }
 
     createRealTimeConSysApi(stream: typeof DataStream | typeof ControlStream) {
+        const mqttOpts = this.parentNode.getMqttOpts();
+        if (mqttOpts.username !== "__mqtt_ticket__" || !mqttOpts.password) {
+            throw new Error(`[MQTT Guard] Refusing to create RealTime datasource: Missing or invalid MQTT ticket credentials.`);
+        }
         return new ConSysApi(`rtds - ${stream.properties.name}`, {
             endpointUrl: stream.networkProperties.endpointUrl,
             resource:  typeof stream == DataStream ? `/datastreams/${stream.properties.id}/observations` : `/controlstreams/${stream.properties.id}/status`,
@@ -188,14 +201,18 @@ export class LaneMapEntry {
             protocol: 'mqtt',
             mode: Mode.REAL_TIME,
             responseFormat: 'application/json',
-            mqttOpts: this.parentNode.getMqttOpts(),
+            mqttOpts: mqttOpts,
         });
     }
 
     createReplayConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
+        const mqttOpts = this.parentNode.getMqttOpts();
+        if (mqttOpts.username !== "__mqtt_ticket__" || !mqttOpts.password) {
+            throw new Error(`[MQTT Guard] Refusing to create Replay datasource: Missing or invalid MQTT ticket credentials.`);
+        }
         return new ConSysApi(`rtds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: this.parentNode.getMqttOpts(),
+            mqttOpts: mqttOpts,
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
@@ -207,9 +224,13 @@ export class LaneMapEntry {
     }
 
     createBatchConSysApiFromDataStream(datastream: typeof DataStream, startTime: string, endTime: string) {
+        const mqttOpts = this.parentNode.getMqttOpts();
+        if (mqttOpts.username !== "__mqtt_ticket__" || !mqttOpts.password) {
+            throw new Error(`[MQTT Guard] Refusing to create Batch datasource: Missing or invalid MQTT ticket credentials.`);
+        }
         return new ConSysApi(`batchds-${datastream.properties.id}`, {
             protocol: 'mqtt',
-            mqttOpts: this.parentNode.getMqttOpts(),
+            mqttOpts: mqttOpts,
             endpointUrl: datastream.networkProperties.endpointUrl,
             resource: `/datastreams/${datastream.properties.id}/observations`,
             tls: datastream.networkProperties.tls,
@@ -233,7 +254,7 @@ export class LaneMapEntry {
 
     findDataStreamByObsProperty(obsProperty: string) {
         let stream: typeof DataStream = this.datastreams.find((ds) => {
-            let hasProp = ds.properties.observedProperties.some((prop: any) => prop.definition === obsProperty)
+            let hasProp = ds.properties.observedProperties.some((prop: any) => prop.definition?.includes(obsProperty))
             return hasProp;
         });
         return stream;

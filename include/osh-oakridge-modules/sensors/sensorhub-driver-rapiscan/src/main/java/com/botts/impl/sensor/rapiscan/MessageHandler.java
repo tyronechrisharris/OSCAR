@@ -48,6 +48,9 @@ public class MessageHandler {
     int neutronMax;
     int gammaMax;
 
+    private final java.util.concurrent.atomic.AtomicLong messageCounter = new java.util.concurrent.atomic.AtomicLong(0);
+    private long lastLogTime = 0;
+
     private volatile long timeSinceLastMessage;
 
     private final InputStream msgIn;
@@ -193,6 +196,16 @@ public class MessageHandler {
     }
 
     void onNewMainChar(String mainChar, String[] csvLine) {
+        long count = messageCounter.incrementAndGet();
+        long now = System.currentTimeMillis();
+        if (now - lastLogTime > 60000) {
+            parentSensor.getLogger().info("[Rapiscan Driver] Heartbeat: received {} total messages for sensor {}", count, parentSensor.getUniqueIdentifier());
+            lastLogTime = now;
+        }
+
+        if (parentSensor.getLogger().isDebugEnabled()) {
+            parentSensor.getLogger().debug("[Rapiscan Raw] char={} line={}", mainChar, String.join(",", csvLine));
+        }
 
         // Add scan data for EML service. Background and other data gives EML context, so we must show EML everything until end of occupancy
         if (parentSensor.getConfiguration().emlConfig.emlEnabled && !mainChar.equals("GB") && !mainChar.equals("NB")) {
@@ -227,6 +240,7 @@ public class MessageHandler {
 
             // --------------- OCCUPIED
             case "GA":
+                if (!currentOccupancy) parentSensor.getLogger().info("[Rapiscan Driver] Occupancy start detected (GA) for sensor {}", parentSensor.getUniqueIdentifier());
                 gammaScanRunningSumBatch.addLast(csvLine);
                 if (!currentOccupancy) {
                     occupancyStartTime = System.currentTimeMillis();
@@ -246,6 +260,7 @@ public class MessageHandler {
                 break;
 
             case "GS":
+                if (!currentOccupancy) parentSensor.getLogger().info("[Rapiscan Driver] Occupancy start detected (GS) for sensor {}", parentSensor.getUniqueIdentifier());
                 gammaScanRunningSumBatch.addLast(csvLine);
                 //usually the foreground value will switch to "GA" in an alarm state
                 if (!currentOccupancy) {
@@ -266,6 +281,7 @@ public class MessageHandler {
 
             case "NA":
                 if (!currentOccupancy) {
+                    parentSensor.getLogger().info("[Rapiscan Driver] Occupancy start detected (NA) for sensor {}", parentSensor.getUniqueIdentifier());
                     occupancyStartTime = System.currentTimeMillis();
                     currentOccupancy = true;
 
@@ -283,6 +299,7 @@ public class MessageHandler {
 
             case "NS":
                 if (!currentOccupancy) {
+                    parentSensor.getLogger().info("[Rapiscan Driver] Occupancy start detected (NS) for sensor {}", parentSensor.getUniqueIdentifier());
                     occupancyStartTime = System.currentTimeMillis();
                     currentOccupancy = true;
                 } else {
@@ -297,6 +314,7 @@ public class MessageHandler {
                 break;
 
             case "GX":
+                parentSensor.getLogger().info("[Rapiscan Driver] Occupancy end detected (GX) for sensor {}", parentSensor.getUniqueIdentifier());
                 occupancyEndTime = System.currentTimeMillis();
                 gammaMax = getGammaMax(occupancyGammaBatch);
                 neutronMax = Collections.max(occupancyNeutronBatch);
