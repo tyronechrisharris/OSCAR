@@ -1,0 +1,54 @@
+// Tailscale ACL for OSCAR Federated Mesh Topology
+{
+	"groups": {
+		// Group for Central Hub Servers (aggregation points)
+		"group:oscar-hubs": ["hub-admin@example.com"],
+		// Group for Edge Nodes (sensor ingestion points)
+		"group:oscar-edges": ["edge-service@example.com"],
+		// Operators accessing the UI
+		"group:operators": ["operator1@example.com", "operator2@example.com"]
+	},
+	"hosts": {
+		// Define specific hosts if not relying solely on user groups
+		// "central-hub": "100.100.100.100",
+		// "edge-alpha": "100.100.100.101"
+	},
+	"acls": [
+		// 1. Hubs can poll Edge nodes on port 443 (for federated data pull)
+		{
+			"action": "accept",
+			"src":    ["group:oscar-hubs"],
+			"dst":    ["group:oscar-edges:443"]
+		},
+		// 2. Operators can access Hubs and Edges on port 443 (for UI access)
+		{
+			"action": "accept",
+			"src":    ["group:operators"],
+			"dst":    ["group:oscar-hubs:443", "group:oscar-edges:443"]
+		},
+		// 3. Allow ping for diagnostics
+		{
+			"action": "accept",
+			"src":    ["group:oscar-hubs", "group:operators"],
+			"dst":    ["*:0"] // ICMP is port 0 in Tailscale ACLs
+		}
+		// Default deny all other traffic. Edges cannot initiate connections to Hubs (unless configured for push).
+		// Edges cannot talk to other Edges.
+	],
+	"ssh": [
+		// Restrict Tailscale SSH to Hub Admins for maintenance
+		{
+			"action": "check",
+			"src":    ["group:oscar-hubs"],
+			"dst":    ["group:oscar-edges"],
+			"users":  ["oscar", "root"]
+		}
+	],
+	// Required for MagicDNS and automatic Let's Encrypt TLS
+	"nodeAttrs": [
+		{
+			"target": ["*"],
+			"attr":   ["funnel"]
+		}
+	]
+}

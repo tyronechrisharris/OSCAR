@@ -33,40 +33,17 @@ public class PostgisBatchObsStoreImpl extends PostgisObsStoreImpl {
         super.init(url, dbName, login, password, initScripts);
         this.connectionManager.enableBatch(BATCH_SIZE);
     }
-
     @Override
     public BigId add(IObsData obs) {
-        DataStreamKey dataStreamKey = new DataStreamKey(obs.getDataStreamID());
-        if (!dataStreamStore.containsKey(dataStreamKey))
-            throw new IllegalStateException("Unknown datastream with ID: " + obs.getDataStreamID().getIdAsLong());
-
-        BigId id  = BigId.fromLong(idScope, idProvider.newInternalID(obs));
-        try {
-            String sqlQuery = fillAddStatement(id, dataStreamKey.getInternalID().getIdAsLong(),obs);
-            this.connectionManager.addBatch(sqlQuery);
-            this.connectionManager.tryCommit();
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot insert obs=" + obs);
-        }
-        return id;
+        // Fall back to secure PreparedStatement-based add from PostgisObsStoreImpl
+        // rather than using insecure String-based batching.
+        return super.add(obs);
     }
 
     @Override
     public IObsData remove(Object o) {
-        if (!(o instanceof BigId)) {
-            throw new UnsupportedOperationException("Remove operation is not supported with argument != BigId key, got=" + o.getClass());
-        }
-        BigId key = (BigId) o;
-        IObsData data = this.get(o);
-
-        try {
-            logger.debug("Remove Obs with key={}", key);
-            String sqlQuery = queryBuilder.removeByIdQuery().replace("?",key.getIdAsLong()+"");
-            this.connectionManager.addBatch(sqlQuery);
-            this.connectionManager.tryCommit();
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot remove obs " + data.toString());
-        }
-        return data;
+        // Fall back to secure PreparedStatement-based remove from PostgisObsStoreImpl
+        // rather than using insecure String-based batching.
+        return super.remove(o);
     }
 }

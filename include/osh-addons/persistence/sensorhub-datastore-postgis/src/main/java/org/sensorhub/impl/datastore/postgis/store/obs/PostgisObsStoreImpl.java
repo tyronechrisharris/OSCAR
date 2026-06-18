@@ -15,7 +15,6 @@ package org.sensorhub.impl.datastore.postgis.store.obs;
 
 import com.google.common.collect.Range;
 import net.opengis.swe.v20.DataBlock;
-import org.apache.commons.text.StringSubstitutor;
 import org.postgresql.util.PGobject;
 import org.sensorhub.api.common.BigId;
 import org.sensorhub.api.data.IDataStreamInfo;
@@ -166,54 +165,6 @@ public class PostgisObsStoreImpl extends PostgisStore<QueryBuilderObsStore> impl
         return this.dataStreamStore;
     }
 
-    public String fillAddStatement(BigId id,long dataStreamKey, IObsData obs) throws SQLException {
-        Map<String, Object> values = new HashMap<>();
-        values.put("1", id.getIdAsLong());
-
-        // datastreamid
-        values.put("2", dataStreamKey);
-        values.put("7", dataStreamKey);
-
-        // insert foiId if any
-        if (obs.hasFoi()) {
-            values.put("3", obs.getFoiID().getIdAsLong());
-            values.put("8", obs.getFoiID().getIdAsLong());
-        } else {
-            values.put("3", "NULL");
-            values.put("8", "NULL");
-        }
-
-        // insert timestamp
-        if (obs.getPhenomenonTime() != null) {
-            String d = PostgisUtils.getPgDate(obs.getPhenomenonTime());
-            values.put("4", "'"+d+"'");
-            values.put("9", "'"+d+"'");
-        } else {
-            values.put("4", "NULL");
-            values.put("9", "NULL");
-        }
-
-        if (obs.getResultTime() != null) {
-            String d = PostgisUtils.getPgDate(obs.getResultTime());
-            values.put("5", "'"+d+"'");
-            values.put("10", "'"+d+"'");
-        } else {
-            values.put("5", "NULL");
-            values.put("10", "NULL");
-        }
-        // insert DataBlock
-        IDataStreamInfo dataStreamInfo = dataStreamStore.get(new DataStreamKey(obs.getDataStreamID()));
-        String serializedBlock = SerializerUtils.writeDataBlockToJson(dataStreamInfo.getRecordStructure(),
-                dataStreamInfo.getRecordEncoding(), obs.getResult());
-
-        // Escape single quotes for safe SQL interpolation (used by batch path)
-        String escapedBlock = serializedBlock.replace("'", "''");
-        values.put("6", "'"+escapedBlock+"'");
-
-        String query = queryBuilder.insertObsQuery();
-        StringSubstitutor sub = new StringSubstitutor(values);
-        return sub.replace(query);
-    }
 
     @Override
     public BigId add(IObsData obs) {

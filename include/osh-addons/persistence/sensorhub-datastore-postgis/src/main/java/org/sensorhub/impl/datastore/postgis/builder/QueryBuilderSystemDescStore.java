@@ -72,7 +72,7 @@ public class QueryBuilderSystemDescStore extends QueryBuilderBaseFeatureStore<IS
 
     public String addOrUpdateByIdQuery() {
         return this.insertFeatureByIdQuery()+" ON CONFLICT ((data->>'uniqueId'), "+VALID_TIME +") DO "+
-                "UPDATE SET "+GEOMETRY+" = (${6}), " +VALID_TIME+" = (${7}), data = (${8})  ";
+                "UPDATE SET "+GEOMETRY+" = ?::bytea, " +VALID_TIME+" = ?::tsrange, data = ?::jsonb  ";
     }
 
     @Override
